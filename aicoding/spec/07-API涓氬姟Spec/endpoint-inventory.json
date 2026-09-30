@@ -1,0 +1,1437 @@
+[
+  {
+    "method": "POST",
+    "path": "/auth/login",
+    "auth_or_permission": "Public",
+    "business_logic": "校验管理员状态、密码、锁定状态；成功创建 session，失败累计失败次数并写 Security Log |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/refresh",
+    "auth_or_permission": "Auth",
+    "business_logic": "校验 refresh token hash、session 状态和过期时间，轮换 token |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/logout",
+    "auth_or_permission": "Auth",
+    "business_logic": "当前 session 撤销 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/auth/me",
+    "auth_or_permission": "Auth",
+    "business_logic": "返回当前管理员基本信息、角色、权限摘要 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/auth/permissions",
+    "auth_or_permission": "Auth",
+    "business_logic": "计算当前用户最终权限集合、页面/菜单/按钮/API/字段/数据范围 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/change-password",
+    "auth_or_permission": "Auth",
+    "business_logic": "校验旧密码、密码策略、历史5次，更新密码并清理/撤销要求变更状态 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/reset-password",
+    "auth_or_permission": "Admin",
+    "business_logic": "管理员重置目标用户密码并设置 must_change_password=true |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/users",
+    "auth_or_permission": "USER_VIEW",
+    "business_logic": "按 data scope 查询 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/users",
+    "auth_or_permission": "USER_CREATE",
+    "business_logic": "校验创建者 scope、部门、角色可授予范围；创建用户；must_change_password=true |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/users/{id}",
+    "auth_or_permission": "USER_VIEW",
+    "business_logic": "scope 校验后返回详情 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/users/{id}",
+    "auth_or_permission": "USER_EDIT",
+    "business_logic": "scope 校验；更新允许字段 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/users/{id}",
+    "auth_or_permission": "USER_DELETE",
+    "business_logic": "逻辑删除；禁止删除最后可用 SUPER_ADMIN |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/users/{id}/enable",
+    "auth_or_permission": "USER_EDIT",
+    "business_logic": "启用 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/users/{id}/disable",
+    "auth_or_permission": "USER_EDIT",
+    "business_logic": "禁用；不得造成无可用 SUPER_ADMIN |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/users/{id}/reset-password",
+    "auth_or_permission": "USER_RESET_PASSWORD",
+    "business_logic": "重置并强制改密 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/users/{id}/roles",
+    "auth_or_permission": "ROLE_VIEW",
+    "business_logic": "返回角色 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/users/{id}/roles",
+    "auth_or_permission": "ROLE_ASSIGN",
+    "business_logic": "先验证可管理目标，再验证每个 role 是否可授予 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/users/{id}/department",
+    "auth_or_permission": "USER_EDIT",
+    "business_logic": "验证目标部门在操作者可管理范围 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/users/{id}/sessions",
+    "auth_or_permission": "SESSION_VIEW",
+    "business_logic": "查看目标用户 session，必须过 data scope |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/users/{id}/force-logout",
+    "auth_or_permission": "SESSION_REVOKE",
+    "business_logic": "SUPER_ADMIN 可处理普通用户；其他管理员仅 scope 内用户；禁止踢 SUPER_ADMIN |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/users/online",
+    "auth_or_permission": "SESSION_VIEW",
+    "business_logic": "查询在线 session 聚合 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/departments/tree",
+    "auth_or_permission": "DEPARTMENT_VIEW",
+    "business_logic": "返回树 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/departments",
+    "auth_or_permission": "DEPARTMENT_VIEW",
+    "business_logic": "分页 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/departments",
+    "auth_or_permission": "DEPARTMENT_CREATE",
+    "business_logic": "校验 parent scope，创建 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/departments/{id}",
+    "auth_or_permission": "DEPARTMENT_VIEW",
+    "business_logic": "scope 校验 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/departments/{id}",
+    "auth_or_permission": "DEPARTMENT_EDIT",
+    "business_logic": "防止形成循环 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/departments/{id}",
+    "auth_or_permission": "DEPARTMENT_DELETE",
+    "business_logic": "必须无有效子部门/用户或按冻结规则处理 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/departments/{id}/children",
+    "auth_or_permission": "DEPARTMENT_VIEW",
+    "business_logic": "descendants |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/departments/{id}/users",
+    "auth_or_permission": "USER_VIEW",
+    "business_logic": "scope 下用户 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/roles",
+    "auth_or_permission": "ROLE_VIEW",
+    "business_logic": "查询 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/roles",
+    "auth_or_permission": "ROLE_CREATE",
+    "business_logic": "创建 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/roles/{id}",
+    "auth_or_permission": "ROLE_VIEW",
+    "business_logic": "详情 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/roles/{id}",
+    "auth_or_permission": "ROLE_EDIT",
+    "business_logic": "更新 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/roles/{id}",
+    "auth_or_permission": "ROLE_DELETE",
+    "business_logic": "删除前检查绑定 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/roles/{id}/permissions",
+    "auth_or_permission": "ROLE_PERMISSION_EDIT",
+    "business_logic": "保存权限资源 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/roles/{id}/permissions",
+    "auth_or_permission": "ROLE_VIEW",
+    "business_logic": "查询 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/roles/{id}/parents",
+    "auth_or_permission": "ROLE_INHERIT_EDIT",
+    "business_logic": "配置继承；SQL规则未冻结时 BLOCKER |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/roles/{id}/parents",
+    "auth_or_permission": "ROLE_VIEW",
+    "business_logic": "查询继承 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/permissions/tree",
+    "auth_or_permission": "PERMISSION_VIEW",
+    "business_logic": "返回 Page/Menu/Button/API/Field 资源树 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/permissions/resources",
+    "auth_or_permission": "PERMISSION_VIEW",
+    "business_logic": "查询资源 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/permissions/resources",
+    "auth_or_permission": "PERMISSION_RESOURCE_EDIT",
+    "business_logic": "创建资源；这是 CONFLICT-001 的冻结点 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/permissions/resources/{id}",
+    "auth_or_permission": "PERMISSION_RESOURCE_EDIT",
+    "business_logic": "更新 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/permissions/resources/{id}",
+    "auth_or_permission": "PERMISSION_RESOURCE_EDIT",
+    "business_logic": "删除前检查引用 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/dictionaries/types",
+    "auth_or_permission": "DICT_VIEW",
+    "business_logic": "查询类型 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/dictionaries/types",
+    "auth_or_permission": "DICT_EDIT",
+    "business_logic": "创建 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/dictionaries/types/{id}",
+    "auth_or_permission": "DICT_EDIT",
+    "business_logic": "更新 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/dictionaries/types/{id}",
+    "auth_or_permission": "DICT_EDIT",
+    "business_logic": "逻辑删除 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/dictionaries/types/{id}/items",
+    "auth_or_permission": "DICT_VIEW",
+    "business_logic": "查询项 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/dictionaries/types/{id}/items",
+    "auth_or_permission": "DICT_EDIT",
+    "business_logic": "创建项并检查同类型 value 唯一 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/dictionaries/items/{id}",
+    "auth_or_permission": "DICT_EDIT",
+    "business_logic": "更新 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/dictionaries/items/{id}",
+    "auth_or_permission": "DICT_EDIT",
+    "business_logic": "逻辑删除 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/config",
+    "auth_or_permission": "CONFIG_VIEW",
+    "business_logic": "查询非 secret 配置 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/config/{key}",
+    "auth_or_permission": "CONFIG_EDIT",
+    "business_logic": "修改并 Audit |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/feature-flags",
+    "auth_or_permission": "FEATURE_FLAG_VIEW",
+    "business_logic": "查询 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/feature-flags",
+    "auth_or_permission": "FEATURE_FLAG_EDIT",
+    "business_logic": "创建 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/feature-flags/{id}",
+    "auth_or_permission": "FEATURE_FLAG_EDIT",
+    "business_logic": "更新策略 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/feature-flags/{id}/enable",
+    "auth_or_permission": "FEATURE_FLAG_EDIT",
+    "business_logic": "启用 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/feature-flags/{id}/disable",
+    "auth_or_permission": "FEATURE_FLAG_EDIT",
+    "business_logic": "禁用 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/audit/logs",
+    "auth_or_permission": "AUDIT_VIEW",
+    "business_logic": "按 operator/resource/result/trace 查询 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/audit/logs/{id}",
+    "auth_or_permission": "AUDIT_VIEW",
+    "business_logic": "详情 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/traces/{trace_id}",
+    "auth_or_permission": "TRACE_VIEW",
+    "business_logic": "汇总 request/access/audit/application 关联记录 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/security/logs",
+    "auth_or_permission": "SECURITY_LOG_VIEW",
+    "business_logic": "查询 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/operation/logs",
+    "auth_or_permission": "OPERATION_LOG_VIEW",
+    "business_logic": "查询 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/access/logs",
+    "auth_or_permission": "ACCESS_LOG_VIEW",
+    "business_logic": "查询 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools",
+    "auth_or_permission": "TOOL_VIEW",
+    "business_logic": "查询工具 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/tools",
+    "auth_or_permission": "TOOL_EDIT",
+    "business_logic": "创建工具 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools/{id}",
+    "auth_or_permission": "TOOL_VIEW",
+    "business_logic": "详情 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/tools/{id}",
+    "auth_or_permission": "TOOL_EDIT",
+    "business_logic": "更新 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/tools/{id}",
+    "auth_or_permission": "TOOL_EDIT",
+    "business_logic": "逻辑删除 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/tools/{id}/publish",
+    "auth_or_permission": "TOOL_PUBLISH",
+    "business_logic": "DRAFT/TESTING → ACTIVE，校验版本和 registry |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/tools/{id}/disable",
+    "auth_or_permission": "TOOL_PUBLISH",
+    "business_logic": "ACTIVE → DISABLED |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tool-categories",
+    "auth_or_permission": "TOOL_CATEGORY_VIEW",
+    "business_logic": "查询 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/tool-categories",
+    "auth_or_permission": "TOOL_CATEGORY_EDIT",
+    "business_logic": "创建 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/tool-categories/{id}",
+    "auth_or_permission": "TOOL_CATEGORY_EDIT",
+    "business_logic": "更新 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/tool-categories/{id}",
+    "auth_or_permission": "TOOL_CATEGORY_EDIT",
+    "business_logic": "删除 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools/{id}/versions",
+    "auth_or_permission": "TOOL_VERSION_VIEW",
+    "business_logic": "查询版本 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/tools/{id}/versions",
+    "auth_or_permission": "TOOL_VERSION_EDIT",
+    "business_logic": "创建版本 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/tools/{id}/access-policy",
+    "auth_or_permission": "TOOL_ACCESS_EDIT",
+    "business_logic": "更新 GUEST/USER_LEVEL 策略 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools/{id}/statistics",
+    "auth_or_permission": "TOOL_STAT_VIEW",
+    "business_logic": "查询统计 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools/statistics/overview",
+    "auth_or_permission": "TOOL_STAT_VIEW",
+    "business_logic": "总览 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools/popular",
+    "auth_or_permission": "TOOL_STAT_VIEW",
+    "business_logic": "热门 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tool-components",
+    "auth_or_permission": "TOOL_COMPONENT_VIEW",
+    "business_logic": "Registry |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/tool-components",
+    "auth_or_permission": "TOOL_COMPONENT_EDIT",
+    "business_logic": "注册 component_key；禁止任意 import path |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/analytics/overview",
+    "auth_or_permission": "ANALYTICS_DASHBOARD_VIEW",
+    "business_logic": "DAU/事件/工具/页面核心指标 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/analytics/users",
+    "auth_or_permission": "ANALYTICS_VIEW",
+    "business_logic": "用户行为聚合 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/analytics/tools",
+    "auth_or_permission": "ANALYTICS_VIEW",
+    "business_logic": "工具行为 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/analytics/pages",
+    "auth_or_permission": "ANALYTICS_VIEW",
+    "business_logic": "页面行为 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/analytics/events",
+    "auth_or_permission": "ANALYTICS_EVENT_VIEW",
+    "business_logic": "原始事件检索，敏感属性过滤 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/analytics/funnels",
+    "auth_or_permission": "ANALYTICS_VIEW",
+    "business_logic": "漏斗 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/analytics/trends",
+    "auth_or_permission": "ANALYTICS_VIEW",
+    "business_logic": "趋势 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/analytics/search",
+    "auth_or_permission": "ANALYTICS_VIEW",
+    "business_logic": "搜索行为 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/analytics/retention",
+    "auth_or_permission": "ANALYTICS_VIEW",
+    "business_logic": "留存 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/analytics/export",
+    "auth_or_permission": "ANALYTICS_EXPORT",
+    "business_logic": "创建异步导出任务 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/exports",
+    "auth_or_permission": "EXPORT_VIEW",
+    "business_logic": "查询导出任务 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/exports/{id}",
+    "auth_or_permission": "EXPORT_VIEW",
+    "business_logic": "查询状态 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/exports/{id}/cancel",
+    "auth_or_permission": "EXPORT_CANCEL",
+    "business_logic": "取消 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/notifications",
+    "auth_or_permission": "NOTIFICATION_VIEW",
+    "business_logic": "管理通知 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/notifications",
+    "auth_or_permission": "NOTIFICATION_SEND",
+    "business_logic": "创建/发送 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/notifications/{id}",
+    "auth_or_permission": "NOTIFICATION_VIEW",
+    "business_logic": "详情 |",
+    "source": "02-Admin-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/register",
+    "auth_or_permission": "Public",
+    "business_logic": "创建 biz_user、身份标识、profile；初始化成长/积分账户；写 USER_REGISTER event |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/login",
+    "auth_or_permission": "Public",
+    "business_logic": "校验 login identity；创建 business session；写 USER_LOGIN |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/refresh",
+    "auth_or_permission": "Auth",
+    "business_logic": "校验并轮换 refresh token |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/logout",
+    "auth_or_permission": "Auth",
+    "business_logic": "撤销当前 session |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/auth/me",
+    "auth_or_permission": "Auth",
+    "business_logic": "返回当前业务用户 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/change-password",
+    "auth_or_permission": "Auth",
+    "business_logic": "密码策略/历史检查 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/send-verification",
+    "auth_or_permission": "Public/Auth",
+    "business_logic": "创建验证码请求，执行风控和频控 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/verify",
+    "auth_or_permission": "Public/Auth",
+    "business_logic": "校验验证码并完成对应验证动作 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/users/me",
+    "auth_or_permission": "Auth",
+    "business_logic": "当前用户 profile |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/users/me",
+    "auth_or_permission": "Auth",
+    "business_logic": "更新允许修改的 profile 字段 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/users/me/sessions",
+    "auth_or_permission": "Auth",
+    "business_logic": "当前用户 sessions |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/users/me/sessions/{id}/revoke",
+    "auth_or_permission": "Auth",
+    "business_logic": "仅能撤销自己的 session |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/users/me/level",
+    "auth_or_permission": "Auth",
+    "business_logic": "当前等级 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/users/me/growth",
+    "auth_or_permission": "Auth",
+    "business_logic": "成长值账户 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/users/me/points",
+    "auth_or_permission": "Auth",
+    "business_logic": "积分余额/流水摘要 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/users/me/cosmetics",
+    "auth_or_permission": "Auth",
+    "business_logic": "外观资产 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/users/me/equipment",
+    "auth_or_permission": "Auth",
+    "business_logic": "装备外观；校验 inventory |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/users/me/tasks",
+    "auth_or_permission": "Auth",
+    "business_logic": "当前任务 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/users/me/achievements",
+    "auth_or_permission": "Auth",
+    "business_logic": "当前成就 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/levels",
+    "auth_or_permission": "Public",
+    "business_logic": "可公开等级信息 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/levels/me",
+    "auth_or_permission": "Auth",
+    "business_logic": "当前等级和进度 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/growth/me",
+    "auth_or_permission": "Auth",
+    "business_logic": "growth account |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/growth/me/transactions",
+    "auth_or_permission": "Auth",
+    "business_logic": "growth 流水 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/points/me",
+    "auth_or_permission": "Auth",
+    "business_logic": "point account |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/points/me/transactions",
+    "auth_or_permission": "Auth",
+    "business_logic": "point 流水 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/point-rules/public",
+    "auth_or_permission": "Public",
+    "business_logic": "当前对用户公开的规则 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/cosmetics",
+    "auth_or_permission": "Public/Auth",
+    "business_logic": "可展示的外观 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/cosmetics/me",
+    "auth_or_permission": "Auth",
+    "business_logic": "已拥有外观 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/cosmetics/me/equipment",
+    "auth_or_permission": "Auth",
+    "business_logic": "装备 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tasks",
+    "auth_or_permission": "Auth",
+    "business_logic": "可参与任务 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/tasks/{id}/claim",
+    "auth_or_permission": "Auth",
+    "business_logic": "领取任务，幂等 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tasks/me",
+    "auth_or_permission": "Auth",
+    "business_logic": "我的任务 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/achievements",
+    "auth_or_permission": "Public/Auth",
+    "business_logic": "成就列表 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/achievements/me",
+    "auth_or_permission": "Auth",
+    "business_logic": "我的成就 |",
+    "source": "03-Platform-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools",
+    "auth_or_permission": "Public",
+    "business_logic": "按 category/status/access 返回可见工具 |",
+    "source": "04-Tools-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools/{id}",
+    "auth_or_permission": "Public",
+    "business_logic": "工具详情 |",
+    "source": "04-Tools-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools/by-slug/{slug}",
+    "auth_or_permission": "Public",
+    "business_logic": "slug 查询 |",
+    "source": "04-Tools-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tool-categories",
+    "auth_or_permission": "Public",
+    "business_logic": "分类 |",
+    "source": "04-Tools-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools/popular",
+    "auth_or_permission": "Public",
+    "business_logic": "热门 |",
+    "source": "04-Tools-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools/recent",
+    "auth_or_permission": "Auth",
+    "business_logic": "当前用户最近使用 |",
+    "source": "04-Tools-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools/{id}/access",
+    "auth_or_permission": "Public/Auth",
+    "business_logic": "服务端解析 guest/user/user level，返回 allowed/quota/rate 信息 |",
+    "source": "04-Tools-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/tools/{id}/usage",
+    "auth_or_permission": "Public/Auth",
+    "business_logic": "服务端识别 subject，检查 access/quota/rate/concurrency，执行或记录使用 |",
+    "source": "04-Tools-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools/jobs/{job_id}",
+    "auth_or_permission": "Auth/Public按任务策略",
+    "business_logic": "仅返回当前 subject 可见任务 |",
+    "source": "04-Tools-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/tools/jobs/{job_id}/cancel",
+    "auth_or_permission": "Auth",
+    "business_logic": "仅取消自己的可取消任务 |",
+    "source": "04-Tools-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/tools/search",
+    "auth_or_permission": "Public",
+    "business_logic": "SearchService 查询 tool/category |",
+    "source": "04-Tools-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/blog/categories",
+    "auth_or_permission": "Public",
+    "business_logic": "分类 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/blog/articles",
+    "auth_or_permission": "Public",
+    "business_logic": "只返回公开发布文章 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/blog/articles/{id}",
+    "auth_or_permission": "Public",
+    "business_logic": "查询文章并记录 ARTICLE_VIEW |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/blog/articles/{id}/comments",
+    "auth_or_permission": "Public",
+    "business_logic": "查询已发布评论 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/blog/articles/{id}/like",
+    "auth_or_permission": "Auth",
+    "business_logic": "幂等点赞 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/blog/articles/{id}/like",
+    "auth_or_permission": "Auth",
+    "business_logic": "取消点赞 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/blog/articles/{id}/favorite",
+    "auth_or_permission": "Auth",
+    "business_logic": "幂等收藏 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/blog/articles/{id}/favorite",
+    "auth_or_permission": "Auth",
+    "business_logic": "取消收藏 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/blog/articles/{id}/comments",
+    "auth_or_permission": "Auth",
+    "business_logic": "创建评论，风控/敏感策略后写入 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/blog/comments/{id}",
+    "auth_or_permission": "Auth",
+    "business_logic": "仅作者本人或管理员按权限删除 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/blog/users/{id}/follow",
+    "auth_or_permission": "Auth",
+    "business_logic": "关注 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/blog/users/{id}/follow",
+    "auth_or_permission": "Auth",
+    "business_logic": "取消关注 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/blog/users/{id}",
+    "auth_or_permission": "Public",
+    "business_logic": "用户/作者公开资料 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/blog/author/applications",
+    "auth_or_permission": "Auth",
+    "business_logic": "创建作者申请，防重复 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/blog/author/application",
+    "auth_or_permission": "Auth",
+    "business_logic": "查看自己的申请 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/blog/author/me",
+    "auth_or_permission": "Auth",
+    "business_logic": "作者状态 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/blog/author/articles",
+    "auth_or_permission": "Auth",
+    "business_logic": "自己的文章 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/blog/author/articles",
+    "auth_or_permission": "Auth(Author)",
+    "business_logic": "创建草稿 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/blog/author/articles/{id}",
+    "auth_or_permission": "Auth(Author)",
+    "business_logic": "仅自己可编辑 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/blog/author/articles/{id}",
+    "auth_or_permission": "Auth(Author)",
+    "business_logic": "更新草稿 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/blog/author/articles/{id}",
+    "auth_or_permission": "Auth(Author)",
+    "business_logic": "删除草稿 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/blog/author/articles/{id}/submit-review",
+    "auth_or_permission": "Auth(Author)",
+    "business_logic": "DRAFT → REVIEW |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/blog/author/articles/{id}/publish",
+    "auth_or_permission": "Auth(Author)",
+    "business_logic": "仅按冻结审核/发布规则执行；未冻结则 BLOCKER |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/admin/blog/author-applications",
+    "auth_or_permission": "BLOG_AUTHOR_REVIEW",
+    "business_logic": "查询申请 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/admin/blog/author-applications/{id}",
+    "auth_or_permission": "BLOG_AUTHOR_REVIEW",
+    "business_logic": "详情 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/admin/blog/author-applications/{id}/approve",
+    "auth_or_permission": "BLOG_AUTHOR_REVIEW",
+    "business_logic": "审核通过，创建/激活 blog_author |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/admin/blog/author-applications/{id}/reject",
+    "auth_or_permission": "BLOG_AUTHOR_REVIEW",
+    "business_logic": "拒绝并记录原因 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/admin/blog/articles",
+    "auth_or_permission": "BLOG_ARTICLE_REVIEW",
+    "business_logic": "管理文章 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/admin/blog/articles/{id}/approve",
+    "auth_or_permission": "BLOG_ARTICLE_REVIEW",
+    "business_logic": "审核通过 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/admin/blog/articles/{id}/reject",
+    "auth_or_permission": "BLOG_ARTICLE_REVIEW",
+    "business_logic": "驳回 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/admin/blog/articles/{id}/publish",
+    "auth_or_permission": "BLOG_ARTICLE_PUBLISH",
+    "business_logic": "发布 |",
+    "source": "05-Blog-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/admin/levels",
+    "auth_or_permission": "LEVEL_CONFIG_VIEW",
+    "business_logic": "查询等级 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/admin/levels",
+    "auth_or_permission": "LEVEL_CONFIG_EDIT",
+    "business_logic": "创建等级 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/admin/levels/{id}",
+    "auth_or_permission": "LEVEL_CONFIG_EDIT",
+    "business_logic": "更新阈值/展示信息 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/admin/levels/{id}",
+    "auth_or_permission": "LEVEL_CONFIG_EDIT",
+    "business_logic": "删除前检查用户引用 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/admin/growth-rules",
+    "auth_or_permission": "GROWTH_RULE_VIEW",
+    "business_logic": "查询 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/admin/growth-rules",
+    "auth_or_permission": "GROWTH_RULE_EDIT",
+    "business_logic": "创建 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/admin/growth-rules/{id}",
+    "auth_or_permission": "GROWTH_RULE_EDIT",
+    "business_logic": "更新 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/admin/point-rules",
+    "auth_or_permission": "POINT_RULE_VIEW",
+    "business_logic": "查询 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/admin/point-rules",
+    "auth_or_permission": "POINT_RULE_EDIT",
+    "business_logic": "创建 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/admin/point-rules/{id}",
+    "auth_or_permission": "POINT_RULE_EDIT",
+    "business_logic": "更新 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/admin/cosmetics",
+    "auth_or_permission": "COSMETIC_VIEW",
+    "business_logic": "查询 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/admin/cosmetics",
+    "auth_or_permission": "COSMETIC_EDIT",
+    "business_logic": "创建 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "PUT",
+    "path": "/admin/cosmetics/{id}",
+    "auth_or_permission": "COSMETIC_EDIT",
+    "business_logic": "更新 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/admin/cosmetics/{id}",
+    "auth_or_permission": "COSMETIC_EDIT",
+    "business_logic": "删除 |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/admin/users/{id}/growth-adjustments",
+    "auth_or_permission": "USER_GROWTH_ADJUST",
+    "business_logic": "管理员调整成长值；必须 Audit |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/admin/users/{id}/point-adjustments",
+    "auth_or_permission": "USER_POINT_ADJUST",
+    "business_logic": "管理员调整积分；必须 Audit |",
+    "source": "06-Growth-Points-Cosmetics-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/health",
+    "auth_or_permission": "Public",
+    "business_logic": "进程存活 |",
+    "source": "08-System-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/ready",
+    "auth_or_permission": "Public",
+    "business_logic": "DB/Redis 等必要依赖就绪状态 |",
+    "source": "08-System-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/version",
+    "auth_or_permission": "Public",
+    "business_logic": "应用版本 |",
+    "source": "08-System-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/files/presign-upload",
+    "auth_or_permission": "Auth/Public按业务策略",
+    "business_logic": "FileService 生成上传授权 |",
+    "source": "08-System-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/files/complete",
+    "auth_or_permission": "Auth/Public按业务策略",
+    "business_logic": "校验上传完成并保存 metadata |",
+    "source": "08-System-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/files/{id}",
+    "auth_or_permission": "Auth/Public按策略",
+    "business_logic": "metadata |",
+    "source": "08-System-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/files/{id}/download",
+    "auth_or_permission": "Auth/Public按策略",
+    "business_logic": "下载/签名 URL |",
+    "source": "08-System-API.md"
+  },
+  {
+    "method": "DELETE",
+    "path": "/files/{id}",
+    "auth_or_permission": "Auth",
+    "business_logic": "权限校验后删除 |",
+    "source": "08-System-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/notifications",
+    "auth_or_permission": "Auth",
+    "business_logic": "当前用户通知 |",
+    "source": "08-System-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/notifications/{id}/read",
+    "auth_or_permission": "Auth",
+    "business_logic": "仅本人 |",
+    "source": "08-System-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/notifications/read-all",
+    "auth_or_permission": "Auth",
+    "business_logic": "全部已读 |",
+    "source": "08-System-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/search",
+    "auth_or_permission": "Public/Auth",
+    "business_logic": "SearchService 聚合查询；V1 使用 PostgreSQL |",
+    "source": "08-System-API.md"
+  },
+  {
+    "method": "GET",
+    "path": "/jobs/{id}",
+    "auth_or_permission": "Auth",
+    "business_logic": "仅允许访问自己的 job |",
+    "source": "08-System-API.md"
+  },
+  {
+    "method": "POST",
+    "path": "/jobs/{id}/cancel",
+    "auth_or_permission": "Auth",
+    "business_logic": "仅允许取消自己的可取消 job |",
+    "source": "08-System-API.md"
+  }
+]
