@@ -210,10 +210,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.add_middleware(
         CORSMiddleware,
         allow_origins=list(resolved.cors_origins),
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["X-Trace-ID", "X-Request-ID"],
+        allow_credentials=resolved.CORS_ALLOW_CREDENTIALS,
+        allow_methods=resolved.cors_methods,
+        allow_headers=resolved.cors_headers,
+        expose_headers=resolved.cors_exposed_headers,
     )
     application.add_middleware(TraceContextMiddleware)
 

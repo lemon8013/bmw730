@@ -4,6 +4,9 @@ Phase 0 implements the application log only. The access, security, operation and
 audit logs are reserved: their formats are enabled in the phase that freezes
 them.
 
+Logger names, level, format and output stream are configuration, not constants:
+they are read from :class:`app.core.config.Settings`.
+
 Sensitive values (passwords, MFA secrets, tokens, API keys, cookies,
 authorization headers, raw user input, uploaded file content) must never be
 logged.
@@ -13,7 +16,7 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import Final
+from typing import Final, TextIO
 
 from app.core.config import Settings
 from app.shared.tracing.context import get_trace_id
@@ -33,7 +36,10 @@ RESERVED_LOGGERS: Final[tuple[str, ...]] = (
     AUDIT_LOGGER,
 )
 
-_LOG_FORMAT: Final[str] = "%(asctime)s %(levelname)-8s %(name)s [trace_id=%(trace_id)s] %(message)s"
+
+def _resolve_stream(name: str) -> TextIO:
+    """Return the configured output stream, resolved lazily."""
+    return sys.stderr if name == "stderr" else sys.stdout
 
 
 class TraceIdFilter(logging.Filter):
@@ -46,10 +52,14 @@ class TraceIdFilter(logging.Filter):
 
 def setup_logging(settings: Settings) -> None:
     """Configure the application logger exactly once per process."""
-    level = logging.DEBUG if settings.APP_DEBUG else logging.INFO
+    level = logging.getLevelName(settings.resolved_log_level)
+    if not isinstance(level, int):
+        level = logging.INFO
 
-    handler = logging.StreamHandler(stream=sys.stdout)
-    handler.setFormatter(logging.Formatter(_LOG_FORMAT))
+    formatter = logging.Formatter(settings.LOG_FORMAT, datefmt=settings.LOG_DATE_FORMAT or None)
+
+    handler = logging.StreamHandler(stream=_resolve_stream(settings.LOG_STREAM))
+    handler.setFormatter(formatter)
     handler.addFilter(TraceIdFilter())
 
     application_logger = logging.getLogger(APPLICATION_LOGGER)

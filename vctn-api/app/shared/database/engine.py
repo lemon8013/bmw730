@@ -1,4 +1,8 @@
-"""Async SQLAlchemy engine factory and connectivity probe."""
+"""Async SQLAlchemy engine factory and connectivity probe.
+
+Every engine option (pool sizing, timeouts, echo) comes from
+:class:`app.core.config.Settings`; nothing is hard coded here.
+"""
 
 from __future__ import annotations
 
@@ -19,8 +23,12 @@ def build_engine(settings: Settings) -> AsyncEngine:
         raise ValueError("DATABASE_URL is not configured")
     return create_async_engine(
         url,
-        echo=settings.APP_DEBUG,
-        pool_pre_ping=True,
+        echo=settings.resolved_db_echo,
+        pool_pre_ping=settings.DB_POOL_PRE_PING,
+        pool_size=settings.DB_POOL_SIZE,
+        max_overflow=settings.DB_MAX_OVERFLOW,
+        pool_timeout=settings.DB_POOL_TIMEOUT_SECONDS,
+        pool_recycle=settings.DB_POOL_RECYCLE_SECONDS,
     )
 
 
