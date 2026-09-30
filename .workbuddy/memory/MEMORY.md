@@ -17,6 +17,12 @@ VCTN：**双前端 + 单 FastAPI 模块化单体**。
 - Service 是事务边界，Repository 不 commit；授权必须经 AuthorizationService，后端是最终权威。
 - 敏感信息（密码 / MFA Secret / Token / API Key / Cookie / Authorization / 原始用户输入 / 上传文件内容）禁止进日志。
 - 禁止 `pass` / `TODO` / `NotImplementedError` / fake response / mock 业务数据。
+- **后端配置唯一来源（负责人硬性要求）：`vctn-api/app/core/config.py::Settings` + `vctn-api/.env`。禁止在任何其他后端代码里硬编码配置。**
+  - 新增任何可调参数：先在 `Settings` 加字段，再同步写入 `vctn-api/.env.example`（`tests/unit/test_config_surface.py` 会强制两者字段集合一致，且不得有未知键）。
+  - `.env` 由负责人创建、已被 gitignore，禁止提交；`.env.example` 中 `DATABASE_URL`/`REDIS_URL` 必须留空。
+  - `alembic.ini` 的 `sqlalchemy.url` 必须留空，由 `migrations/env.py` 从 Settings 注入，禁止写凭据。
+  - 真实环境变量优先级高于 `.env`。
+- **数据库结构的唯一来源：`aicoding/sql/vctn-enterprise-ddl-v2.0.sql`（79 张表）。** Model 必须 100% 对齐 DDL，禁止自行增删改字段/表名/约束/索引，禁止加 `tenant_id`。
 
 ## 已冻结 vs 待冻结（节选）
 - 已冻结：ToolRegistry、ToolRuntime、component_key、FRONTEND/BACKEND/ASYNC、sys_user 与 biz_user 分离。
