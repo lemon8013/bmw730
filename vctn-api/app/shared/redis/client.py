@@ -17,11 +17,11 @@ def build_redis(settings: Settings) -> aioredis.Redis:
     """Create the async Redis client from settings.
 
     Raises:
-        ValueError: when REDIS_URL is not configured.
+        ValueError: when the Redis connection is not configured.
     """
-    url = settings.REDIS_URL.strip()
+    url = settings.redis_url
     if not url:
-        raise ValueError("REDIS_URL is not configured")
+        raise ValueError("Redis is not configured: set REDIS_HOST or REDIS_URL")
 
     options: dict[str, Any] = {
         "encoding": settings.REDIS_ENCODING,

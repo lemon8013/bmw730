@@ -115,12 +115,19 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         application.state.engine = engine
         application.state.session_factory = build_session_factory(engine)
     else:
-        logger.warning("DATABASE_URL is not configured; database access is disabled")
+        missing = settings.missing_database_fields
+        if missing:
+            logger.warning(
+                "PostgreSQL configuration is incomplete; missing: %s. Database access is disabled",
+                ", ".join(missing),
+            )
+        else:
+            logger.warning("PostgreSQL is not configured; database access is disabled")
 
     if settings.is_redis_configured:
         application.state.redis = build_redis(settings)
     else:
-        logger.warning("REDIS_URL is not configured; redis access is disabled")
+        logger.warning("Redis is not configured; redis access is disabled")
 
     logger.info(
         "application started app=%s env=%s version=%s",

@@ -16,11 +16,13 @@ def build_engine(settings: Settings) -> AsyncEngine:
     """Create the async engine from settings.
 
     Raises:
-        ValueError: when DATABASE_URL is not configured.
+        ValueError: when the PostgreSQL connection is not configured.
     """
-    url = settings.DATABASE_URL.strip()
+    url = settings.database_url
     if not url:
-        raise ValueError("DATABASE_URL is not configured")
+        raise ValueError(
+            "PostgreSQL is not configured: set DB_HOST/DB_NAME/DB_USER or DATABASE_URL"
+        )
     return create_async_engine(
         url,
         echo=settings.resolved_db_echo,

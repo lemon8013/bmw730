@@ -7,6 +7,7 @@ configured value stops reaching the component that consumes it.
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 
 from app.core.config import Settings
@@ -48,29 +49,83 @@ def test_env_example_has_no_unknown_keys() -> None:
 
 def test_env_example_never_ships_secrets() -> None:
     text = _ENV_EXAMPLE.read_text(encoding="utf-8")
+    secret_keys = {
+        "DATABASE_URL",
+        "REDIS_URL",
+        "DB_HOST",
+        "DB_NAME",
+        "DB_USER",
+        "DB_PASSWORD",
+        "REDIS_HOST",
+        "REDIS_USERNAME",
+        "REDIS_PASSWORD",
+    }
     for line in text.splitlines():
         if line.lstrip().startswith("#") or "=" not in line:
             continue
         key, value = (part.strip() for part in line.split("=", 1))
-        if key in {"DATABASE_URL", "REDIS_URL"}:
+        if key in secret_keys:
             assert value == "", f"{key} must stay empty in .env.example"
 
 
-def test_database_url_is_required_by_the_engine() -> None:
-    settings = Settings(DATABASE_URL="")
-    try:
-        build_engine(settings)
-    except ValueError as exc:
-        assert "DATABASE_URL" in str(exc)
-    else:  # pragma: no cover - the engine must refuse an unconfigured URL
-        raise AssertionError("build_engine accepted an empty DATABASE_URL")
+def test_database_connection_comes_from_fields_not_a_url() -> None:
+    settings = Settings(
+        DB_HOST="db.internal",
+        DB_PORT=5432,
+        DB_NAME="vctn",
+        DB_USER="vctn_app",
+        DB_PASSWORD="secret",
+    )
+    assert settings.database_url == ("postgresql+asyncpg://vctn_app:secret@db.internal:5432/vctn")
 
 
-def test_redis_url_is_required_by_the_client() -> None:
-    settings = Settings(REDIS_URL="")
+def test_engine_uses_the_assembled_database_url() -> None:
+    settings = Settings(
+        DB_HOST="db.internal",
+        DB_PORT=5544,
+        DB_NAME="vctn",
+        DB_USER="vctn_app",
+        DB_PASSWORD="secret",
+    )
+    engine = build_engine(settings)
     try:
-        build_redis(settings)
+        url = engine.url
+        assert url.host == "db.internal"
+        assert url.port == 5544
+        assert url.database == "vctn"
+        assert url.username == "vctn_app"
+        assert url.password == "secret"
+        assert url.drivername == "postgresql+asyncpg"
+    finally:
+        asyncio.run(engine.dispose())
+
+
+def test_redis_client_uses_the_assembled_url() -> None:
+    settings = Settings(REDIS_HOST="cache.internal", REDIS_PORT=6380, REDIS_DB=3)
+    client = build_redis(settings)
+    try:
+        pool = client.connection_pool
+        kwargs = pool.connection_kwargs
+        assert kwargs["host"] == "cache.internal"
+        assert kwargs["port"] == 6380
+        assert kwargs["db"] == 3
+    finally:
+        asyncio.run(client.aclose())
+
+
+def test_engine_refuses_an_unconfigured_database() -> None:
+    try:
+        build_engine(Settings())
     except ValueError as exc:
-        assert "REDIS_URL" in str(exc)
-    else:  # pragma: no cover - the client must refuse an unconfigured URL
-        raise AssertionError("build_redis accepted an empty REDIS_URL")
+        assert "PostgreSQL is not configured" in str(exc)
+    else:  # pragma: no cover - the engine must refuse an unconfigured connection
+        raise AssertionError("build_engine accepted an unconfigured connection")
+
+
+def test_redis_client_refuses_an_unconfigured_connection() -> None:
+    try:
+        build_redis(Settings())
+    except ValueError as exc:
+        assert "Redis is not configured" in str(exc)
+    else:  # pragma: no cover - the client must refuse an unconfigured connection
+        raise AssertionError("build_redis accepted an unconfigured connection")

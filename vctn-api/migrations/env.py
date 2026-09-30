@@ -26,9 +26,16 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 _settings = get_settings()
-if _settings.is_database_configured:
-    # Escape percent signs: configparser would otherwise interpolate them.
-    config.set_main_option("sqlalchemy.url", _settings.DATABASE_URL.replace("%", "%%"))
+if not _settings.is_database_configured:
+    missing = _settings.missing_database_fields
+    detail = f"; missing: {', '.join(missing)}" if missing else ""
+    raise RuntimeError(
+        "PostgreSQL is not configured. Fill DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD "
+        f"(or DATABASE_URL) in vctn-api/.env{detail}"
+    )
+
+# Escape percent signs: configparser would otherwise interpolate them.
+config.set_main_option("sqlalchemy.url", _settings.database_url.replace("%", "%%"))
 
 
 def run_migrations_offline() -> None:

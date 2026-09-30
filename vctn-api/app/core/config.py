@@ -9,6 +9,12 @@ Values are supplied through environment variables or a local ``.env`` file
 (see ``.env.example``). No password, token, secret or database credential may
 be hard coded here.
 
+Database and Redis connections are described by **separate fields**
+(host / port / name / user / password) and assembled into a driver URL by the
+``database_url`` and ``redis_url`` properties. A full URL may still be supplied
+through ``DATABASE_URL`` / ``REDIS_URL``; when present it takes precedence over
+the individual fields.
+
 A value that is ``None`` means "use the library default", which keeps the
 configuration surface explicit without overriding behaviour we do not intend to
 change.
@@ -16,13 +22,17 @@ change.
 
 from __future__ import annotations
 
+import os
 from functools import lru_cache
-from typing import Final, Literal
+from typing import Any, Final, Literal
+from urllib.parse import quote
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _WILDCARD: Final[str] = "*"
+
+_ENV_FILE_VARIABLE: Final[str] = "VCTN_ENV_FILE"
 
 _LOG_LEVELS: Final[tuple[str, ...]] = (
     "CRITICAL",
@@ -33,16 +43,62 @@ _LOG_LEVELS: Final[tuple[str, ...]] = (
     "NOTSET",
 )
 
+_POSTGRES_DRIVER: Final[str] = "postgresql+asyncpg"
+_REDIS_SCHEME: Final[str] = "redis"
+
+
+def _quote(value: str) -> str:
+    """Percent-encode a URL userinfo component."""
+    return quote(value, safe="")
+
+
+def _env_file_setting() -> str | None:
+    """Resolve which dotenv file supplies configuration.
+
+    Defaults to ``.env``. Setting ``VCTN_ENV_FILE`` to a blank value or to
+    another path lets a deployment (or the test suite) select a different file
+    or opt out of dotenv loading entirely, which keeps tests independent from a
+    developer's local ``.env``.
+    """
+    raw = os.environ.get(_ENV_FILE_VARIABLE)
+    if raw is None:
+        return ".env"
+    return raw.strip() or None
+
+
+def _format_host(host: str) -> str:
+    """Bracket a bare IPv6 literal so it can be embedded in a URL."""
+    if ":" in host and not host.startswith("["):
+        return f"[{host}]"
+    return host
+
 
 class Settings(BaseSettings):
     """Runtime configuration for the single VCTN FastAPI application."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_env_file_setting(),
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def _blank_value_means_unset(cls, data: Any) -> Any:
+        """Treat a blank value as "not provided" so the field default applies.
+
+        A blank line in ``.env`` (``DB_ECHO_SQL=``) must behave like an absent
+        key. Without this, every typed optional field would fail to parse the
+        empty string instead of falling back to its default.
+        """
+        if not isinstance(data, dict):
+            return data
+        return {
+            key: value
+            for key, value in data.items()
+            if not (isinstance(value, str) and not value.strip())
+        }
 
     # ------------------------------------------------------------------
     # Application
@@ -54,9 +110,19 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
 
     # ------------------------------------------------------------------
-    # PostgreSQL / SQLAlchemy engine
+    # PostgreSQL - fill in these fields
     # ------------------------------------------------------------------
+    DB_HOST: str = ""
+    DB_PORT: int = 5432
+    DB_NAME: str = ""
+    DB_USER: str = ""
+    DB_PASSWORD: str = ""
+    # Optional escape hatch: a complete URL that overrides the fields above.
     DATABASE_URL: str = ""
+
+    # ------------------------------------------------------------------
+    # SQLAlchemy engine
+    # ------------------------------------------------------------------
     DB_POOL_SIZE: int = 5
     DB_MAX_OVERFLOW: int = 10
     DB_POOL_TIMEOUT_SECONDS: float = 30.0
@@ -67,9 +133,19 @@ class Settings(BaseSettings):
     DB_ECHO_SQL: bool | None = None
 
     # ------------------------------------------------------------------
-    # Redis
+    # Redis - fill in these fields
     # ------------------------------------------------------------------
+    REDIS_HOST: str = ""
+    REDIS_PORT: int = 6379
+    REDIS_DB: int = 0
+    REDIS_USERNAME: str = ""
+    REDIS_PASSWORD: str = ""
+    # Optional escape hatch: a complete URL that overrides the fields above.
     REDIS_URL: str = ""
+
+    # ------------------------------------------------------------------
+    # Redis client
+    # ------------------------------------------------------------------
     REDIS_ENCODING: str = "utf-8"
     REDIS_DECODE_RESPONSES: bool = True
     # None means "use the redis library default".
@@ -103,6 +179,67 @@ class Settings(BaseSettings):
     # Empty string means "use the logging module default".
     LOG_DATE_FORMAT: str = ""
     LOG_STREAM: Literal["stdout", "stderr"] = "stdout"
+
+    # ------------------------------------------------------------------
+    # Connection URLs (assembled from the fields above)
+    # ------------------------------------------------------------------
+    @property
+    def database_url(self) -> str:
+        """Return the PostgreSQL driver URL.
+
+        An explicitly configured ``DATABASE_URL`` wins. Otherwise the URL is
+        assembled from ``DB_HOST`` / ``DB_PORT`` / ``DB_NAME`` / ``DB_USER`` /
+        ``DB_PASSWORD``. Returns ``""`` when the connection is not configured.
+        """
+        explicit = self.DATABASE_URL.strip()
+        if explicit:
+            return explicit
+
+        host = self.DB_HOST.strip()
+        name = self.DB_NAME.strip()
+        user = self.DB_USER.strip()
+        if not (host and name and user):
+            return ""
+
+        return (
+            f"{_POSTGRES_DRIVER}://{_quote(user)}:{_quote(self.DB_PASSWORD)}"
+            f"@{_format_host(host)}:{self.DB_PORT}/{name}"
+        )
+
+    @property
+    def redis_url(self) -> str:
+        """Return the Redis driver URL.
+
+        An explicitly configured ``REDIS_URL`` wins. Otherwise the URL is
+        assembled from ``REDIS_HOST`` / ``REDIS_PORT`` / ``REDIS_DB`` /
+        ``REDIS_USERNAME`` / ``REDIS_PASSWORD``. Returns ``""`` when the
+        connection is not configured.
+        """
+        explicit = self.REDIS_URL.strip()
+        if explicit:
+            return explicit
+
+        host = self.REDIS_HOST.strip()
+        if not host:
+            return ""
+
+        username = self.REDIS_USERNAME.strip()
+        if username and self.REDIS_PASSWORD:
+            auth = f"{_quote(username)}:{_quote(self.REDIS_PASSWORD)}@"
+        elif self.REDIS_PASSWORD:
+            auth = f":{_quote(self.REDIS_PASSWORD)}@"
+        else:
+            auth = ""
+
+        return f"{_REDIS_SCHEME}://{auth}{_format_host(host)}:{self.REDIS_PORT}/{self.REDIS_DB}"
+
+    @property
+    def is_database_configured(self) -> bool:
+        return bool(self.database_url)
+
+    @property
+    def is_redis_configured(self) -> bool:
+        return bool(self.redis_url)
 
     # ------------------------------------------------------------------
     # Derived helpers
@@ -148,36 +285,67 @@ class Settings(BaseSettings):
             return self.APP_DEBUG
         return self.DB_ECHO_SQL
 
-    @property
-    def is_database_configured(self) -> bool:
-        return bool(self.DATABASE_URL.strip())
-
-    @property
-    def is_redis_configured(self) -> bool:
-        return bool(self.REDIS_URL.strip())
-
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
     def validate_startup(self) -> None:
-        """Fail fast on invalid configuration before the app starts serving."""
+        """Fail fast on invalid configuration before the app starts serving.
+
+        Note: because a blank value is treated as "unset" (see
+        ``_blank_value_means_unset``), string fields that carry a non-empty
+        default can never be blank here - a blank entry silently falls back to
+        the default instead.
+        """
         if not self.API_PREFIX.startswith("/"):
             raise ValueError("API_PREFIX must start with '/'")
         if self.API_PREFIX.endswith("/"):
             raise ValueError("API_PREFIX must not end with '/'")
-        if not self.TRACE_ID_HEADER.strip():
-            raise ValueError("TRACE_ID_HEADER must not be empty")
-        if not self.REQUEST_ID_HEADER.strip():
-            raise ValueError("REQUEST_ID_HEADER must not be empty")
         if self.TRACE_ID_MAX_LENGTH <= 0:
             raise ValueError("TRACE_ID_MAX_LENGTH must be a positive integer")
+        if self.resolved_log_level not in _LOG_LEVELS:
+            raise ValueError(f"LOG_LEVEL must be one of {_LOG_LEVELS}")
+
+        self._validate_database()
+        self._validate_redis()
+
+        # Touching the property triggers the wildcard-origin validation eagerly.
+        _ = self.cors_origins
+
+    def _validate_database(self) -> None:
+        if not 1 <= self.DB_PORT <= 65535:
+            raise ValueError("DB_PORT must be between 1 and 65535")
         if self.DB_POOL_SIZE <= 0:
             raise ValueError("DB_POOL_SIZE must be a positive integer")
         if self.DB_MAX_OVERFLOW < 0:
             raise ValueError("DB_MAX_OVERFLOW must not be negative")
+        if self.DB_POOL_TIMEOUT_SECONDS <= 0:
+            raise ValueError("DB_POOL_TIMEOUT_SECONDS must be positive")
+
+    @property
+    def missing_database_fields(self) -> tuple[str, ...]:
+        """Return the PostgreSQL fields still missing while ``DB_HOST`` is set.
+
+        A partially filled connection is reported, not raised: the application
+        still starts (database access simply stays disabled) so that a ``.env``
+        being filled in step by step does not break startup.
+        """
+        if self.DATABASE_URL.strip() or not self.DB_HOST.strip():
+            return ()
+        return tuple(
+            label
+            for label, value in (("DB_NAME", self.DB_NAME), ("DB_USER", self.DB_USER))
+            if not value.strip()
+        )
+
+    def _validate_redis(self) -> None:
+        if not 1 <= self.REDIS_PORT <= 65535:
+            raise ValueError("REDIS_PORT must be between 1 and 65535")
+        if self.REDIS_DB < 0:
+            raise ValueError("REDIS_DB must not be negative")
         if self.REDIS_MAX_CONNECTIONS is not None and self.REDIS_MAX_CONNECTIONS <= 0:
             raise ValueError("REDIS_MAX_CONNECTIONS must be a positive integer")
-        if self.resolved_log_level not in _LOG_LEVELS:
-            raise ValueError(f"LOG_LEVEL must be one of {_LOG_LEVELS}")
-        # Touching the property triggers the wildcard-origin validation eagerly.
-        _ = self.cors_origins
+        if self.REDIS_SOCKET_TIMEOUT_SECONDS is not None and self.REDIS_SOCKET_TIMEOUT_SECONDS <= 0:
+            raise ValueError("REDIS_SOCKET_TIMEOUT_SECONDS must be positive")
 
 
 @lru_cache(maxsize=1)
