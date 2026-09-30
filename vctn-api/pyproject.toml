@@ -50,7 +50,9 @@ ignore = ["B008"]
 "migrations/env.py" = ["E402"]
 
 [tool.mypy]
-files = ["app", "tests"]
+files = ["app", "tests", "scripts"]
+# `scripts/` is on sys.path for the tests via tests/conftest.py.
+mypy_path = "scripts"
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
@@ -60,6 +62,11 @@ disallow_incomplete_defs = true
 no_implicit_optional = true
 strict_equality = true
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+# asyncpg ships no type stubs; it is only used by the schema audit tooling.
+module = ["asyncpg.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,8 +1,9 @@
 """Alembic environment.
 
-Phase 0 wires Alembic to the application settings and to the declarative
-metadata. No revision and no DDL is created in this phase: the database
-structure is defined solely by the frozen PostgreSQL DDL baseline.
+``target_metadata`` is ``Base.metadata`` from the ORM models, which are the
+Python mirror of the frozen PostgreSQL DDL baseline. Importing the model
+registry here guarantees every table is registered before Alembic compares the
+metadata against the database.
 """
 
 from __future__ import annotations
@@ -15,6 +16,8 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+# Importing the registry populates Base.metadata with all 79 tables.
+import app.shared.database.models  # noqa: F401
 from app.core.config import get_settings
 from app.shared.database.base import Base
 

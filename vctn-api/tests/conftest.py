@@ -17,13 +17,20 @@ import os
 # when the Settings class is defined.
 os.environ["VCTN_ENV_FILE"] = ""
 
+import sys  # noqa: E402
 from collections.abc import Iterator  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app.core.config import Settings  # noqa: E402
 from app.main import create_app  # noqa: E402
+
+# `scripts/` holds the schema audit helpers shared by the CLI and the tests.
+_SCRIPTS_DIR = str(Path(__file__).resolve().parents[1] / "scripts")
+if _SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, _SCRIPTS_DIR)
 
 
 @pytest.fixture()

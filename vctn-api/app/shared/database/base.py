@@ -1,7 +1,19 @@
 """Declarative base shared by every ORM model.
 
-No business model is declared in Phase 0. Table structure comes solely from the
-frozen PostgreSQL DDL baseline and is introduced in a later phase.
+Every VCTN model derives from this single ``Base``, so ``Base.metadata`` is the
+one and only registry of the schema.
+
+Deliberately no ``naming_convention``
+-------------------------------------
+A ``MetaData`` naming convention makes SQLAlchemy invent names such as
+``fk_sys_user_department_id_sys_department`` for constraints the DDL leaves
+unnamed. The frozen DDL declares no such names; executing it lets PostgreSQL
+apply its own defaults (``<table>_<column>_fkey``, ``<table>_pkey``,
+``<table>_<columns>_key``, ``<table>_check``). Dropping the convention keeps the
+ORM faithful to the DDL. Every constraint that does need a stable name --
+uniques, checks, and the deferred ``tool.current_version_id`` foreign key -- is
+named explicitly in its model using the name PostgreSQL itself generated, which
+also makes Alembic downgrades possible.
 """
 
 from __future__ import annotations
@@ -9,17 +21,8 @@ from __future__ import annotations
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
 
-# Deterministic constraint names keep Alembic migrations stable.
-NAMING_CONVENTION: dict[str, str] = {
-    "ix": "ix_%(column_0_label)s",
-    "uq": "uq_%(table_name)s_%(column_0_name)s",
-    "ck": "ck_%(table_name)s_%(constraint_name)s",
-    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-    "pk": "pk_%(table_name)s",
-}
-
 
 class Base(DeclarativeBase):
     """Declarative base for the VCTN database."""
 
-    metadata = MetaData(naming_convention=NAMING_CONVENTION)
+    metadata = MetaData()
