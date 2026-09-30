@@ -23,6 +23,7 @@ change.
 from __future__ import annotations
 
 import os
+import secrets
 from functools import lru_cache
 from typing import Any, Final, Literal
 from urllib.parse import quote
@@ -153,6 +154,116 @@ class Settings(BaseSettings):
     REDIS_SOCKET_TIMEOUT_SECONDS: float | None = None
 
     # ------------------------------------------------------------------
+    # Snowflake ID (DD-14: the bit layout is not frozen - these fields expose
+    # the minimal runnable default layout instead of hiding it in code)
+    # ------------------------------------------------------------------
+    SNOWFLAKE_EPOCH_MS: int = 1735689600000
+    SNOWFLAKE_NODE_ID: int = 1
+    SNOWFLAKE_NODE_BITS: int = 10
+    SNOWFLAKE_SEQUENCE_BITS: int = 12
+
+    # ------------------------------------------------------------------
+    # Authentication (token lifetime is not frozen - exposed as configuration)
+    # ------------------------------------------------------------------
+    AUTH_JWT_SECRET: str = ""
+    AUTH_JWT_ALGORITHM: str = "HS256"
+    AUTH_ISSUER: str = "vctn-api"
+    AUTH_ACCESS_TOKEN_TTL_SECONDS: int = 900
+    AUTH_REFRESH_TOKEN_TTL_SECONDS: int = 604800
+    AUTH_REFRESH_TOKEN_BYTES: int = 32
+    AUTH_MAX_ACTIVE_SESSIONS_PER_USER: int = 5
+
+    # ------------------------------------------------------------------
+    # Password policy
+    # ------------------------------------------------------------------
+    PASSWORD_MIN_LENGTH: int = 12
+    PASSWORD_REQUIRE_UPPERCASE: bool = True
+    PASSWORD_REQUIRE_LOWERCASE: bool = True
+    PASSWORD_REQUIRE_DIGIT: bool = True
+    PASSWORD_REQUIRE_SPECIAL: bool = True
+    PASSWORD_SPECIAL_CHARACTERS: str = "!@#$%^&*()-_=+[]{};:,.<>?/~"
+    PASSWORD_HISTORY_COUNT: int = 5
+    PASSWORD_EXPIRE_DAYS: int = 90
+    PASSWORD_MAX_FAILED_ATTEMPTS: int = 5
+    PASSWORD_LOCK_MINUTES: int = 30
+
+    # ------------------------------------------------------------------
+    # Rate limit (exact values are not frozen - exposed as configuration)
+    # ------------------------------------------------------------------
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_LOGIN_PER_WINDOW: int = 10
+    RATE_LIMIT_API_PER_WINDOW: int = 300
+    RATE_LIMIT_TOOL_GUEST_PER_WINDOW: int = 30
+    RATE_LIMIT_TOOL_USER_PER_WINDOW: int = 120
+    RATE_LIMIT_SENSITIVE_PER_WINDOW: int = 20
+
+    # ------------------------------------------------------------------
+    # Redis key space and locking
+    # ------------------------------------------------------------------
+    REDIS_KEY_PREFIX: str = "vctn"
+    REDIS_LOCK_TTL_SECONDS: int = 30
+    REDIS_LOCK_RETRY_INTERVAL_SECONDS: float = 0.05
+    REDIS_LOCK_RETRY_TIMES: int = 100
+
+    # ------------------------------------------------------------------
+    # Tool quota
+    # ------------------------------------------------------------------
+    TOOL_GUEST_DAILY_QUOTA: int = 50
+    TOOL_USER_DAILY_QUOTA: int = 500
+
+    # ------------------------------------------------------------------
+    # Idempotency
+    # ------------------------------------------------------------------
+    IDEMPOTENCY_TTL_SECONDS: int = 86400
+
+    # ------------------------------------------------------------------
+    # Outbox
+    # ------------------------------------------------------------------
+    OUTBOX_BATCH_SIZE: int = 100
+    OUTBOX_MAX_ATTEMPTS: int = 5
+    OUTBOX_RETRY_DELAY_SECONDS: int = 60
+    OUTBOX_ENABLED: bool = True
+
+    # ------------------------------------------------------------------
+    # Verification codes
+    # ------------------------------------------------------------------
+    VERIFICATION_CODE_TTL_SECONDS: int = 300
+    VERIFICATION_CODE_MAX_ATTEMPTS: int = 5
+    VERIFICATION_CODE_LENGTH: int = 6
+
+    # ------------------------------------------------------------------
+    # Files (storage provider abstraction; no cloud vendor is introduced)
+    # ------------------------------------------------------------------
+    FILE_STORAGE_PROVIDER: str = "local"
+    FILE_STORAGE_ROOT: str = "storage"
+    FILE_MAX_SIZE_BYTES: int = 10485760
+    FILE_PRESIGN_TTL_SECONDS: int = 900
+    FILE_DOWNLOAD_URL_TTL_SECONDS: int = 3600
+
+    # ------------------------------------------------------------------
+    # Exports
+    # ------------------------------------------------------------------
+    EXPORT_STORAGE_ROOT: str = "exports"
+    EXPORT_MAX_ROWS: int = 100000
+    EXPORT_URL_TTL_SECONDS: int = 3600
+    EXPORT_RETENTION_DAYS: int = 7
+
+    # ------------------------------------------------------------------
+    # Log retention (days) - the Spec freezes these periods
+    # ------------------------------------------------------------------
+    LOG_RETENTION_ACCESS_LOG_DAYS: int = 30
+    LOG_RETENTION_SECURITY_LOG_DAYS: int = 180
+    LOG_RETENTION_OPERATION_LOG_DAYS: int = 180
+    LOG_RETENTION_AUDIT_LOG_DAYS: int = 730
+    LOG_RETENTION_APPLICATION_LOG_DAYS: int = 30
+
+    # ------------------------------------------------------------------
+    # Audit
+    # ------------------------------------------------------------------
+    AUDIT_ENABLED: bool = True
+
+    # ------------------------------------------------------------------
     # HTTP / CORS
     # ------------------------------------------------------------------
     # Comma separated list of allowed browser origins, for example:
@@ -279,6 +390,26 @@ class Settings(BaseSettings):
         return "DEBUG" if self.APP_DEBUG else "INFO"
 
     @property
+    def resolved_jwt_secret(self) -> str:
+        """Return the secret used to sign tokens.
+
+        The Secret Manager integration is not frozen. Until it is, the secret
+        comes from configuration, and a process-local ephemeral secret is used
+        when none is configured so that development can start without a secret
+        store. ``production`` refuses to start without a configured secret.
+        """
+        configured = self.AUTH_JWT_SECRET.strip()
+        if configured:
+            return configured
+        if self.APP_ENV == "production":
+            raise ValueError("AUTH_JWT_SECRET must be configured in production")
+        ephemeral = getattr(self, "_ephemeral_jwt_secret", None)
+        if ephemeral is None:
+            ephemeral = secrets.token_urlsafe(48)
+            object.__setattr__(self, "_ephemeral_jwt_secret", ephemeral)
+        return str(ephemeral)
+
+    @property
     def resolved_db_echo(self) -> bool:
         """Return whether the SQLAlchemy engine should echo statements."""
         if self.DB_ECHO_SQL is None:
@@ -307,9 +438,42 @@ class Settings(BaseSettings):
 
         self._validate_database()
         self._validate_redis()
+        self._validate_identity_and_auth()
 
         # Touching the property triggers the wildcard-origin validation eagerly.
         _ = self.cors_origins
+
+    def _validate_positive(self, name: str, value: int) -> None:
+        if value <= 0:
+            raise ValueError(f"{name} must be a positive integer")
+
+    def _validate_identity_and_auth(self) -> None:
+        self._validate_positive("AUTH_ACCESS_TOKEN_TTL_SECONDS", self.AUTH_ACCESS_TOKEN_TTL_SECONDS)
+        self._validate_positive(
+            "AUTH_REFRESH_TOKEN_TTL_SECONDS", self.AUTH_REFRESH_TOKEN_TTL_SECONDS
+        )
+        self._validate_positive("AUTH_REFRESH_TOKEN_BYTES", self.AUTH_REFRESH_TOKEN_BYTES)
+        self._validate_positive(
+            "AUTH_MAX_ACTIVE_SESSIONS_PER_USER", self.AUTH_MAX_ACTIVE_SESSIONS_PER_USER
+        )
+        self._validate_positive("PASSWORD_MIN_LENGTH", self.PASSWORD_MIN_LENGTH)
+        self._validate_positive("PASSWORD_HISTORY_COUNT", self.PASSWORD_HISTORY_COUNT)
+        self._validate_positive("PASSWORD_EXPIRE_DAYS", self.PASSWORD_EXPIRE_DAYS)
+        self._validate_positive("PASSWORD_MAX_FAILED_ATTEMPTS", self.PASSWORD_MAX_FAILED_ATTEMPTS)
+        self._validate_positive("PASSWORD_LOCK_MINUTES", self.PASSWORD_LOCK_MINUTES)
+        if self.SNOWFLAKE_NODE_BITS < 0 or self.SNOWFLAKE_SEQUENCE_BITS < 0:
+            raise ValueError("Snowflake bit widths must not be negative")
+        if self.SNOWFLAKE_NODE_BITS + self.SNOWFLAKE_SEQUENCE_BITS > 22:
+            raise ValueError("SNOWFLAKE_NODE_BITS + SNOWFLAKE_SEQUENCE_BITS must not exceed 22")
+        max_node = (1 << self.SNOWFLAKE_NODE_BITS) - 1
+        if not 0 <= self.SNOWFLAKE_NODE_ID <= max_node:
+            raise ValueError(f"SNOWFLAKE_NODE_ID must be between 0 and {max_node}")
+        if self.SNOWFLAKE_EPOCH_MS <= 0:
+            raise ValueError("SNOWFLAKE_EPOCH_MS must be a positive epoch in milliseconds")
+        if not self.AUTH_JWT_ALGORITHM.strip():
+            raise ValueError("AUTH_JWT_ALGORITHM must not be blank")
+        self._validate_positive("VERIFICATION_CODE_LENGTH", self.VERIFICATION_CODE_LENGTH)
+        self._validate_positive("VERIFICATION_CODE_TTL_SECONDS", self.VERIFICATION_CODE_TTL_SECONDS)
 
     def _validate_database(self) -> None:
         if not 1 <= self.DB_PORT <= 65535:

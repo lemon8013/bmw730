@@ -89,3 +89,64 @@ class ServiceUnavailableError(AppException):
     http_status = 503
     code = 503001
     message = "service unavailable"
+
+
+class PermissionDeniedError(AuthorizationError):
+    """The caller lacks the permission required by the endpoint."""
+
+    code = 403001
+    message = "permission denied"
+
+
+class DataScopeDeniedError(AuthorizationError):
+    """The addressed resource lies outside the caller's data scope."""
+
+    code = 403002
+    message = "resource is outside the data scope"
+
+
+class BusinessRuleError(BusinessError):
+    """A frozen business rule refused the operation."""
+
+    code = 400001
+    message = "business rule violated"
+
+
+class RateLimitError(AppException):
+    """Too many requests in the current window."""
+
+    http_status = 429
+    code = 429001
+    message = "too many requests"
+
+
+class QuotaExceededError(AppException):
+    """The caller consumed its daily quota."""
+
+    http_status = 429
+    code = 429002
+    message = "quota exceeded"
+
+
+class IdempotencyError(AppException):
+    """The idempotency key was reused with a different payload."""
+
+    http_status = 409
+    code = 409002
+    message = "idempotency key conflict"
+
+
+class ConcurrencyError(AppException):
+    """A concurrent modification lost the race or a lock could not be taken."""
+
+    http_status = 409
+    code = 409003
+    message = "concurrent modification detected"
+
+
+class SystemError(AppException):
+    """An unexpected internal failure."""
+
+    http_status = 500
+    code = 500000
+    message = "internal server error"

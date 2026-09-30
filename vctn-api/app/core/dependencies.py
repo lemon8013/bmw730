@@ -41,6 +41,17 @@ def get_redis(request: Request) -> aioredis.Redis:
     return client
 
 
+def get_optional_redis(request: Request) -> aioredis.Redis | None:
+    """Return the Redis client, or ``None`` when Redis is not configured.
+
+    Rate limiting and quotas are best effort guards: an endpoint that needs them
+    must still serve its business purpose when Redis is unavailable, so the
+    caller decides whether a missing client is fatal.
+    """
+    client: aioredis.Redis | None = getattr(request.app.state, "redis", None)
+    return client
+
+
 async def get_db_session(request: Request) -> AsyncIterator[AsyncSession]:
     """Yield a database session; the service layer owns the transaction."""
     factory: async_sessionmaker[AsyncSession] | None = getattr(
@@ -54,4 +65,5 @@ async def get_db_session(request: Request) -> AsyncIterator[AsyncSession]:
 
 EngineDep = Annotated[AsyncEngine, Depends(get_engine)]
 RedisDep = Annotated[aioredis.Redis, Depends(get_redis)]
+OptionalRedisDep = Annotated[aioredis.Redis | None, Depends(get_optional_redis)]
 DbSessionDep = Annotated[AsyncSession, Depends(get_db_session)]
