@@ -1,0 +1,1002 @@
+你现在负责 VCTN 项目的【Phase 0：项目工程框架搭建】。
+
+注意：
+
+本阶段只允许搭建项目框架和基础设施。
+
+禁止实现任何业务功能。
+
+完成 Phase 0 后必须停止，等待下一阶段指令。
+
+============================================================
+一、项目根目录【绝对禁止修改】
+============================================================
+
+项目根目录：
+
+D:\project\bmw730
+
+所有项目代码必须放在：
+
+D:\project\bmw730
+
+及其子目录中。
+
+开始工作前必须：
+
+1. 切换到 D:\project\bmw730
+2. 确认当前工作目录
+3. 如果目录不存在则创建
+4. 后续所有操作均以 D:\project\bmw730 为根目录
+
+禁止使用：
+
+D:\lemon\vctn
+D:\vctn
+C:\vctn
+其他任意目录
+
+禁止自行修改项目路径。
+
+============================================================
+二、项目总体架构【必须严格遵守】
+============================================================
+
+本项目采用：
+
+【双前端 + 单 FastAPI 模块化单体】
+
+项目：
+
+D:\project\bmw730\
+├── vctn-api
+├── vctn-admin-web
+└── vctn-tools-web
+
+架构：
+
+vctn-admin-web
+       │
+       │
+       ▼
+   vctn-api
+ FastAPI 模块化单体
+       │
+       ├── PostgreSQL
+       │
+       └── Redis
+
+vctn-tools-web
+       │
+       │
+       ▼
+   vctn-api
+
+必须只有一个 FastAPI 后端：
+
+vctn-api
+
+禁止创建：
+
+admin-api
+platform-api
+tools-api
+blog-api
+
+禁止拆分微服务。
+
+禁止创建 Admin API 服务和 Platform API 服务两个独立后端。
+
+禁止让不同模块通过 HTTP 相互调用。
+
+所有业务模块必须运行在同一个 FastAPI 应用中。
+
+============================================================
+三、技术栈
+============================================================
+
+【Backend】
+
+Python
+FastAPI
+SQLAlchemy 2.x
+Alembic
+PostgreSQL
+Redis
+Pydantic
+httpx
+ARQ
+APScheduler
+
+【Admin Frontend】
+
+Vue 3
+TypeScript
+Vite
+Vue Router
+Pinia
+Element Plus
+Axios
+
+【Tools Frontend】
+
+Vue 3
+TypeScript
+Vite
+Vue Router
+Pinia
+Element Plus
+Axios
+
+严格按照项目 Spec。
+
+禁止自行增加第三方库。
+
+禁止因为开发方便自行安装其他依赖。
+
+禁止替换已经确定的技术。
+
+如果发现某个依赖的具体版本没有被冻结：
+
+不要自行猜版本。
+
+不要自行安装。
+
+报告：
+
+DEPENDENCY-BLOCKER
+
+============================================================
+四、后端项目
+============================================================
+
+创建：
+
+D:\project\bmw730\vctn-api
+
+目录：
+
+vctn-api/
+├── app/
+│   ├── main.py
+│   │
+│   ├── core/
+│   │   ├── config.py
+│   │   ├── exceptions.py
+│   │   ├── dependencies.py
+│   │   ├── middleware.py
+│   │   ├── logging.py
+│   │   └── security.py
+│   │
+│   ├── shared/
+│   │   ├── database/
+│   │   ├── redis/
+│   │   ├── auth/
+│   │   ├── response/
+│   │   ├── tracing/
+│   │   ├── logging/
+│   │   ├── events/
+│   │   ├── idempotency/
+│   │   └── pagination/
+│   │
+│   ├── admin/
+│   │   ├── auth/
+│   │   ├── users/
+│   │   ├── departments/
+│   │   ├── roles/
+│   │   ├── permissions/
+│   │   ├── audit/
+│   │   ├── dictionaries/
+│   │   └── config/
+│   │
+│   ├── platform/
+│   │   ├── auth/
+│   │   ├── users/
+│   │   ├── growth/
+│   │   ├── points/
+│   │   ├── levels/
+│   │   ├── cosmetics/
+│   │   └── notifications/
+│   │
+│   ├── tools/
+│   │   ├── catalog/
+│   │   ├── runtime/
+│   │   ├── access/
+│   │   ├── usage/
+│   │   ├── statistics/
+│   │   └── jobs/
+│   │
+│   ├── blog/
+│   │   ├── articles/
+│   │   ├── comments/
+│   │   ├── categories/
+│   │   ├── authors/
+│   │   └── interactions/
+│   │
+│   ├── analytics/
+│   │   ├── events/
+│   │   ├── statistics/
+│   │   └── reports/
+│   │
+│   └── system/
+│       ├── health/
+│       ├── files/
+│       ├── jobs/
+│       └── search/
+│
+├── migrations/
+│   └── versions/
+│
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── contract/
+│
+├── scripts/
+│
+├── pyproject.toml
+├── alembic.ini
+├── .env.example
+├── .gitignore
+└── README.md
+
+============================================================
+五、业务模块内部结构
+============================================================
+
+每一个业务模块统一预留：
+
+router.py
+schema.py
+service.py
+repository.py
+model.py
+
+例如：
+
+app/admin/users/
+
+├── router.py
+├── schema.py
+├── service.py
+├── repository.py
+└── model.py
+
+本阶段只创建工程结构。
+
+禁止实现：
+
+用户 CRUD
+部门 CRUD
+角色 CRUD
+权限 CRUD
+登录
+注册
+Session
+MFA
+Tools
+Blog
+积分
+等级
+Analytics
+
+禁止实现真实数据库业务查询。
+
+禁止创建业务 Model。
+
+============================================================
+六、Admin Web
+============================================================
+
+创建：
+
+D:\project\bmw730\vctn-admin-web
+
+目录：
+
+vctn-admin-web/
+├── src/
+│   ├── api/
+│   ├── assets/
+│   ├── components/
+│   ├── composables/
+│   ├── layouts/
+│   ├── pages/
+│   ├── router/
+│   ├── stores/
+│   ├── types/
+│   ├── utils/
+│   └── styles/
+│
+├── public/
+├── index.html
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── README.md
+
+初始化：
+
+Vue 3
+TypeScript
+Vite
+Vue Router
+Pinia
+Element Plus
+Axios
+
+必须完成：
+
+Vue 初始化
+Router 初始化
+Pinia 初始化
+Element Plus 初始化
+Axios 基础实例
+
+本阶段禁止实现：
+
+登录页面
+用户页面
+角色页面
+权限页面
+部门页面
+菜单页面
+Dashboard
+业务 API
+
+只验证前端工程可以正常启动和构建。
+
+============================================================
+七、Tools Web
+============================================================
+
+创建：
+
+D:\project\bmw730\vctn-tools-web
+
+目录：
+
+vctn-tools-web/
+├── src/
+│   ├── api/
+│   ├── assets/
+│   ├── components/
+│   ├── composables/
+│   ├── layouts/
+│   ├── pages/
+│   ├── router/
+│   ├── stores/
+│   ├── tools/
+│   │   ├── registry/
+│   │   ├── runtime/
+│   │   └── definitions/
+│   ├── types/
+│   ├── utils/
+│   └── styles/
+│
+├── public/
+├── index.html
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── README.md
+
+初始化：
+
+Vue 3
+TypeScript
+Vite
+Vue Router
+Pinia
+Element Plus
+Axios
+
+建立：
+
+ToolRegistry
+ToolRuntime
+
+只建立基础接口。
+
+禁止实现具体 Tool。
+
+禁止实现：
+
+JSON 格式化
+JSON 压缩
+JSON 校验
+XML
+YAML
+TOML
+SQL
+Base64
+UUID
+ULID
+NanoID
+Snowflake
+时间工具
+文本工具
+图片工具
+二维码
+URL 工具
+Unicode 工具
+Regex
+JWT
+
+任何具体工具都不要实现。
+
+============================================================
+八、数据库基础设施
+============================================================
+
+建立：
+
+SQLAlchemy Engine
+SQLAlchemy Session
+Declarative Base
+Alembic
+
+目录：
+
+app/shared/database/
+
+至少包含：
+
+engine.py
+session.py
+base.py
+
+本阶段：
+
+禁止创建业务数据库表。
+
+禁止创建业务 Model。
+
+禁止执行完整 DDL。
+
+禁止修改 DDL。
+
+只建立数据库访问基础设施。
+
+============================================================
+九、Redis 基础设施
+============================================================
+
+建立：
+
+app/shared/redis/
+
+包含：
+
+Redis Client
+Connection Factory
+
+只验证：
+
+Redis 可以建立连接。
+
+本阶段禁止实现：
+
+缓存
+Session
+Quota
+Rate Limit
+分布式锁
+幂等
+工具额度
+
+============================================================
+十、统一 API Response
+============================================================
+
+建立统一响应结构。
+
+成功：
+
+{
+    "code": 0,
+    "message": "success",
+    "data": {}
+}
+
+错误：
+
+{
+    "code": 403001,
+    "message": "permission denied",
+    "data": null
+}
+
+只建立：
+
+Response Schema
+Response Helper
+
+禁止实现具体业务错误处理。
+
+============================================================
+十一、Trace ID / Request ID
+============================================================
+
+建立 Middleware。
+
+支持：
+
+X-Trace-ID
+X-Request-ID
+
+如果客户端没有传：
+
+由服务端自动生成。
+
+要求：
+
+HTTP Request
+    ↓
+Middleware
+    ↓
+Router
+    ↓
+Service
+    ↓
+Repository
+
+能够读取：
+
+trace_id
+request_id
+
+本阶段只建立基础设施。
+
+============================================================
+十二、异常体系
+============================================================
+
+建立：
+
+AppException
+
+并预留：
+
+ValidationError
+AuthenticationError
+AuthorizationError
+NotFoundError
+ConflictError
+BusinessError
+
+本阶段不实现业务异常。
+
+============================================================
+十三、日志
+============================================================
+
+建立统一 Application Logging。
+
+预留：
+
+Access Log
+Security Log
+Operation Log
+Audit Log
+
+本阶段只实现：
+
+Application Log
+
+============================================================
+十四、配置系统
+============================================================
+
+建立 Settings。
+
+至少支持：
+
+APP_NAME
+APP_ENV
+APP_DEBUG
+
+DATABASE_URL
+REDIS_URL
+
+API_PREFIX
+
+不要把：
+
+密码
+Token
+Secret
+数据库密码
+
+硬编码到代码。
+
+创建：
+
+.env.example
+
+不要创建真实 .env。
+
+============================================================
+十五、Health API
+============================================================
+
+实现：
+
+GET /health
+GET /ready
+GET /version
+
+要求：
+
+/health
+
+只检查应用进程。
+
+/ready
+
+检查：
+
+PostgreSQL
+Redis
+
+/version
+
+返回：
+
+app_name
+version
+environment
+
+============================================================
+十六、API Prefix
+============================================================
+
+业务 API：
+
+/api/v1
+
+系统健康检查：
+
+/health
+/ready
+/version
+
+============================================================
+十七、CORS
+============================================================
+
+建立 CORS Middleware。
+
+允许来源必须从配置读取。
+
+禁止：
+
+allow_origins=["*"]
+
+============================================================
+十八、禁止自行修改 Spec
+============================================================
+
+Spec 是项目需求的唯一来源。
+
+如果代码设计与 Spec 冲突：
+
+以 Spec 为准。
+
+如果 Spec 与现有代码冲突：
+
+不要自行修改 Spec。
+
+报告：
+
+SPEC-CONFLICT
+
+============================================================
+十九、禁止自行增加依赖
+============================================================
+
+如果发现：
+
+“为了实现某个功能最好安装 XXX”
+
+不要直接安装。
+
+先报告：
+
+DEPENDENCY-BLOCKER
+
+并说明：
+
+1. 需要什么库
+2. 为什么需要
+3. 哪个 Spec 没有定义
+4. 当前实现为什么无法继续
+
+等待确认。
+
+============================================================
+二十、禁止伪完成
+============================================================
+
+禁止使用以下方式冒充功能完成：
+
+pass
+TODO
+NotImplementedError
+fake response
+mock business data
+假数据库查询
+假用户
+假权限
+假登录
+
+本阶段没有业务功能，所以不需要伪造业务功能。
+
+============================================================
+二十一、数据库原则
+============================================================
+
+数据库结构必须以项目提供的：
+
+完整 DDL
+
+为唯一数据库结构来源。
+
+本阶段不要执行完整 DDL。
+
+不要自行增加：
+
+tenant_id
+
+项目明确：
+
+当前系统不支持多租户。
+
+禁止自行添加 tenant_id。
+
+============================================================
+二十二、ID 规则
+============================================================
+
+系统 ID：
+
+BIGINT + Snowflake
+
+API JSON：
+
+BIGINT ID 必须序列化为 string。
+
+本阶段只建立基础类型约束。
+
+不要自行改变 ID 类型。
+
+============================================================
+二十三、时间规则
+============================================================
+
+数据库时间：
+
+UTC
+
+API 时间：
+
+ISO 8601
+
+禁止使用本地时间作为数据库标准时间。
+
+============================================================
+二十四、Git
+============================================================
+
+初始化 Git。
+
+完成 Phase 0 后：
+
+git add .
+git commit -m "chore: initialize project architecture"
+
+必须输出：
+
+Git commit hash。
+
+============================================================
+二十五、Phase 0 验证
+============================================================
+
+必须执行真实验证。
+
+不要只检查文件是否存在。
+
+-------------------------
+Backend
+-------------------------
+
+必须验证：
+
+1. Python 环境正常
+2. FastAPI 启动成功
+3. /health 返回 200
+4. /ready 可以执行
+5. /version 返回 200
+6. PostgreSQL 连接正常
+7. Redis 连接正常
+8. pytest 可以执行
+9. lint 可以执行
+10. type check 可以执行
+
+-------------------------
+Admin Web
+-------------------------
+
+必须验证：
+
+1. npm install 成功
+2. TypeScript check 成功
+3. Vite build 成功
+4. Vue Router 正常
+5. Pinia 正常
+6. Element Plus 正常
+7. Axios 正常
+
+-------------------------
+Tools Web
+-------------------------
+
+必须验证：
+
+1. npm install 成功
+2. TypeScript check 成功
+3. Vite build 成功
+4. Vue Router 正常
+5. Pinia 正常
+6. Element Plus 正常
+7. Axios 正常
+8. ToolRegistry 初始化成功
+9. ToolRuntime 初始化成功
+
+============================================================
+二十六、最终目录检查
+============================================================
+
+必须确认：
+
+D:\project\bmw730\
+├── vctn-api
+├── vctn-admin-web
+└── vctn-tools-web
+
+三个项目全部存在。
+
+============================================================
+二十七、最终报告
+============================================================
+
+Phase 0 完成后必须输出以下报告：
+
+# Phase 0 Verification Report
+
+## 1. Project Root
+
+D:\project\bmw730
+
+## 2. Project Structure
+
+输出完整目录树。
+
+## 3. Backend
+
+说明：
+
+- Python 版本
+- FastAPI 版本
+- 数据库连接结果
+- Redis 连接结果
+- /health
+- /ready
+- /version
+
+## 4. Admin Web
+
+说明：
+
+- Node 版本
+- npm 版本
+- Vue 版本
+- TypeScript 版本
+- build 结果
+
+## 5. Tools Web
+
+说明：
+
+- Node 版本
+- npm 版本
+- Vue 版本
+- TypeScript 版本
+- build 结果
+
+## 6. Dependency List
+
+列出所有实际安装依赖。
+
+## 7. Validation
+
+列出：
+
+- pytest
+- lint
+- type check
+- frontend build
+
+的真实结果。
+
+## 8. Git
+
+输出：
+
+commit hash
+
+## 9. Modified Files
+
+列出实际创建和修改的文件。
+
+## 10. BLOCKER
+
+如果没有：
+
+BLOCKER: NONE
+
+如果有：
+
+逐项列出。
+
+============================================================
+二十八、Phase 0 完成后必须停止
+============================================================
+
+非常重要：
+
+Phase 0 完成后立即停止。
+
+禁止自动进入 Phase 1。
+
+禁止实现：
+
+用户
+部门
+角色
+权限
+登录
+Session
+MFA
+Tools
+Blog
+积分
+等级
+Analytics
+Audit
+业务 API
+
+必须等待下一条指令。
+
+============================================================
+最终目标
+============================================================
+
+本阶段唯一目标：
+
+【建立一个干净、规范、可启动、可验证、可继续开发的 VCTN 项目工程骨架。】
+
+不是开发业务。
+
+不是实现接口。
+
+不是实现数据库业务。
+
+不是实现页面。
+
+完成：
+
+【工程骨架 + 基础设施 + 启动验证】
+
+然后停止。
