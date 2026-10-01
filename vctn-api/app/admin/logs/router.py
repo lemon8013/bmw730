@@ -9,7 +9,6 @@ email values are masked.
 from __future__ import annotations
 
 import datetime
-from typing import Union
 
 from fastapi import APIRouter, Depends, Query
 
@@ -35,13 +34,13 @@ from app.shared.response.schema import ApiResponse
 
 router = APIRouter()
 
-_LOG_UNION = Union[
-    AuditLogResponse,
-    SecurityLogResponse,
-    OperationLogResponse,
-    AccessLogResponse,
-    ApplicationLogResponse,
-]
+_LOG_UNION = (
+    AuditLogResponse
+    | SecurityLogResponse
+    | OperationLogResponse
+    | AccessLogResponse
+    | ApplicationLogResponse
+)
 
 
 def _parse(value: str | None) -> datetime.datetime | None:

@@ -103,7 +103,9 @@ class AdminToolRepository:
         )
         return result.scalar_one_or_none()
 
-    async def upsert_policy(self, tool_id: int, subject_type: str, **fields: object) -> ToolAccessPolicy:
+    async def upsert_policy(
+        self, tool_id: int, subject_type: str, **fields: object
+    ) -> ToolAccessPolicy:
         existing = await self.policy_for(tool_id, subject_type)
         if existing is not None:
             for key, value in fields.items():

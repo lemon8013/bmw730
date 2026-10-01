@@ -68,7 +68,7 @@ async def create_comment(
 
 
 @router.get(
-    "/pending",
+    "/comments/pending",
     response_model=ApiResponse[Page[CommentResponse]],
     dependencies=[Depends(require_permission("BLOG_COMMENT_REVIEW"))],
 )
@@ -84,7 +84,7 @@ async def pending_comments(
 
 
 @router.delete(
-    "/{comment_id}",
+    "/comments/{comment_id}",
     response_model=ApiResponse[dict],
 )
 async def delete_comment(
@@ -97,7 +97,7 @@ async def delete_comment(
 
 
 @router.post(
-    "/{comment_id}/review",
+    "/comments/{comment_id}/review",
     response_model=ApiResponse[CommentResponse],
     dependencies=[Depends(require_permission("BLOG_COMMENT_REVIEW"))],
 )

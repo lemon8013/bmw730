@@ -218,7 +218,9 @@ class AdminToolService:
             rate_limit_per_minute=payload.rate_limit_per_minute,
             concurrency_limit=payload.concurrency_limit,
         )
-        action = "TOOL_ACCESS_POLICY_UPDATE" if existing is not None else "TOOL_ACCESS_POLICY_CREATE"
+        action = (
+            "TOOL_ACCESS_POLICY_UPDATE" if existing is not None else "TOOL_ACCESS_POLICY_CREATE"
+        )
         await self._audit.record(
             self._session,
             action=action,

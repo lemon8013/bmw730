@@ -161,5 +161,7 @@ class LogsQueryService:
         return await ExportTaskService(self._session).create(
             actor_id=actor_id,
             actor_username=actor_username,
-            payload=CreateExportTaskRequest(task_type=f"LOG_{log_type.upper()}", params=params),
+            payload=CreateExportTaskRequest(
+                export_type=f"LOG_{log_type.upper()}", filter_json=params
+            ),
         )

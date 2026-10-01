@@ -35,6 +35,26 @@ VCTN：**双前端 + 单 FastAPI 模块化单体**。
 - 待关闭：PG/Redis 连接信息（BLOCKER-1）；Spec 回写根目录与版本清单（BLOCKER-2）。
 
 ## 环境坑
-- `aicoding/spec/` 目录与文件名是**双重编码乱码**，标准文件 API 无法按中文名访问；需先按索引导出为 ASCII 文件名再读取。
-- 本机没有 PostgreSQL / Redis / Docker。
+- `aicoding/spec/` 目录与文件名是**双重编码乱码**，标准文件 API 无法按中文名访问；需先按导
+  出为 ASCII 文件名再读取（`cp` 到临时目录即可）。
+- 本机**已有可用 PostgreSQL 18 + Redis**（配置在 `vctn-api/.env`，账号 `bmw730` **无 CREATEDB 权限**，无法建临时库）。
 - 本机 pip / npm 网络很慢（pip 装 25 个包约 23 分钟），长任务务必后台跑。
+
+## 路由装配约定（2026-10-01 修正，勿回退）
+- **挂载前缀只写到模块基址**，业务段由 router 内部路径声明：
+  `admin/*` → `/admin`（`admin/auth` 例外用 `/admin/auth`）；`platform/blog/tools/analytics/system` 各自
+  router 内部已含模块段，故挂载前缀为 `""`、`/tools`、`/blog`、`/analytics`、`/files`、`/jobs`、`/search`。
+- 判定标准：**OpenAPI 路径不得出现连续重复段**（`/users/users`）；多个 router 共用同一前缀是允许的。
+- FastAPI 本版本 `app.routes` 无 `APIRoute`，枚举端点必须用 `app.openapi()["paths"]`。
+- `router.__module__` 会回退成 `fastapi.routing`；要拿定义模块请用 `route.endpoint` / `inspect.getsource`。
+
+## 权限口径（2026-10-01 确立）
+- 权限码权威 = `aicoding/spec/07-API业务Spec/11-权限矩阵.md`（64 条）；控制器里 9 个矩阵外码
+  已登记 `vctn-api/BLOCKERS.md`，属待决策差异。
+- 端点级 API 权限由「实际路由 + 控制器真实 `require_permission` 依赖」生成，不维护手写映射表。
+
+## Seed 初始数据（2026-10-01 落地）
+- 代码：`vctn-api/app/scripts/seed/`；命令：`python -m app.scripts.seed [--mode=system|test] [--runs=N]`。
+- 管理员初始密码只从 `VCTN_SEED_ADMIN_PASSWORD` 读（缺失即失败）；测试账号密码走 `VCTN_SEED_TEST_PASSWORD`。
+- 幂等：只按稳定业务键 insert-if-not-exists，绝不 UPDATE 已有行；一次 run 一个事务。
+- 文档：`SEED_DATA_DESIGN.md` / `SEED_DATA_REPORT.md` / `BLOCKERS.md`（均在 `vctn-api/`）。

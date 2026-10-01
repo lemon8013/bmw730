@@ -20,13 +20,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.admin.analytics.router import router as admin_analytics_router
 from app.admin.audit.router import router as admin_audit_router
 from app.admin.auth.router import router as admin_auth_router
 from app.admin.config.router import router as admin_config_router
 from app.admin.departments.router import router as admin_departments_router
 from app.admin.dictionaries.router import router as admin_dictionaries_router
+from app.admin.export.router import router as admin_export_router
+from app.admin.logs.router import router as admin_logs_router
+from app.admin.notifications.router import router as admin_notifications_router
 from app.admin.permissions.router import router as admin_permissions_router
 from app.admin.roles.router import router as admin_roles_router
+from app.admin.tools.router import router as admin_tools_router
 from app.admin.users.router import router as admin_users_router
 from app.analytics.events.router import router as analytics_events_router
 from app.analytics.reports.router import router as analytics_reports_router
@@ -40,12 +45,14 @@ from app.core.config import Settings, get_settings
 from app.core.exceptions import AppException, ValidationError
 from app.core.logging import get_logger, setup_logging
 from app.core.middleware import TraceContextMiddleware
+from app.platform.achievements.router import router as platform_achievements_router
 from app.platform.auth.router import router as platform_auth_router
 from app.platform.cosmetics.router import router as platform_cosmetics_router
 from app.platform.growth.router import router as platform_growth_router
 from app.platform.levels.router import router as platform_levels_router
 from app.platform.notifications.router import router as platform_notifications_router
 from app.platform.points.router import router as platform_points_router
+from app.platform.tasks.router import router as platform_tasks_router
 from app.platform.users.router import router as platform_users_router
 from app.shared.database.engine import build_engine
 from app.shared.database.session import build_session_factory
@@ -63,38 +70,52 @@ from app.tools.statistics.router import router as tools_statistics_router
 from app.tools.usage.router import router as tools_usage_router
 
 _BUSINESS_ROUTERS: Final[tuple[tuple[str, str, APIRouter], ...]] = (
+    # Admin API (spec base ``/api/v1/admin``): each router already declares its
+    # own business-domain segment, so the mount prefix stops at ``/admin``.
     ("/admin/auth", "admin:auth", admin_auth_router),
-    ("/admin/users", "admin:users", admin_users_router),
-    ("/admin/departments", "admin:departments", admin_departments_router),
-    ("/admin/roles", "admin:roles", admin_roles_router),
-    ("/admin/permissions", "admin:permissions", admin_permissions_router),
-    ("/admin/audit", "admin:audit", admin_audit_router),
-    ("/admin/dictionaries", "admin:dictionaries", admin_dictionaries_router),
-    ("/admin/config", "admin:config", admin_config_router),
-    ("/platform/auth", "platform:auth", platform_auth_router),
-    ("/platform/users", "platform:users", platform_users_router),
-    ("/platform/growth", "platform:growth", platform_growth_router),
-    ("/platform/points", "platform:points", platform_points_router),
-    ("/platform/levels", "platform:levels", platform_levels_router),
-    ("/platform/cosmetics", "platform:cosmetics", platform_cosmetics_router),
-    ("/platform/notifications", "platform:notifications", platform_notifications_router),
-    ("/tools/catalog", "tools:catalog", tools_catalog_router),
-    ("/tools/runtime", "tools:runtime", tools_runtime_router),
-    ("/tools/access", "tools:access", tools_access_router),
-    ("/tools/usage", "tools:usage", tools_usage_router),
-    ("/tools/statistics", "tools:statistics", tools_statistics_router),
-    ("/tools/jobs", "tools:jobs", tools_jobs_router),
-    ("/blog/articles", "blog:articles", blog_articles_router),
-    ("/blog/comments", "blog:comments", blog_comments_router),
-    ("/blog/categories", "blog:categories", blog_categories_router),
-    ("/blog/authors", "blog:authors", blog_authors_router),
-    ("/blog/interactions", "blog:interactions", blog_interactions_router),
-    ("/analytics/events", "analytics:events", analytics_events_router),
-    ("/analytics/statistics", "analytics:statistics", analytics_statistics_router),
-    ("/analytics/reports", "analytics:reports", analytics_reports_router),
-    ("/system/files", "system:files", system_files_router),
-    ("/system/jobs", "system:jobs", system_jobs_router),
-    ("/system/search", "system:search", system_search_router),
+    ("/admin", "admin:users", admin_users_router),
+    ("/admin", "admin:departments", admin_departments_router),
+    ("/admin", "admin:roles", admin_roles_router),
+    ("/admin", "admin:permissions", admin_permissions_router),
+    ("/admin", "admin:audit", admin_audit_router),
+    ("/admin", "admin:dictionaries", admin_dictionaries_router),
+    ("/admin", "admin:config", admin_config_router),
+    ("/admin", "admin:tools", admin_tools_router),
+    ("/admin", "admin:analytics", admin_analytics_router),
+    ("/admin", "admin:export", admin_export_router),
+    ("/admin", "admin:logs", admin_logs_router),
+    ("/admin", "admin:notifications", admin_notifications_router),
+    # Platform API (spec base ``/api/v1``): router paths already carry the
+    # module segment (``/auth``, ``/users/me``, ``/levels`` ...).
+    ("", "platform:auth", platform_auth_router),
+    ("", "platform:users", platform_users_router),
+    ("", "platform:growth", platform_growth_router),
+    ("", "platform:points", platform_points_router),
+    ("", "platform:levels", platform_levels_router),
+    ("", "platform:cosmetics", platform_cosmetics_router),
+    ("", "platform:notifications", platform_notifications_router),
+    ("", "platform:tasks", platform_tasks_router),
+    ("", "platform:achievements", platform_achievements_router),
+    # Tools API (spec base ``/api/v1``).
+    ("", "tools:catalog", tools_catalog_router),
+    ("/tools", "tools:runtime", tools_runtime_router),
+    ("/tools", "tools:access", tools_access_router),
+    ("/tools", "tools:usage", tools_usage_router),
+    ("/tools", "tools:statistics", tools_statistics_router),
+    ("/tools", "tools:jobs", tools_jobs_router),
+    # Blog API & Analytics API (spec base ``/api/v1``).
+    ("/blog", "blog:articles", blog_articles_router),
+    ("/blog", "blog:comments", blog_comments_router),
+    ("/blog", "blog:categories", blog_categories_router),
+    ("/blog", "blog:authors", blog_authors_router),
+    ("/blog", "blog:interactions", blog_interactions_router),
+    ("/analytics", "analytics:events", analytics_events_router),
+    ("/analytics", "analytics:statistics", analytics_statistics_router),
+    ("/analytics", "analytics:reports", analytics_reports_router),
+    # System API (spec base ``/api/v1``).
+    ("/files", "system:files", system_files_router),
+    ("/jobs", "system:jobs", system_jobs_router),
+    ("/search", "system:search", system_search_router),
 )
 
 

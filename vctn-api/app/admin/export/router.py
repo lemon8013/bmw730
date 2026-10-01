@@ -34,7 +34,7 @@ async def create_export_task(
 @router.get("/export/tasks", response_model=ApiResponse[Page[ExportTaskResponse]])
 async def list_export_tasks(
     session: DbSessionDep,
-    task_type: str | None = Query(default=None),
+    export_type: str | None = Query(default=None),
     status: str | None = Query(default=None),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=200),
@@ -42,7 +42,7 @@ async def list_export_tasks(
 ) -> ApiResponse[Page[ExportTaskResponse]]:
     return success(
         await ExportTaskService(session).list(
-            task_type=task_type,
+            export_type=export_type,
             status=status,
             page=PageParams(page=page, page_size=page_size),
         )

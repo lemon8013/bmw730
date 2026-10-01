@@ -28,11 +28,3 @@ class LogsSummaryResponse(ApiModel):
     operation: int = 0
     access: int = 0
     application: int = 0
-
-
-class LogExportTriggerResponse(ApiModel):
-    """Confirmation that an export task was created for a log query."""
-
-    task_id: StringId
-    task_type: str
-    status: str

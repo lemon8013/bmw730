@@ -74,7 +74,10 @@ async def send_notification(
     )
 
 
-@router.post("/notifications/{notification_id}/read", response_model=ApiResponse[NotificationResponse])
+@router.post(
+    "/notifications/{notification_id}/read",
+    response_model=ApiResponse[NotificationResponse],
+)
 async def mark_notification_read(
     notification_id: str,
     session: DbSessionDep,
