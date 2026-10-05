@@ -18,6 +18,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class SysConfig(Base):
@@ -26,7 +27,11 @@ class SysConfig(Base):
     __tablename__ = "sys_config"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     config_key: Mapped[str] = mapped_column(sa.String(255), comment="配置键", nullable=False)
     config_name: Mapped[str] = mapped_column(sa.String(128), comment="配置名称", nullable=False)
@@ -88,7 +93,11 @@ class SysFeatureFlag(Base):
     __tablename__ = "sys_feature_flag"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     flag_key: Mapped[str] = mapped_column(sa.String(128), comment="开关键", nullable=False)
     flag_name: Mapped[str] = mapped_column(sa.String(128), comment="开关名称", nullable=False)

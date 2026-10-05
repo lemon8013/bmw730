@@ -1,0 +1,326 @@
+AccessLogResponse :: id:string, trace_id?:string|null, request_id?:string|null, user_id?:string|null, method:string, path:string, status_code?:int|null, ip?:string|null, user_agent?:string|null, duration_ms?:int|null, created_at:string
+AccessPolicyAdminResponse :: id:string, tool_id?:string|null, tool_name?:string|null, subject_type:string, enabled:bool, daily_limit?:int|null, rate_limit_per_minute?:int|null, concurrency_limit?:int|null, created_at:string, updated_at:string
+AccessPolicyRequest :: subject_type:string, enabled?:bool, daily_limit?:int|null, rate_limit_per_minute?:int|null, concurrency_limit?:int|null
+AchievementResponse :: id:string, achievement_code:string, achievement_name:string, conditions?:object|null, reward?:object|null, status:string
+AdminUserBrief :: id:string, username:string, display_name:string, email?:string|null, phone?:string|null, department_id?:string|null, status:string, is_super_admin:bool, must_change_password:bool, last_login_at?:string|null, created_at:string
+AnalyticsOverviewResponse :: start:string, end:string, event_total:int, event_unique_users:int, event_unique_anonymous:int, tool_views:int, tool_starts:int, tool_executions:int, tool_success:int, tool_failure:int, tool_unique_users:int, active_user_days:int, user_event_total:int, page_views:int
+ApiError :: code:int, message:string, data?:?
+ApiResponse_AccessPolicyAdminResponse_ :: code?:int, message?:string, data?:AccessPolicyAdminResponse|null
+ApiResponse_AnalyticsOverviewResponse_ :: code?:int, message?:string, data?:AnalyticsOverviewResponse|null
+ApiResponse_Any_ :: code?:int, message?:string, data?:?
+ApiResponse_ArticleResponse_ :: code?:int, message?:string, data?:ArticleResponse|null
+ApiResponse_AuditLogResponse_ :: code?:int, message?:string, data?:AuditLogResponse|null
+ApiResponse_AuthorApplicationResponse_ :: code?:int, message?:string, data?:AuthorApplicationResponse|null
+ApiResponse_AuthorResponse_ :: code?:int, message?:string, data?:AuthorResponse|null
+ApiResponse_BehaviorEventResponse_ :: code?:int, message?:string, data?:BehaviorEventResponse|null
+ApiResponse_CategoryResponse_ :: code?:int, message?:string, data?:CategoryResponse|null
+ApiResponse_ClaimResponse_ :: code?:int, message?:string, data?:ClaimResponse|null
+ApiResponse_CommentResponse_ :: code?:int, message?:string, data?:CommentResponse|null
+ApiResponse_ConfigResponse_ :: code?:int, message?:string, data?:ConfigResponse|null
+ApiResponse_CurrentUserResponse_ :: code?:int, message?:string, data?:CurrentUserResponse|null
+ApiResponse_DepartmentResponse_ :: code?:int, message?:string, data?:DepartmentResponse|null
+ApiResponse_DictItemResponse_ :: code?:int, message?:string, data?:DictItemResponse|null
+ApiResponse_DictTypeResponse_ :: code?:int, message?:string, data?:DictTypeResponse|null
+ApiResponse_EquipmentResponse_ :: code?:int, message?:string, data?:EquipmentResponse|null
+ApiResponse_ExportTaskResponse_ :: code?:int, message?:string, data?:ExportTaskResponse|null
+ApiResponse_FavoriteResponse_ :: code?:int, message?:string, data?:FavoriteResponse|null
+ApiResponse_FeatureFlagResponse_ :: code?:int, message?:string, data?:FeatureFlagResponse|null
+ApiResponse_FileCreatedResponse_ :: code?:int, message?:string, data?:FileCreatedResponse|null
+ApiResponse_FileResponse_ :: code?:int, message?:string, data?:FileResponse|null
+ApiResponse_FollowResponse_ :: code?:int, message?:string, data?:FollowResponse|null
+ApiResponse_ForceLogoutResponse_ :: code?:int, message?:string, data?:ForceLogoutResponse|null
+ApiResponse_FunnelResponse_ :: code?:int, message?:string, data?:FunnelResponse|null
+ApiResponse_GrowthAccountResponse_ :: code?:int, message?:string, data?:GrowthAccountResponse|null
+ApiResponse_IdentityMergeResponse_ :: code?:int, message?:string, data?:IdentityMergeResponse|null
+ApiResponse_JobResponse_ :: code?:int, message?:string, data?:JobResponse|null
+ApiResponse_LikeResponse_ :: code?:int, message?:string, data?:LikeResponse|null
+ApiResponse_LogsSummaryResponse_ :: code?:int, message?:string, data?:LogsSummaryResponse|null
+ApiResponse_MyLevelResponse_ :: code?:int, message?:string, data?:MyLevelResponse|null
+ApiResponse_NotificationPage_ :: code?:int, message?:string, data?:NotificationPage|null
+ApiResponse_NotificationResponse_ :: code?:int, message?:string, data?:NotificationResponse|null
+ApiResponse_OverviewResponse_ :: code?:int, message?:string, data?:OverviewResponse|null
+ApiResponse_Page_AccessLogResponse__ :: code?:int, message?:string, data?:Page_AccessLogResponse_|null
+ApiResponse_Page_ArticleResponse__ :: code?:int, message?:string, data?:Page_ArticleResponse_|null
+ApiResponse_Page_AuditLogResponse__ :: code?:int, message?:string, data?:Page_AuditLogResponse_|null
+ApiResponse_Page_AuthorApplicationResponse__ :: code?:int, message?:string, data?:Page_AuthorApplicationResponse_|null
+ApiResponse_Page_AuthorResponse__ :: code?:int, message?:string, data?:Page_AuthorResponse_|null
+ApiResponse_Page_BehaviorEventResponse__ :: code?:int, message?:string, data?:Page_BehaviorEventResponse_|null
+ApiResponse_Page_CategoryResponse__ :: code?:int, message?:string, data?:Page_CategoryResponse_|null
+ApiResponse_Page_CommentResponse__ :: code?:int, message?:string, data?:Page_CommentResponse_|null
+ApiResponse_Page_ConfigResponse__ :: code?:int, message?:string, data?:Page_ConfigResponse_|null
+ApiResponse_Page_DepartmentResponse__ :: code?:int, message?:string, data?:Page_DepartmentResponse_|null
+ApiResponse_Page_DictTypeResponse__ :: code?:int, message?:string, data?:Page_DictTypeResponse_|null
+ApiResponse_Page_ExportTaskResponse__ :: code?:int, message?:string, data?:Page_ExportTaskResponse_|null
+ApiResponse_Page_FeatureFlagResponse__ :: code?:int, message?:string, data?:Page_FeatureFlagResponse_|null
+ApiResponse_Page_FileResponse__ :: code?:int, message?:string, data?:Page_FileResponse_|null
+ApiResponse_Page_GrowthTransactionResponse__ :: code?:int, message?:string, data?:Page_GrowthTransactionResponse_|null
+ApiResponse_Page_IdentityMergeResponse__ :: code?:int, message?:string, data?:Page_IdentityMergeResponse_|null
+ApiResponse_Page_JobResponse__ :: code?:int, message?:string, data?:Page_JobResponse_|null
+ApiResponse_Page_LevelHistoryResponse__ :: code?:int, message?:string, data?:Page_LevelHistoryResponse_|null
+ApiResponse_Page_NotificationResponse__ :: code?:int, message?:string, data?:Page_NotificationResponse_|null
+ApiResponse_Page_OperationLogResponse__ :: code?:int, message?:string, data?:Page_OperationLogResponse_|null
+ApiResponse_Page_PageDailyResponse__ :: code?:int, message?:string, data?:Page_PageDailyResponse_|null
+ApiResponse_Page_PermissionResourceResponse__ :: code?:int, message?:string, data?:Page_PermissionResourceResponse_|null
+ApiResponse_Page_PointTransactionResponse__ :: code?:int, message?:string, data?:Page_PointTransactionResponse_|null
+ApiResponse_Page_RoleResponse__ :: code?:int, message?:string, data?:Page_RoleResponse_|null
+ApiResponse_Page_SearchDailyResponse__ :: code?:int, message?:string, data?:Page_SearchDailyResponse_|null
+ApiResponse_Page_SecurityLogResponse__ :: code?:int, message?:string, data?:Page_SecurityLogResponse_|null
+ApiResponse_Page_ToolDailyResponse__ :: code?:int, message?:string, data?:Page_ToolDailyResponse_|null
+ApiResponse_Page_ToolResponse__ :: code?:int, message?:string, data?:Page_ToolResponse_|null
+ApiResponse_Page_ToolUsageResponse__ :: code?:int, message?:string, data?:Page_ToolUsageResponse_|null
+ApiResponse_Page_Union_AuditLogResponse__SecurityLogResponse__OperationLogResponse__AccessLogResponse__ApplicationLogResponse___ :: code?:int, message?:string, data?:Page_Union_AuditLogResponse__SecurityLogResponse__OperationLogResponse__AccessLogResponse__ApplicationLogResponse__|null
+ApiResponse_Page_UserDailyResponse__ :: code?:int, message?:string, data?:Page_UserDailyResponse_|null
+ApiResponse_Page_UserResponse__ :: code?:int, message?:string, data?:Page_UserResponse_|null
+ApiResponse_PermissionResourceResponse_ :: code?:int, message?:string, data?:PermissionResourceResponse|null
+ApiResponse_PermissionsResponse_ :: code?:int, message?:string, data?:PermissionsResponse|null
+ApiResponse_PlatformUserBrief_ :: code?:int, message?:string, data?:PlatformUserBrief|null
+ApiResponse_PointAccountResponse_ :: code?:int, message?:string, data?:PointAccountResponse|null
+ApiResponse_PopularityRefreshResponse_ :: code?:int, message?:string, data?:PopularityRefreshResponse|null
+ApiResponse_RecomputeResponse_ :: code?:int, message?:string, data?:RecomputeResponse|null
+ApiResponse_ResetPasswordResponse_ :: code?:int, message?:string, data?:ResetPasswordResponse|null
+ApiResponse_RoleResponse_ :: code?:int, message?:string, data?:RoleResponse|null
+ApiResponse_SendVerificationResponse_ :: code?:int, message?:string, data?:SendVerificationResponse|null
+ApiResponse_StatisticsRefreshResponse_ :: code?:int, message?:string, data?:StatisticsRefreshResponse|null
+ApiResponse_TokenResponse_ :: code?:int, message?:string, data?:TokenResponse|null
+ApiResponse_ToolAccessResponse_ :: code?:int, message?:string, data?:ToolAccessResponse|null
+ApiResponse_ToolExecuteResponse_ :: code?:int, message?:string, data?:ToolExecuteResponse|null
+ApiResponse_ToolJobListResponse_ :: code?:int, message?:string, data?:ToolJobListResponse|null
+ApiResponse_ToolJobResponse_ :: code?:int, message?:string, data?:ToolJobResponse|null
+ApiResponse_ToolResponse_ :: code?:int, message?:string, data?:ToolResponse|null
+ApiResponse_ToolUsageSummary_ :: code?:int, message?:string, data?:ToolUsageSummary|null
+ApiResponse_TraceResponse_ :: code?:int, message?:string, data?:TraceResponse|null
+ApiResponse_TrendResponse_ :: code?:int, message?:string, data?:TrendResponse|null
+ApiResponse_UserMeResponse_ :: code?:int, message?:string, data?:UserMeResponse|null
+ApiResponse_UserResponse_ :: code?:int, message?:string, data?:UserResponse|null
+ApiResponse_VerifyResponse_ :: code?:int, message?:string, data?:VerifyResponse|null
+ApiResponse_bool_ :: code?:int, message?:string, data?:bool|null
+ApiResponse_dict_ :: code?:int, message?:string, data?:object|null
+ApiResponse_dict_str__int__ :: code?:int, message?:string, data?:object|null
+ApiResponse_list_AccessPolicyAdminResponse__ :: code?:int, message?:string, data?:AccessPolicyAdminResponse[]|null
+ApiResponse_list_AchievementResponse__ :: code?:int, message?:string, data?:AchievementResponse[]|null
+ApiResponse_list_CosmeticResponse__ :: code?:int, message?:string, data?:CosmeticResponse[]|null
+ApiResponse_list_DepartmentResponse__ :: code?:int, message?:string, data?:DepartmentResponse[]|null
+ApiResponse_list_DepartmentTreeNode__ :: code?:int, message?:string, data?:DepartmentTreeNode[]|null
+ApiResponse_list_DictItemResponse__ :: code?:int, message?:string, data?:DictItemResponse[]|null
+ApiResponse_list_FunnelResponse__ :: code?:int, message?:string, data?:FunnelResponse[]|null
+ApiResponse_list_FunnelSummaryItem__ :: code?:int, message?:string, data?:FunnelSummaryItem[]|null
+ApiResponse_list_LevelResponse__ :: code?:int, message?:string, data?:LevelResponse[]|null
+ApiResponse_list_NotificationTypeStat__ :: code?:int, message?:string, data?:NotificationTypeStat[]|null
+ApiResponse_list_OnlineUserResponse__ :: code?:int, message?:string, data?:OnlineUserResponse[]|null
+ApiResponse_list_ParentRoleBrief__ :: code?:int, message?:string, data?:ParentRoleBrief[]|null
+ApiResponse_list_PermissionBrief__ :: code?:int, message?:string, data?:PermissionBrief[]|null
+ApiResponse_list_PermissionTreeNode__ :: code?:int, message?:string, data?:PermissionTreeNode[]|null
+ApiResponse_list_PlatformSessionBrief__ :: code?:int, message?:string, data?:PlatformSessionBrief[]|null
+ApiResponse_list_PointRuleResponse__ :: code?:int, message?:string, data?:PointRuleResponse[]|null
+ApiResponse_list_PopularToolResponse__ :: code?:int, message?:string, data?:PopularToolResponse[]|null
+ApiResponse_list_RecentToolResponse__ :: code?:int, message?:string, data?:RecentToolResponse[]|null
+ApiResponse_list_RoleBrief__ :: code?:int, message?:string, data?:RoleBrief[]|null
+ApiResponse_list_SearchResultItem__ :: code?:int, message?:string, data?:SearchResultItem[]|null
+ApiResponse_list_TaskResponse__ :: code?:int, message?:string, data?:TaskResponse[]|null
+ApiResponse_list_ToolAccessResponse__ :: code?:int, message?:string, data?:ToolAccessResponse[]|null
+ApiResponse_list_ToolCategoryResponse__ :: code?:int, message?:string, data?:ToolCategoryResponse[]|null
+ApiResponse_list_ToolPopularityDailyResponse__ :: code?:int, message?:string, data?:ToolPopularityDailyResponse[]|null
+ApiResponse_list_ToolRankingItem__ :: code?:int, message?:string, data?:ToolRankingItem[]|null
+ApiResponse_list_ToolRecentUsageResponse__ :: code?:int, message?:string, data?:ToolRecentUsageResponse[]|null
+ApiResponse_list_ToolResponse__ :: code?:int, message?:string, data?:ToolResponse[]|null
+ApiResponse_list_ToolUsageDailyResponse__ :: code?:int, message?:string, data?:ToolUsageDailyResponse[]|null
+ApiResponse_list_UserAchievementResponse__ :: code?:int, message?:string, data?:UserAchievementResponse[]|null
+ApiResponse_list_UserCosmeticResponse__ :: code?:int, message?:string, data?:UserCosmeticResponse[]|null
+ApiResponse_list_UserTaskResponse__ :: code?:int, message?:string, data?:UserTaskResponse[]|null
+ApiResponse_list_dict__ :: code?:int, message?:string, data?:object[]|null
+ApiResponse_list_str__ :: code?:int, message?:string, data?:string[]|null
+ApplicationLogResponse :: id:string, trace_id?:string|null, level:string, logger_name?:string|null, message:string, exception_type?:string|null, metadata?:object|null, created_at:string
+ArticleCreateRequest :: title:string, slug:string, summary?:string|null, cover_url?:string|null, category_id?:string|null, content_markdown?:string|null, tags?:string[]
+ArticleResponse :: id:string, author_id:string, category_id?:string|null, title:string, slug:string, summary?:string|null, cover_url?:string|null, content_markdown?:string|null, content_html?:string|null, status:string, review_status:string, reviewer_id?:string|null, reviewed_at?:string|null, published_at?:string|null, view_count:int, like_count:int, favorite_count:int, comment_count:int, tags?:string[], created_at:string, updated_at:string
+ArticleReviewRequest :: decision:string, review_comment?:string|null
+ArticleUpdateRequest :: title?:string|null, slug?:string|null, summary?:string|null, cover_url?:string|null, category_id?:string|null, content_markdown?:string|null, tags?:string[]|null
+AssignParentsRequest :: parent_role_ids?:string[]
+AssignPermissionsRequest :: permission_ids?:string[]
+AssignRolesRequest :: role_ids?:string[]
+AuditLogResponse :: id:string, trace_id?:string|null, request_id?:string|null, operator_id?:string|null, operator_username?:string|null, action:string, resource_type?:string|null, resource_id?:string|null, before_data?:object|null, after_data?:object|null, result:string, error_code?:string|null, ip?:string|null, user_agent?:string|null, created_at:string
+AuthorApplicationResponse :: id:string, user_id:string, application_reason?:string|null, status:string, review_reason?:string|null, applied_at:string, reviewed_at?:string|null
+AuthorApplicationReviewRequest :: decision:string, review_reason?:string|null
+AuthorApplyRequest :: author_name:string, bio?:string|null, avatar_url?:string|null, application_reason?:string|null
+AuthorResponse :: id:string, user_id:string, author_name:string, bio?:string|null, avatar_url?:string|null, status:string, approved_at?:string|null, created_at:string, updated_at:string
+BatchForceLogoutRequest :: user_ids?:string[], reason?:string|null
+BehaviorEventResponse :: id:string, event_id:string, event_code:string, event_name?:string|null, anonymous_id_hash?:string|null, user_id?:string|null, session_id?:string|null, platform?:string|null, device_type?:string|null, os?:string|null, browser?:string|null, app_code?:string|null, app_version?:string|null, page_code?:string|null, page_url?:string|null, referrer?:string|null, module?:string|null, resource_type?:string|null, resource_id?:string|null, properties?:object|null, trace_id?:string|null, request_id?:string|null, occurred_at:string, received_at:string
+BehaviorEventWriteRequest :: event_id?:string|null, event_code:string, event_name?:string|null, anonymous_id_hash?:string|null, user_id?:string|null, session_id?:string|null, platform?:string|null, device_type?:string|null, os?:string|null, browser?:string|null, app_code?:string|null, app_version?:string|null, page_code?:string|null, page_url?:string|null, referrer?:string|null, module?:string|null, resource_type?:string|null, resource_id?:string|null, properties?:object|null, trace_id?:string|null, request_id?:string|null, occurred_at?:string|null
+CategoryCreateRequest :: category_code:string, category_name:string, description?:string|null, sort_order?:int
+CategoryResponse :: id:string, category_code:string, category_name:string, description?:string|null, sort_order:int, status:string, created_at:string, updated_at:string
+CategoryUpdateRequest :: category_name?:string|null, description?:string|null, sort_order?:int|null, status?:string|null
+ChangePasswordRequest :: old_password:string, new_password:string
+ClaimResponse :: task_id:string, user_task_id?:string|null, claimed:bool, reward?:object|null
+CommentCreateRequest :: content:string, parent_id?:string|null
+CommentResponse :: id:string, article_id?:string|null, user_id?:string|null, parent_id?:string|null, content:string, status:string, reviewer_id?:string|null, created_at:string, updated_at:string
+CommentReviewRequest :: decision:string, review_comment?:string|null
+ConfigResponse :: id:string, config_key:string, config_name:string, config_group?:string|null, value_type:string, config_value?:string|null, default_value?:string|null, editable:bool, requires_restart:bool, status:string, description?:string|null, version:int, effective_at?:string|null, created_at:string, updated_at:string
+CosmeticResponse :: id:string, cosmetic_code:string, cosmetic_name:string, cosmetic_type:string, asset_url?:string|null, metadata?:object|null, status:string, sort_order:int, owned?:bool
+CreateDepartmentRequest :: department_code:string, department_name:string, parent_id?:string|null, sort_order?:int, description?:string|null
+CreateDictItemRequest :: item_label:string, item_value:string, item_code?:string|null, sort_order?:int, is_default?:bool, description?:string|null
+CreateDictTypeRequest :: dict_code:string, dict_name:string, description?:string|null
+CreateExportTaskRequest :: export_type:string, filter_json?:object|null
+CreateFeatureFlagRequest :: flag_key:string, flag_name:string, enabled?:bool, strategy?:string, percentage?:int, conditions?:object|null, description?:string|null
+CreateNotificationRequest :: user_type:string, user_id:string, notification_type:string, title:string, content:string, payload?:object|null
+CreateResourceRequest :: permission_code:string, permission_name:string, permission_type:string, resource_type:string, resource_code:string, parent_id?:string|null, sort_order?:int, description?:string|null, field_permissions?:FieldPermissionInput[]
+CreateRoleRequest :: role_code:string, role_name:string, description?:string|null, data_scope?:string, custom_department_ids?:string[]
+CreateUserRequest :: username:string, display_name:string, email?:string|null, phone?:string|null, department_id?:string|null, role_ids?:string[], temporary_password?:string|null
+CurrentUserResponse :: user:AdminUserBrief, permissions:string[], is_super_admin:bool, must_change_password:bool, password_expired:bool
+DepartmentResponse :: id:string, parent_id?:string|null, department_code:string, department_name:string, status:string, sort_order:int, description?:string|null, user_count?:int, created_at:string, updated_at:string
+DepartmentTreeNode :: id:string, parent_id?:string|null, department_code:string, department_name:string, status:string, sort_order:int, user_count?:int, children?:DepartmentTreeNode[]
+DictItemResponse :: id:string, dict_type_id:string, item_label:string, item_value:string, item_code?:string|null, sort_order:int, status:string, is_default:bool, description?:string|null, created_at:string, updated_at:string
+DictTypeResponse :: id:string, dict_code:string, dict_name:string, description?:string|null, status:string, item_count?:int, created_at:string, updated_at:string
+EquipmentRequest :: avatar_cosmetic_id?:string|null, avatar_frame_cosmetic_id?:string|null, crown_cosmetic_id?:string|null, badge_cosmetic_id?:string|null, title_cosmetic_id?:string|null, name_effect_cosmetic_id?:string|null
+EquipmentResponse :: user_id:string, avatar_cosmetic_id?:string|null, avatar_frame_cosmetic_id?:string|null, crown_cosmetic_id?:string|null, badge_cosmetic_id?:string|null, title_cosmetic_id?:string|null, name_effect_cosmetic_id?:string|null
+ExportTaskResponse :: id:string, export_type:string, status:string, file_id?:string|null, requested_by?:string|null, row_count?:int|null, error_message?:string|null, filter_json?:object|null, created_at:string, started_at?:string|null, finished_at?:string|null
+FavoriteResponse :: article_id:string, favorited:bool, favorite_count:int
+FeatureFlagResponse :: id:string, flag_key:string, flag_name:string, enabled:bool, strategy:string, percentage:int, conditions?:object|null, description?:string|null, version:int, created_at:string, updated_at:string
+FieldPermissionInput :: field_code:string, field_mode:string
+FieldPermissionOutput :: id:string, field_code:string, field_mode:string
+FileCreateRequest :: storage_provider?:string, bucket?:string|null, object_key:string, original_name?:string|null, content_type?:string|null, size_bytes?:int|null, checksum?:string|null, owner_type?:string|null, owner_id?:int|null, metadata?:object|null
+FileCreatedResponse :: id:string, storage_key:string, status:string
+FileResponse :: id:string, owner_type?:string|null, owner_id?:string|null, storage_provider:string, bucket?:string|null, object_key:string, storage_key:string, original_name?:string|null, content_type?:string|null, size_bytes?:int|null, checksum?:string|null, status:string, metadata?:object|null, created_at:string, deleted_at?:string|null
+FollowResponse :: followed_user_id:string, following:bool
+ForceLogoutRequest :: reason?:string|null
+ForceLogoutResponse :: user_id:string, revoked_sessions:int
+FunnelCreateRequest :: funnel_code:string, funnel_name:string, step_no:int, step_code:string, event_code:string, enabled?:bool
+FunnelResponse :: id:string, funnel_code:string, funnel_name:string, step_no:int, step_code:string, event_code:string, enabled:bool, created_at:string, updated_at:string
+FunnelStepSummary :: step_no:int, step_code:string, event_code:string, enabled:bool, event_count:int
+FunnelSummaryItem :: funnel_code:string, funnel_name:string, first_step_count:int, steps:FunnelStepSummary[]
+FunnelUpdateRequest :: funnel_name?:string|null, step_no?:int|null, step_code?:string|null, event_code?:string|null, enabled?:bool|null
+GrowthAccountResponse :: user_id:string, total_growth_points:int, current_level_id?:string|null, current_level_name?:string|null, current_level_no?:int|null, next_level_id?:string|null, next_level_name?:string|null, next_level_points_required?:int|null, version:int, updated_at:string
+GrowthTransactionResponse :: id:string, user_id:string, event_id?:string|null, delta_points:int, balance_after:int, transaction_type:string, reason?:string|null, created_at:string
+HTTPValidationError :: detail?:ValidationError[]
+IdentityMergeRequest :: anonymous_id_hash:string, user_id?:string|null, first_seen_at?:string|null
+IdentityMergeResponse :: id:string, anonymous_id_hash:string, user_id?:string|null, first_seen_at?:string|null, merged_at:string
+JobCreateRequest :: job_code:string, job_name:string, job_type:string, payload?:object|null, priority?:int, max_attempts?:int
+JobResponse :: id:string, job_code:string, job_name:string, job_type:string, payload?:object|null, status:string, priority:int, attempt_count:int, max_attempts:int, available_at:string, started_at?:string|null, finished_at?:string|null, last_error?:string|null, trace_id?:string|null, created_at:string, updated_at:string
+LevelBenefitResponse :: id:string, level_id:string, benefit_type:string, benefit_code:string, benefit_value?:object|null, enabled:bool
+LevelHistoryResponse :: id:string, user_id:string, from_level_id?:string|null, to_level_id?:string|null, growth_points:int, reason?:string|null, created_at:string
+LevelResponse :: id:string, level_code:string, level_name:string, level_no:int, min_growth_points:int, max_growth_points?:int|null, icon_url?:string|null, description?:string|null, status:string, sort_order:int
+LikeResponse :: article_id:string, liked:bool, like_count:int
+LogsSummaryResponse :: audit?:int, security?:int, operation?:int, access?:int, application?:int
+MenuNode :: id:string, permission_code:string, permission_name:string, resource_type:string, resource_code:string, parent_id?:string|null, sort_order:int
+MoveDepartmentRequest :: department_id?:string|null
+MyLevelResponse :: user_id:string, total_growth_points:int, current_level?:LevelResponse|null, next_level?:LevelResponse|null, points_to_next_level?:int|null, benefits?:LevelBenefitResponse[]
+NotificationPage :: items?:NotificationResponse[], total?:int, page?:int, page_size?:int, unread_count?:int
+NotificationResponse :: id:string, user_type:string, user_id:string, notification_type:string, title:string, content:string, payload?:object|null, read_at?:string|null, created_at:string
+NotificationTypeStat :: notification_type:string, total:int, unread:int
+OnlineUserResponse :: user_id:string, username:string, display_name:string, department_id?:string|null, session_id:string, ip?:string|null, device_type?:string|null, login_at:string, last_active_at?:string|null
+OperationLogResponse :: id:string, trace_id?:string|null, request_id?:string|null, operator_id?:string|null, operation:string, resource_type?:string|null, resource_id?:string|null, result:string, metadata?:object|null, created_at:string
+OverviewResponse :: pv:int, uv:int, active_users:int, tool_top:ToolRankingItem[], generated_at:string
+PageDailyResponse :: id:string, stat_date:string, page_code:string, view_count:int, unique_user_count:int, unique_anonymous_count:int, avg_duration_ms?:num|null
+Page_AccessLogResponse_ :: items?:AccessLogResponse[], total?:int, page?:int, page_size?:int
+Page_ArticleResponse_ :: items?:ArticleResponse[], total?:int, page?:int, page_size?:int
+Page_AuditLogResponse_ :: items?:AuditLogResponse[], total?:int, page?:int, page_size?:int
+Page_AuthorApplicationResponse_ :: items?:AuthorApplicationResponse[], total?:int, page?:int, page_size?:int
+Page_AuthorResponse_ :: items?:AuthorResponse[], total?:int, page?:int, page_size?:int
+Page_BehaviorEventResponse_ :: items?:BehaviorEventResponse[], total?:int, page?:int, page_size?:int
+Page_CategoryResponse_ :: items?:CategoryResponse[], total?:int, page?:int, page_size?:int
+Page_CommentResponse_ :: items?:CommentResponse[], total?:int, page?:int, page_size?:int
+Page_ConfigResponse_ :: items?:ConfigResponse[], total?:int, page?:int, page_size?:int
+Page_DepartmentResponse_ :: items?:DepartmentResponse[], total?:int, page?:int, page_size?:int
+Page_DictTypeResponse_ :: items?:DictTypeResponse[], total?:int, page?:int, page_size?:int
+Page_ExportTaskResponse_ :: items?:ExportTaskResponse[], total?:int, page?:int, page_size?:int
+Page_FeatureFlagResponse_ :: items?:FeatureFlagResponse[], total?:int, page?:int, page_size?:int
+Page_FileResponse_ :: items?:FileResponse[], total?:int, page?:int, page_size?:int
+Page_GrowthTransactionResponse_ :: items?:GrowthTransactionResponse[], total?:int, page?:int, page_size?:int
+Page_IdentityMergeResponse_ :: items?:IdentityMergeResponse[], total?:int, page?:int, page_size?:int
+Page_JobResponse_ :: items?:JobResponse[], total?:int, page?:int, page_size?:int
+Page_LevelHistoryResponse_ :: items?:LevelHistoryResponse[], total?:int, page?:int, page_size?:int
+Page_NotificationResponse_ :: items?:NotificationResponse[], total?:int, page?:int, page_size?:int
+Page_OperationLogResponse_ :: items?:OperationLogResponse[], total?:int, page?:int, page_size?:int
+Page_PageDailyResponse_ :: items?:PageDailyResponse[], total?:int, page?:int, page_size?:int
+Page_PermissionResourceResponse_ :: items?:PermissionResourceResponse[], total?:int, page?:int, page_size?:int
+Page_PointTransactionResponse_ :: items?:PointTransactionResponse[], total?:int, page?:int, page_size?:int
+Page_RoleResponse_ :: items?:RoleResponse[], total?:int, page?:int, page_size?:int
+Page_SearchDailyResponse_ :: items?:SearchDailyResponse[], total?:int, page?:int, page_size?:int
+Page_SecurityLogResponse_ :: items?:SecurityLogResponse[], total?:int, page?:int, page_size?:int
+Page_ToolDailyResponse_ :: items?:ToolDailyResponse[], total?:int, page?:int, page_size?:int
+Page_ToolResponse_ :: items?:ToolResponse[], total?:int, page?:int, page_size?:int
+Page_ToolUsageResponse_ :: items?:ToolUsageResponse[], total?:int, page?:int, page_size?:int
+Page_Union_AuditLogResponse__SecurityLogResponse__OperationLogResponse__AccessLogResponse__ApplicationLogResponse__ :: items?:AuditLogResponse|SecurityLogResponse|OperationLogResponse|AccessLogResponse|ApplicationLogResponse[], total?:int, page?:int, page_size?:int
+Page_UserDailyResponse_ :: items?:UserDailyResponse[], total?:int, page?:int, page_size?:int
+Page_UserResponse_ :: items?:UserResponse[], total?:int, page?:int, page_size?:int
+ParentRoleBrief :: id:string, role_code:string, role_name:string, data_scope:string
+PermissionBrief :: id:string, permission_code:string, permission_name:string, permission_type:string, resource_type:string, resource_code:string
+PermissionResourceResponse :: id:string, permission_code:string, permission_name:string, permission_type:string, resource_type:string, resource_code:string, parent_id?:string|null, status:string, sort_order:int, description?:string|null, field_permissions?:FieldPermissionOutput[], created_at:string, updated_at:string
+PermissionTreeNode :: id:string, permission_code:string, permission_name:string, permission_type:string, resource_type:string, resource_code:string, status:string, sort_order:int, children?:PermissionTreeNode[]
+PermissionsResponse :: permissions:string[], menus:MenuNode[], is_super_admin:bool
+PlatformSessionBrief :: id:string, session_status:string, device_type?:string|null, login_at:string, last_active_at?:string|null, expires_at:string, revoked_at?:string|null, revoke_reason?:string|null, ip?:string|null
+PlatformUserBrief :: id:string, username?:string|null, nickname?:string|null, email?:string|null, phone?:string|null, avatar_url?:string|null, status:string, registered_at?:string|null, last_login_at?:string|null
+PointAccountResponse :: user_id:string, balance:int, total_earned:int, total_spent:int, version:int, updated_at:string
+PointRuleResponse :: id:string, rule_code:string, rule_name:string, event_code:string, points:int, daily_limit?:int|null, cooldown_seconds?:int|null, enabled:bool, conditions?:object|null, description?:string|null
+PointTransactionResponse :: id:string, user_id:string, event_id?:string|null, delta_points:int, balance_after:int, transaction_type:string, source_type?:string|null, source_id?:string|null, reason?:string|null, created_at:string
+PopularToolResponse :: tool_id:string, tool_name?:string|null, tool_slug?:string|null, usage_count:int, unique_user_count:int, rank_no?:int|null, score?:num|null
+PopularityRefreshRequest :: stat_date:string, window_days?:int
+PopularityRefreshResponse :: stat_date:string, window_days:int, refreshed:int
+ProfileResponse :: user_id:string, gender?:string|null, birthday?:string|null, bio?:string|null, timezone?:string|null, locale?:string|null, preferences?:object|null
+RecentToolResponse :: tool_id:string, tool_name?:string|null, tool_slug?:string|null, last_used_at:string, use_count:int
+RecomputeRequest :: start_date?:string|null, end_date?:string|null
+RecomputeResponse :: start:string, end:string, recomputed_rows:int
+RegisterRequest :: username:string, password:string, nickname?:string|null, email?:string|null, phone?:string|null
+ResetPasswordRequest :: user_id:string, reason?:string|null
+ResetPasswordResponse :: user_id:string, temporary_password:string, must_change_password:bool
+RoleBrief :: id:string, role_code:string, role_name:string, data_scope:string
+RoleResponse :: id:string, role_code:string, role_name:string, description?:string|null, status:string, data_scope:string, custom_department_ids?:string[], user_count?:int, created_at:string, updated_at:string
+SearchDailyResponse :: id:string, stat_date:string, search_type:string, keyword_hash:string, search_count:int, result_click_count:int
+SearchResultItem :: resource_type:string, id:string, title:string, snippet?:string|null, status?:string|null, url?:string|null
+SecurityLogResponse :: id:string, trace_id?:string|null, user_id?:string|null, event_type:string, result:string, error_code?:string|null, ip?:string|null, user_agent?:string|null, metadata?:object|null, created_at:string
+SendVerificationRequest :: verification_type:string, target:string
+SendVerificationResponse :: verification_id:string, verification_type:string, target_masked:string, expires_at:string, delivery:string, debug_code?:string|null
+StatisticsRefreshRequest :: stat_date:string, window_days?:int
+StatisticsRefreshResponse :: stat_date:string, window_days:int, refreshed:int
+TaskResponse :: id:string, task_code:string, task_name:string, task_type:string, conditions?:object|null, reward?:object|null, start_at?:string|null, end_at?:string|null, repeatable:bool, status:string
+TokenResponse :: access_token:string, refresh_token:string, token_type:string, expires_in:int, refresh_expires_in:int
+ToolAccessResponse :: tool_id:string, subject_type:string, enabled:bool, daily_limit?:int|null, used_today?:int, remaining?:int|null, rate_limit_per_minute?:int|null, concurrency_limit?:int|null
+ToolCategoryResponse :: id:string, category_code:string, category_name:string, description?:string|null, icon_url?:string|null, sort_order:int, status:string
+ToolCreateRequest :: code:string, name:string, slug:string, component_key:string, execution_mode:string, category_id?:int|null, icon?:string|null, summary?:string|null, description?:string|null, keywords?:string[], tags?:string[], status?:string, sort_order?:int
+ToolDailyResponse :: id:string, stat_date:string, tool_id?:string|null, view_count:int, start_count:int, execute_count:int, success_count:int, failure_count:int, copy_count:int, download_count:int, unique_user_count:int
+ToolExecuteRequest :: inputs?:object, anonymous_id?:string|null, idempotency_key?:string|null
+ToolExecuteResponse :: tool_id:string, usage_event_id?:string|null, job_id?:string|null, success:bool, output?:?, duration_ms:int, error_code?:string|null, error_message?:string|null, execution_mode:string
+ToolJobListResponse :: items?:ToolJobResponse[], total?:int, page?:int, page_size?:int
+ToolJobResponse :: id:string, job_code:string, job_name:string, job_type:string, status:string, priority:int, attempt_count:int, max_attempts:int, available_at:string, started_at?:string|null, finished_at?:string|null, last_error?:string|null, trace_id?:string|null, created_at:string, updated_at:string, payload?:object|null
+ToolPopularityDailyResponse :: id:string, stat_date:string, window_days:int, tool_id?:string|null, usage_count:int, unique_user_count:int, rank_no?:int|null, score?:num|null, created_at:string
+ToolRankingItem :: tool_id?:string|null, execute_count:int, success_count:int, failure_count:int, unique_user_count:int
+ToolRecentUsageResponse :: id:string, user_id?:string|null, tool_id?:string|null, last_used_at:string, use_count:int
+ToolResponse :: id:string, code:string, name:string, slug:string, category_id?:string|null, icon?:string|null, summary?:string|null, description?:string|null, keywords?:string[], tags?:string[], component_key:string, execution_mode:string, status:string, sort_order:int, current_version_id?:string|null
+ToolStatusRequest :: status:string
+ToolUpdateRequest :: code?:string|null, name?:string|null, slug?:string|null, component_key?:string|null, execution_mode?:string|null, category_id?:int|null, icon?:string|null, summary?:string|null, description?:string|null, keywords?:string[]|null, tags?:string[]|null, status?:string|null, sort_order?:int|null
+ToolUsageDailyResponse :: id:string, stat_date:string, tool_id?:string|null, total_count:int, success_count:int, failure_count:int, guest_count:int, user_count:int, unique_user_count:int, unique_guest_count:int, avg_duration_ms?:num|null, created_at:string, updated_at:string
+ToolUsageResponse :: tool_id?:string|null, tool_name?:string|null, tool_slug?:string|null, view_count:int, start_count:int, execute_count:int, success_count:int, failure_count:int, unique_user_count:int
+ToolUsageSummary :: tool_id?:string|null, period_start:string, period_end:string, total_executions:int, success_count:int, failure_count:int, unique_users:int, avg_duration_ms?:num|null
+TraceResponse :: trace_id:string, audit_logs?:AuditLogResponse[], security_logs?:SecurityLogResponse[], operation_logs?:OperationLogResponse[], access_logs?:AccessLogResponse[]
+TrendPoint :: stat_date:string, pv:int, uv:int
+TrendResponse :: start_date:string, end_date:string, points:TrendPoint[]
+UpdateConfigRequest :: config_value:string, reason?:string|null
+UpdateDepartmentRequest :: department_name?:string|null, parent_id?:string|null, sort_order?:int|null, description?:string|null, status?:string|null
+UpdateDictItemRequest :: item_label?:string|null, item_value?:string|null, item_code?:string|null, sort_order?:int|null, is_default?:bool|null, status?:string|null, description?:string|null
+UpdateDictTypeRequest :: dict_name?:string|null, description?:string|null, status?:string|null
+UpdateFeatureFlagRequest :: flag_name?:string|null, strategy?:string|null, percentage?:int|null, conditions?:object|null, description?:string|null
+UpdateProfileRequest :: nickname?:string|null, avatar_url?:string|null, gender?:string|null, birthday?:string|null, bio?:string|null, timezone?:string|null, locale?:string|null, preferences?:object|null
+UpdateResourceRequest :: permission_name?:string|null, resource_type?:string|null, resource_code?:string|null, parent_id?:string|null, sort_order?:int|null, status?:string|null, description?:string|null, field_permissions?:FieldPermissionInput[]|null
+UpdateRoleRequest :: role_name?:string|null, description?:string|null, status?:string|null, data_scope?:string|null, custom_department_ids?:string[]|null
+UpdateUserRequest :: display_name?:string|null, email?:string|null, phone?:string|null, status?:string|null, department_id?:string|null
+UserAchievementResponse :: id:string, user_id:string, achievement_id:string, achievement_name?:string|null, achieved_at:string
+UserCosmeticResponse :: id:string, user_id:string, cosmetic_id:string, cosmetic_name?:string|null, cosmetic_type?:string|null, obtained_at:string, source_type?:string|null, source_id?:string|null
+UserDailyResponse :: id:string, stat_date:string, user_id?:string|null, anonymous_id_hash?:string|null, event_count:int, active:bool, first_event_at?:string|null, last_event_at?:string|null
+UserMeResponse :: id:string, username?:string|null, nickname?:string|null, email?:string|null, phone?:string|null, avatar_url?:string|null, status:string, registered_at?:string|null, last_login_at?:string|null, profile?:ProfileResponse|null
+UserResponse :: id:string, username:string, display_name:string, email?:string|null, phone?:string|null, department_id?:string|null, department_name?:string|null, status:string, is_super_admin:bool, must_change_password:bool, password_changed_at?:string|null, password_expires_at?:string|null, failed_login_count:int, locked_until?:string|null, last_login_at?:string|null, created_at:string, updated_at:string, roles?:RoleBrief[], temporary_password?:string|null
+UserTaskResponse :: id:string, user_id:string, task_id:string, task_name?:string|null, progress?:object|null, status:string, completed_at?:string|null, reward_claimed?:bool, created_at:string, updated_at:string
+ValidationError :: loc:string|int[], msg:string, type:string, input?:?, ctx?:object
+VerifyRequest :: verification_id:string, code:string
+VerifyResponse :: verification_id:string, verified:bool, identity_type:string
+app__admin__analytics__schema__EventDailyResponse :: id:string, stat_date:string, event_code:string, total_count:int, unique_user_count:int, unique_anonymous_count:int, created_at:string, updated_at:string
+app__admin__auth__schema__LoginRequest :: username:string, password:string
+app__admin__auth__schema__LoginResponse :: token:TokenResponse, must_change_password:bool, password_expired:bool
+app__admin__auth__schema__RefreshRequest :: refresh_token:string
+app__analytics__statistics__schema__EventDailyResponse :: id:string, stat_date:string, event_code:string, total_count:int, unique_user_count:int, unique_anonymous_count:int, updated_at?:string|null
+app__platform__auth__schema__LoginRequest :: identity:string, password:string
+app__platform__auth__schema__LoginResponse :: token:TokenResponse, user_id:string, nickname?:string|null, must_change_password?:bool
+app__platform__auth__schema__RefreshRequest :: refresh_token:string
+app__shared__pagination__params__Page_EventDailyResponse___1 :: items?:app__admin__analytics__schema__EventDailyResponse[], total?:int, page?:int, page_size?:int
+app__shared__pagination__params__Page_EventDailyResponse___2 :: items?:app__analytics__statistics__schema__EventDailyResponse[], total?:int, page?:int, page_size?:int
+app__shared__response__schema__ApiResponse_LoginResponse___1 :: code?:int, message?:string, data?:app__admin__auth__schema__LoginResponse|null
+app__shared__response__schema__ApiResponse_LoginResponse___2 :: code?:int, message?:string, data?:app__platform__auth__schema__LoginResponse|null
+app__shared__response__schema__ApiResponse_Page_EventDailyResponse____1 :: code?:int, message?:string, data?:app__shared__pagination__params__Page_EventDailyResponse___1|null
+app__shared__response__schema__ApiResponse_Page_EventDailyResponse____2 :: code?:int, message?:string, data?:app__shared__pagination__params__Page_EventDailyResponse___2|null

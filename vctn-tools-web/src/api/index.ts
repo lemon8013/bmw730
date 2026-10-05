@@ -1,8 +1,5 @@
 /**
  * API layer.
- *
- * Phase 0 exposes the shared axios instance only. Tool, access and usage
- * clients are added by the phase that freezes the matching API contract.
  */
 export {
   ApiEnvelopeError,
@@ -11,3 +8,12 @@ export {
   createApiClient,
   httpClient,
 } from '@/api/client'
+export {
+  executeTool,
+  getToolJob,
+  listToolCategories,
+  listTools,
+  popularTools,
+  searchTools,
+  toolBySlug,
+} from '@/api/tools'

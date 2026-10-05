@@ -16,6 +16,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class SysDictType(Base):
@@ -24,7 +25,11 @@ class SysDictType(Base):
     __tablename__ = "sys_dict_type"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     dict_code: Mapped[str] = mapped_column(sa.String(128), comment="字典编码", nullable=False)
     dict_name: Mapped[str] = mapped_column(sa.String(128), comment="字典名称", nullable=False)
@@ -70,7 +75,11 @@ class SysDictItem(Base):
     __tablename__ = "sys_dict_item"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     dict_type_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("sys_dict_type.id"), comment="所属字典类型 ID", nullable=True

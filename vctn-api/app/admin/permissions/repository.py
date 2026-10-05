@@ -35,6 +35,49 @@ class PermissionRepository:
         )
         return list(result.scalars())
 
+    async def list_page(self, *, offset: int, limit: int) -> list[SysPermission]:
+        """Return one page of permission resources, ordered deterministically.
+
+        The database does the slicing: fetching every row and paginating in
+        Python would make the endpoint's cost grow with the size of the table
+        instead of with the size of the page.
+        """
+        result = await self._session.execute(
+            select(SysPermission)
+            .where(SysPermission.deleted_at.is_(None))
+            .order_by(SysPermission.sort_order, SysPermission.id)
+            .offset(offset)
+            .limit(limit)
+        )
+        return list(result.scalars())
+
+    async def count_all(self) -> int:
+        """Return how many permission resources exist."""
+        result = await self._session.execute(
+            select(func.count(SysPermission.id)).where(SysPermission.deleted_at.is_(None))
+        )
+        return int(result.scalar_one())
+
+    async def fields_of_many(
+        self, permission_ids: Sequence[int]
+    ) -> dict[int, list[SysPermissionField]]:
+        """Return the field policies of several resources in one round trip.
+
+        Reading them one resource at a time is an N+1: a page of 100 resources
+        would issue 100 extra queries.
+        """
+        if not permission_ids:
+            return {}
+        result = await self._session.execute(
+            select(SysPermissionField)
+            .where(SysPermissionField.permission_id.in_(list(permission_ids)))
+            .order_by(SysPermissionField.permission_id, SysPermissionField.field_code)
+        )
+        grouped: dict[int, list[SysPermissionField]] = {}
+        for row in result.scalars():
+            grouped.setdefault(int(row.permission_id), []).append(row)
+        return grouped
+
     async def exists_code(self, code: str, *, exclude_id: int | None = None) -> bool:
         conditions = [
             func.lower(SysPermission.permission_code) == code.lower(),

@@ -9,9 +9,12 @@ import App from '@/App.vue'
 import { createAppRouter } from '@/router'
 import { toolDefinitions } from '@/tools/definitions'
 import { toolRegistry } from '@/tools/registry'
+import { registerBuiltinExecutors, toolRuntime } from '@/tools/runtime'
 
-// Phase 0 bootstrap: register the (currently empty) built-in tool catalogue.
+// Register the built-in tool components (build time, never from remote input).
 toolRegistry.registerMany(toolDefinitions)
+// One executor per frozen execution mode: FRONTEND / BACKEND / ASYNC.
+registerBuiltinExecutors(toolRuntime.registerExecutor.bind(toolRuntime))
 
 const app = createApp(App)
 

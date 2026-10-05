@@ -673,6 +673,11 @@ TOOLS: Final[tuple[tuple[str, str, str, str, str, str], ...]] = (
         "解析 JWT 的头部与载荷",
     ),
     (
+        "password-generate", "随机密码生成", "password-generate", "SECURITY",
+        "password.generate",
+        "按字符类别与排除规则生成高强度随机密码",
+    ),
+    (
         "regex-test", "正则测试", "regex-test", "DEVELOPER", "regex.test",
         "测试正则表达式匹配结果",
     ),

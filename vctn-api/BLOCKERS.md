@@ -273,6 +273,11 @@ PUT    /api/v1/tools/access/policies/{id}
 | **B-26** | Snowflake 位布局（DD-14）未冻结 | 由 `app.shared.ids` 配置化实现，位布局参数待冻结 |
 | **B-27** | CUSTOM 数据范围的存储与解析未冻结 | 只保留权限资源与 `DataScope` 分支 |
 | **B-28** | 「角色继承 SQL 规则」未冻结 | `AuthorizationService` 已有递归 CTE 实现，但**是否启用**待冻结 |
+| **B-33** | **成长 / 积分 / 任务 / 装扮没有管理员侧读端点** | 现有全部端点均为 `/me` 形式，按**平台业务用户**取数；Operator 会话调用于是返回 401 `401001 a business user identity is required`。未自行发明 `/api/v1/admin/users/{user_id}/growth` 一类端点（新增 API 面 = 规格决策）。前端暂以说明组件替代报错区块，详见下方 §七 |
+| **B-34** | ~~工具用量统计没有管理员可读的数据源~~ **已关闭（2026-10-05）** | 已新增 `GET /admin/tools/usage`（每工具使用次数）与 `GET /admin/tools/usage/daily`（按日序列），权限复用矩阵内已有的 `TOOL_STAT_VIEW`，均直接聚合 `tool_usage_event`，不依赖汇总表；`ToolStatisticsPage.vue` 已改为只消费管理端接口 + 公开热门榜，Operator 打开不再 401。详见下方 §八 |
+| **B-35** | **工具访问策略粒度不足以支撑「指定用户 / 角色可见」** | `tool_access_policy` 唯一约束为 `(tool_id, subject_type)`，**无 `subject_id` 列**，且 `subject_type` 后端限定 `^(GUEST\|USER)$`（`app/tools/access/service.py`）。因此可见性只能分「游客 / 登录用户」两档，无法针对具体用户或角色。这是冻结 DDL 的结构限制，属规格决策，未改表。当前可用的两档控制见下方 §八 |
+| **B-36** | **热门榜汇总表从未生成，tools-web 热门榜恒为空** | `tool_popularity_daily` 当前 0 行，`popular()` 读它，故 `/tools/popular` 返回 `[]`。唯一生成入口 `POST /tools/statistics/refresh` 与 `/tools/usage/refresh-popularity` 同样要求业务用户身份。**没有定时任务或触发器负责刷新**，也没有定义刷新频率与责任人，属未决的产品口径 |
+| **B-37** | **行为分析全链路没有任何数据，`/analytics` 八个页签恒为空** | 实测行数：`behavior_event` / `behavior_event_daily` / `behavior_user_daily` / `behavior_page_daily` / `behavior_tool_daily` / `behavior_search_daily` / `behavior_funnel` **全部 0 行**；`POST /admin/analytics/recompute` 返回 `recomputed_rows: 0`。根因是**没有任何埋点上报方**：tools-web 调 `/tools/runtime/execute` 只写 `tool_usage_event`，admin-web 也不上报页面事件，规格未定义谁负责埋点。工具侧数据走的是另一条链路（`tool_usage_event` 31 行），因此「工具统计」有数而「行为分析」为空。属埋点范围与责任人的产品口径空缺，未自行发明埋点 |
 
 ---
 
@@ -348,4 +353,143 @@ class SysExportTask(Base):
   需先冻结该列的存储位置（新增列 = 改库，必须由规格决定）。
 * 端点命名仍为 `/api/v1/admin/export/tasks*`，而冻结契约使用 `/api/v1/admin/exports`；
   归类为 §二-B 的路径差异，未在本轮改名。
+
+---
+
+## 七、本轮登记（2026-10-03 前端缺陷修复轮）：成长体系没有管理员侧读端点
+
+### 现象
+
+管理平台以 **Operator（`sys_user`）** 身份登录。成长体系的全部读端点都只有 `/me` 形式：
+
+| 端点 | 身份来源 | Operator 会话结果 |
+| --- | --- | --- |
+| `/api/v1/growth/me`（及 `/me/transactions`） | 业务用户 | 401 `401001` |
+| `/api/v1/points/me`（及 `/me/transactions`） | 业务用户 | 401 `401001` |
+| `/api/v1/tasks`、`/api/v1/tasks/me` | 业务用户 | 401 `401001` |
+| `/api/v1/levels/me`、`/api/v1/achievements/me`、`/api/v1/cosmetics/me` | 业务用户 | 401 `401001` |
+
+OpenAPI 全部 162 条路径中，**不存在**任何 `/admin/growth`、`/admin/points`、`/admin/tasks`
+形式的按用户查询端点。
+
+而同一批资源里的**目录型**端点不鉴业务身份，Operator 可读：`/levels`、`/achievements`、
+`/cosmetics`、`/point-rules/public`。这也是本次前端到现在仍能出数据的部分。
+
+### 本轮处理（前端侧，未改动后端 API 面）
+
+* `growth` / `tasks` 两页：整页依赖全是 `/me` 系列，改为渲染 **`BizIdentityNotice`**
+  说明组件 + 指向可用目录页的入口，不再抛加载失败。
+* `points` 页：保留可读的**积分规则**表格，账户与流水两块改为同一说明组件。
+* `levels` / `achievements` / `cosmetics` 三页：**目录部分照常出数据**，仅「我的等级 /
+  我的成就 / 我的装扮」三个区块改为说明组件。
+* 删除已无调用方的 `api/growth.ts`、`api/tasks.ts`，并从 `points` / `levels` /
+  `achievements` / `cosmetics` 四个 api 模块中移除对应的 `/me` 封装，避免留下会再次触发
+  401 的死代码。
+
+### 待决策（需先于后端实现）
+
+1. 是否新增管理员侧查询端点？建议形态 `/api/v1/admin/users/{user_id}/growth`、
+   `/points`、`/tasks`、`/levels`、`/achievements`、`/cosmetics`。
+2. 若新增，其**权限码**需并入 §二-A 的矩阵差异清单（目前无对应冻结权限码）。
+3. 若决定「管理平台不展示任何用户级成长数据」，则需在导航层面移除 `/growth*` 路由，
+   而非保留说明页。
+
+### 顺带修好的两处（非 BLOCKER）
+
+* `/admin/roles?page_size=500` 返回 422：`MAX_PAGE_SIZE = 200`，而用户管理、角色管理两页
+  的下拉选项请求写死 500。已抽出前端常量 `MAX_PAGE_SIZE`（与后端同名同值）并使用。
+* `browser-verify.sh` 注入的占位 refresh token 只有 6 字符，低于后端 `min_length=8`，
+  导致误报 422 并被误判成产品缺陷；占位值已加长。
+
+---
+
+## 八、工具可见性控制点与用量统计现状（B-34 / B-35 / B-36）
+
+回答「如何在管理后台设置工具可见性」与「在哪里统计工具使用频率」两个问题时，
+对当前实现做了完整勘查，结论如下。
+
+### 1. 可见性：只有两档开关，粒度到「游客 / 登录用户」为止
+
+判定顺序实现在 `app/tools/access/service.py::ToolAccessService.resolve()`：
+
+| 步骤 | 判定 | 说明 |
+| --- | --- | --- |
+| 1 | `tool.status != ACTIVE` | 抛 `NotFoundError`，所有人都用不了 |
+| 2 | `is_guest ? GUEST 策略 : USER 策略` | `subject_type` 只有这两个值 |
+| 3 | 策略行不存在时回落配置 `TOOL_DEFAULT_VISIBILITY` | 现默认 `PUBLIC`（`Settings` + `.env.example` 同步）；改为 `REGISTERED` 则「游客默认禁止、登录用户默认允许」 |
+| 4 | `enabled == False` | 抛 `BusinessRuleError`（400001），该身份不可用 |
+| 5 | 配额校验 | 策略有值用策略值，否则回落 `TOOL_GUEST_DAILY_QUOTA` / `TOOL_USER_DAILY_QUOTA` |
+
+对应的后台控制点：
+
+* **对所有人生效**：`工具列表页 /tools` 的上线 / 下线
+  （`PUT /admin/tools/{id}/status`，字典 `TOOL_STATUS` = `ACTIVE / DRAFT / OFFLINE / DEPRECATED`）。
+  目录查询层 `active_tools()` 与 `tools_of_category()` 均过滤 `status == ACTIVE`，下线即刻从
+  tools-web 消失。
+* **按身份生效（推荐入口，2026-10-05 新增）**：`工具列表页 /tools` 的「可见性」列
+  —— 行内下拉直接切换「所有人可用 / 注册用户可用」，走
+  `PUT /admin/tools/visibility/{tool_id}`（权限 `TOOL_ACCESS_MANAGE`），内部 upsert
+  GUEST + USER 两行策略并写审计与操作日志。列表读取走 `GET /admin/tools/visibility`。
+* **细粒度配额**：`访问策略页 /tools/access-policies`
+  （`PUT /admin/tools/access-policies/{tool_id}`，可设启用开关 + 每日上限 + 每分钟限流 + 并发上限）。
+
+**读侧与执行侧已同步过滤（2026-10-05）**：此前只有 `resolve()` 检查 `enabled`，而执行路径
+只调 `enforce_quota()`，**导致「注册用户可用」的工具游客仍可执行**，且目录接口完全不按策略过滤。
+现已修：`ToolAccessService.enforce_quota()` 开头先做可见性拦截；目录的
+`list_tools()` / `search()` / `get_by_slug()` / `get_tool()` / `popular()` 全部按调用者身份
+（`OptionalPrincipal` 为空即游客）过滤，游客对隐藏工具一律 404（列表里不出现、按 slug 查不到）。
+实测：切到 REGISTERED → 匿名列表 / 搜索 / slug 查询均 0 命中且 `by-slug` 返回 404、匿名执行返回
+400001；切回 PUBLIC 后恢复。
+
+**不能做的事**：指定「某个用户」或「某个角色」可见。原因见 B-35 —— 表里没有 `subject_id`，
+`subject_type` 也被后端正则锁死为两种。要支持就必须动冻结 DDL 并引入新的 API 面与权限码，
+属规格决策。
+
+**已知副作用（已缓解）**：管理后台 `POST /admin/tools` 新建工具时**不会自动创建任何策略行**
+（`app/admin/tools/service.py::create_tool` 未涉及 `ToolAccessPolicy`）。此前按步骤 3 的旧默认值
+（`not is_guest`）意味着新建工具对游客不可用，与 tools-web 的匿名门户现状冲突；因此把默认值
+外置为配置 `TOOL_DEFAULT_VISIBILITY`，默认 `PUBLIC`，新建工具与既有工具行为一致（对所有人开放），
+需要时才由管理员改为 `REGISTERED`。未配置该键或取值非法时按 fail-closed 处理
+（见 `default_subject_enabled()`）。
+
+### 2. 用量统计：已落地管理员侧读取面（B-34 关闭）
+
+2026-10-05 补齐了管理员可读的统计接口，统计页不再触碰业务用户端点：
+
+| 新增端点 | 权限 | 说明 |
+| --- | --- | --- |
+| `GET /admin/tools/usage?days=30` | `TOOL_STAT_VIEW` | 每个工具的使用次数：总调用 / 成功 / 失败 / 独立用户 / 独立访客 / 最近使用，按调用次数降序 |
+| `GET /admin/tools/usage/daily?tool_id=&days=30` | `TOOL_STAT_VIEW` | 单个工具的按日序列，用于趋势图 |
+| `GET /admin/tools/visibility` | `TOOL_VIEW` | 每个工具的可见性（PUBLIC / REGISTERED） |
+| `PUT /admin/tools/visibility/{tool_id}` | `TOOL_ACCESS_MANAGE` | 设置可见性，内部 upsert GUEST + USER 两行策略 |
+
+统计口径直接聚合 `tool_usage_event`（原始明细），**不依赖 `tool_usage_daily` 汇总**，
+因此即使从未刷新过汇总也能给出正确数字；前端 `ToolStatisticsPage.vue` 已改为只消费这三个
+管理端接口 + 公开热门榜，Operator 打开不再 401。
+
+### 3. 用量统计历史勘查（原始记录）
+
+| 落库 | 内容 | 当前行数（2026-10-04） |
+| --- | --- | --- |
+| `tool_usage_event` | 每次执行一条明细，实时写入 | 29 |
+| `tool_usage_daily` | 工具 × 日期汇总，与事件同事务写入 | 18 |
+| `tool_popularity_daily` | 热门榜榜单，**无自动生成路径** | 0 |
+
+管理后台 `/tools/statistics` 的三个数据源 `getUsageSummary` / `getUsageDaily` /
+`getRecentUsage` 全部打到 `/tools/usage/*`，而该系列要求业务用户身份，Operator 必然 401。
+实测打开该页会直接进入登录页，**且刷新令牌接续失败**（console 里两条 401：
+`/tools/usage/recent?limit=20` 与 `/admin/auth/refresh`）。
+
+热门榜因此恒为空：`/api/v1/tools/popular` 返回 `data: []`；而它唯一的生成入口
+`POST /tools/statistics/refresh` 同样要求业务用户身份，且**没有任何定时任务负责调用**。
+
+### 待决策（B-34 已关闭，剩余 B-35 / B-36）
+
+1. ~~是否新增管理员侧用量读取面~~ —— **已关闭**：见上方「已落地管理员侧读取面」，
+   权限复用矩阵内已有的 `TOOL_STAT_VIEW`，未新增权限码。
+2. 热门榜刷新由谁触发、多久一次？目前既无定时任务也无责任人，属于产品口径空缺（B-36）。
+   注：管理后台「刷新统计」按钮走 `POST /tools/statistics/refresh`（Admin 权限，可用），
+   但只能手动触发。
+3. 是否需要真正的「指定用户 / 角色」可见性？若需要，须先解冻 DDL 并新增
+   `subject_id` 相关设计（B-35）。当前只支持「所有人可用 / 注册用户可用」两档。
 

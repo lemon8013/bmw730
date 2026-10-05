@@ -1,0 +1,24 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "VCTN Tools" [ref=e6] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e7]:
+        - link "首页" [ref=e8] [cursor=pointer]:
+          - /url: /
+        - link "热门" [ref=e9] [cursor=pointer]:
+          - /url: /popular
+        - link "最近使用" [ref=e10] [cursor=pointer]:
+          - /url: /recent
+      - generic [ref=e11]:
+        - textbox "搜索工具…" [ref=e13]
+        - button "搜索" [ref=e16] [cursor=pointer]
+  - main [ref=e18]:
+    - generic [ref=e19]:
+      - generic [ref=e21]:
+        - heading "VCTN Tools" [level=1] [ref=e22]
+        - paragraph [ref=e23]: 在线工具集：数据格式化、编码转换、哈希、正则、ID 生成等 … 个工具。
+      - generic [ref=e24]:
+        - generic [ref=e25]: 热门工具
+        - generic [ref=e26]: 加载中…
+  - contentinfo [ref=e32]: VCTN Tools · 输入内容默认只在浏览器内处理，不会因埋点自动上传

@@ -16,6 +16,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class SysDepartment(Base):
@@ -24,7 +25,11 @@ class SysDepartment(Base):
     __tablename__ = "sys_department"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     parent_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("sys_department.id"), comment="父级 ID", nullable=True

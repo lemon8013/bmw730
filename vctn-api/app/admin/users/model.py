@@ -18,6 +18,7 @@ from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class SysUser(Base):
@@ -26,7 +27,11 @@ class SysUser(Base):
     __tablename__ = "sys_user"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     username: Mapped[str] = mapped_column(sa.String(64), comment="用户名", nullable=False)
     password_hash: Mapped[str] = mapped_column(sa.String(255), comment="密码哈希", nullable=False)

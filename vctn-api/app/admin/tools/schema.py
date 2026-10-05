@@ -50,6 +50,87 @@ class ToolStatusRequest(ApiModel):
     status: str
 
 
+class ToolUsageAdminResponse(ApiModel):
+    """How often one tool was used in the requested window.
+
+    ``unique_user_count`` counts distinct signed in users and
+    ``unique_guest_count`` distinct anonymous visitors; the two never overlap
+    because ``user_id`` is NULL for guests.
+    """
+
+    tool_id: StringId
+    tool_name: str | None = None
+    tool_slug: str | None = None
+    total_count: int = 0
+    success_count: int = 0
+    failure_count: int = 0
+    unique_user_count: int = 0
+    unique_guest_count: int = 0
+    last_used_at: datetime.datetime | None = None
+
+
+class ToolUsagePointAdminResponse(ApiModel):
+    """One day of one tool's usage."""
+
+    stat_date: datetime.date
+    total_count: int = 0
+    success_count: int = 0
+    failure_count: int = 0
+
+
+class ToolUsageTrendPointAdminResponse(ApiModel):
+    """One day of platform wide tool usage, for the report trend line."""
+
+    stat_date: datetime.date
+    total_count: int = 0
+    success_count: int = 0
+    failure_count: int = 0
+
+
+class ToolUsageOverviewAdminResponse(ApiModel):
+    """Platform wide tool usage totals for one window.
+
+    ``success_rate`` is a percentage in ``[0, 100]`` rounded to two decimals;
+    it is 0 when the window holds no usage at all.
+    """
+
+    start_date: datetime.date
+    end_date: datetime.date
+    total_count: int = 0
+    success_count: int = 0
+    failure_count: int = 0
+    success_rate: float = 0.0
+    unique_user_count: int = 0
+    unique_guest_count: int = 0
+    active_tool_count: int = 0
+    last_used_at: datetime.datetime | None = None
+
+
+class ToolVisibilityResponse(ApiModel):
+    """Who may use one tool.
+
+    The frozen ``tool_access_policy`` carries no ``subject_id``, so visibility is
+    two levels only. A tool is either open to everyone (PUBLIC) or reserved for
+    signed in users (REGISTERED); anything narrower needs a schema thaw.
+    """
+
+    tool_id: StringId
+    tool_code: str
+    tool_name: str
+    tool_slug: str
+    status: str
+    visibility: str
+    guest_enabled: bool
+    user_enabled: bool
+    configured: bool
+
+
+class ToolVisibilityRequest(ApiModel):
+    """Set one tool's visibility level."""
+
+    visibility: str
+
+
 class AccessPolicyAdminResponse(ApiModel):
     """One tool access policy with the owning tool's name."""
 
@@ -69,6 +150,12 @@ __all__ = [
     "ToolCreateRequest",
     "ToolUpdateRequest",
     "ToolStatusRequest",
+    "ToolUsageAdminResponse",
+    "ToolUsagePointAdminResponse",
+    "ToolUsageTrendPointAdminResponse",
+    "ToolUsageOverviewAdminResponse",
+    "ToolVisibilityResponse",
+    "ToolVisibilityRequest",
     "AccessPolicyAdminResponse",
     "AccessPolicyRequest",
 ]

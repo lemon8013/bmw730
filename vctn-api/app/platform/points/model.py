@@ -18,6 +18,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class BizPointRule(Base):
@@ -26,7 +27,11 @@ class BizPointRule(Base):
     __tablename__ = "biz_point_rule"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     rule_code: Mapped[str] = mapped_column(sa.String(128), comment="规则编码", nullable=False)
     rule_name: Mapped[str] = mapped_column(sa.String(128), comment="规则名称", nullable=False)
@@ -82,7 +87,11 @@ class BizPointTransaction(Base):
     __tablename__ = "biz_point_transaction"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     user_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("biz_user.id"), comment="业务用户 ID", nullable=True

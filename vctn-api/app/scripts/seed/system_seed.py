@@ -21,6 +21,7 @@ import textwrap
 from dataclasses import dataclass, field
 from typing import Any, Final
 
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.auth.model import SysPasswordHistory
@@ -164,7 +165,12 @@ async def seed_permissions(
         permissions[code] = row
         return row
 
-    # menu / page tree (parents are declared before their children)
+    # menu / page tree (parents are declared before their children).
+    #
+    # ``resource_code`` is the concrete resource a node grants. For a menu, a
+    # page and a button that resource *is* the permission itself, so the code is
+    # repeated here. It is never left empty: the ``MenuNode`` DTO declares it as
+    # a non-null string, and the console renders the menu tree from it.
     for code, name, parent_code, kind, sort_order in catalog.MENU_NODES:
         parent = permissions.get(parent_code) if parent_code else None
         await ensure_permission(
@@ -172,13 +178,21 @@ async def seed_permissions(
             name,
             kind,
             kind,
+            resource_code=code,
             parent=parent,
             sort_order=sort_order,
         )
 
     # buttons hang off a page
     for code, name, parent_page in catalog.BUTTONS:
-        await ensure_permission(code, name, "BUTTON", "BUTTON", parent=permissions.get(parent_page))
+        await ensure_permission(
+            code,
+            name,
+            "BUTTON",
+            "BUTTON",
+            resource_code=code,
+            parent=permissions.get(parent_page),
+        )
 
     # the frozen permission matrix plus the codes the controllers actually
     # enforce (the latter are flagged in BLOCKERS.md)
@@ -220,6 +234,30 @@ async def seed_permissions(
             )
 
     return permissions
+
+
+async def repair_permission_resource_codes(session: AsyncSession, counter: SeedCounter) -> int:
+    """Fill in ``resource_code`` on menu / page / button rows that lack one.
+
+    Earlier builds of this seed created those rows with a null ``resource_code``,
+    which makes ``/admin/auth/permissions`` fail: the ``MenuNode`` DTO declares
+    the column as a non-null string. This step is a **repair, not an overwrite**:
+    it only touches rows whose value is null, so a value set by an operator is
+    never changed.
+    """
+    result = await session.execute(
+        update(SysPermission)
+        .where(
+            SysPermission.resource_code.is_(None),
+            SysPermission.deleted_at.is_(None),
+            SysPermission.permission_type.in_(("MENU", "PAGE", "BUTTON")),
+        )
+        .values(resource_code=SysPermission.permission_code)
+    )
+    repaired = int(result.rowcount or 0)
+    for _ in range(repaired):
+        counter.repaired_one("permission_resource_codes")
+    return repaired
 
 
 async def grant_permissions(
@@ -869,6 +907,7 @@ async def seed_system(
         endpoints=collect_endpoints(settings.API_PREFIX),
         guards=collect_route_guards(settings.API_PREFIX),
     )
+    await repair_permission_resource_codes(session, counter)
     await grant_permissions(
         session,
         counter,
@@ -902,6 +941,7 @@ async def seed_system(
 
 __all__ = [
     "SystemSeedResult",
+    "repair_permission_resource_codes",
     "collect_endpoints",
     "collect_route_guards",
     "grant_permissions",

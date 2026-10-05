@@ -16,3 +16,7 @@ coverage/
 .DS_Store
 Thumbs.db
 *.log
+
+# Browser smoke-test artefacts
+.playwright-cli/
+*.playwright.yml

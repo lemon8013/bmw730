@@ -9,8 +9,8 @@ import { ApiEnvelopeError, apiBaseUrl, httpClient } from '@/api/client'
 import { routes } from '@/router'
 import { useAppStore } from '@/stores/app'
 import { toolDefinitions } from '@/tools/definitions'
-import { toolRegistry } from '@/tools/registry'
-import { toolRuntime } from '@/tools/runtime'
+import { ToolRegistry, toolRegistry } from '@/tools/registry'
+import { registerBuiltinExecutors, ToolRuntime } from '@/tools/runtime'
 
 const adapterRestorers: Array<() => void> = []
 
@@ -47,9 +47,9 @@ describe('tools web scaffold', () => {
     expect(store.apiPrefix).toBe(apiBaseUrl)
   })
 
-  it('resolves the scaffold route', () => {
+  it('resolves the home route through the layout', () => {
     const router = createRouter({ history: createMemoryHistory(), routes })
-    expect(router.resolve('/').matched).toHaveLength(1)
+    expect(router.resolve('/').matched).toHaveLength(2) // layout + home
   })
 
   it('registers element plus on a vue application', () => {
@@ -98,11 +98,26 @@ describe('tools web scaffold', () => {
   it('initialises the tool registry with the built-in catalogue', () => {
     toolRegistry.registerMany(toolDefinitions)
     expect(toolRegistry.size).toBe(toolDefinitions.length)
-    expect(toolRegistry.list()).toEqual([])
+    expect(toolRegistry.keys()).toEqual(toolDefinitions.map((definition) => definition.key))
   })
 
-  it('initialises the tool runtime', () => {
-    expect(toolRuntime).toBeDefined()
-    expect(toolRuntime.modes()).toEqual([])
+  it('resolves every portal route', () => {
+    const router = createRouter({ history: createMemoryHistory(), routes })
+    for (const path of ['/', '/category/DATA_FORMAT', '/search', '/popular', '/recent', '/tool/json-format']) {
+      expect(router.resolve(path).matched.length, path).toBeGreaterThan(0)
+    }
+  })
+
+  it('boots the runtime with one executor per execution mode', () => {
+    const registry = new ToolRegistry()
+    const runtime = new ToolRuntime(registry)
+    expect(runtime.modes()).toEqual([])
+
+    registerBuiltinExecutors(runtime.registerExecutor.bind(runtime))
+
+    expect(runtime.modes()).toEqual(['BACKEND', 'FRONTEND', 'ASYNC'])
+    for (const definition of toolDefinitions) {
+      expect(runtime.hasExecutor(definition.mode), definition.key).toBe(true)
+    }
   })
 })

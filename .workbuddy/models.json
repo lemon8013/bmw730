@@ -1,0 +1,18 @@
+{
+  "models": [
+    {
+      "id": "deepseek-flash",
+      "name": "DeepSeek Flash",
+      "vendor": "DeepSeek",
+      "url": "https://api.deepseek.com/v1/chat/completions",
+      "apiKey": "sk-9f1764c6106f4b83bcfd872afa6b4f8e",
+      "maxInputTokens": 128000,
+      "maxOutputTokens": 8192,
+      "supportsToolCall": true,
+      "supportsImages": true
+    }
+  ],
+  "availableModels": [
+    "deepseek-flash"
+  ]
+}

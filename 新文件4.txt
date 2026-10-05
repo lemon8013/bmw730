@@ -1,1327 +1,3222 @@
-你现在负责 VCTN 项目的：
-
-【Phase 1：完整数据库 Model + Alembic Migration + PostgreSQL】
+# VCTN Frontend 全量一次性实施指令
 
 项目根目录：
 
 F:\project\bmw730
 
-当前 Phase 0 已完成。
+本次任务：
 
-本阶段不要开发业务 API。
+一次性完成全部前端代码。
 
-本阶段唯一任务：
+必须同时完成：
 
-【根据项目已经冻结的完整 DDL，建立全部 SQLAlchemy Model，并通过 Alembic 将数据库迁移到 PostgreSQL。】
+1. vctn-admin-web
+2. vctn-tools-web
 
-============================================================
-一、绝对规则
-============================================================
+禁止再拆成多个 Phase 等待人工确认。
 
-数据库结构的唯一来源：
+目标：
 
-【项目提供的完整 PostgreSQL DDL】
+前端完整实现
+→ API 对接
+→ 权限
+→ 路由
+→ 状态管理
+→ 页面
+→ 表单
+→ 表格
+→ 弹窗
+→ 工具执行
+→ Analytics
+→ 错误处理
+→ Loading
+→ Empty
+→ Permission
+→ Field Permission
+→ 登录态
+→ Session
+→ 联调
+→ TypeScript
+→ Build
+→ Lint
+→ 最终验收
 
-禁止 AI 自己重新设计数据库。
+==================================================
+一、最高优先级
+==================================================
 
-禁止根据自己的理解增加字段。
+1. 严格依据现有 VCTN 完整规格开发。
 
-禁止删除字段。
+2. 不允许自行修改后端 API。
 
-禁止修改字段类型。
+3. 不允许自行增加 API。
 
-禁止修改表名。
+4. 不允许假造 API。
 
-禁止修改列名。
+5. 不允许 Mock 代替真实后端。
 
-禁止修改主键。
+6. 不允许硬编码业务权限。
 
-禁止修改外键。
+7. 不允许硬编码后台菜单。
 
-禁止修改 UNIQUE。
+8. 不允许硬编码后台路由权限。
 
-禁止修改 CHECK。
+9. 不允许前端代替后端做最终权限判断。
 
-禁止修改索引。
+10. 不允许自行增加第三方依赖。
 
-禁止增加 tenant_id。
+11. 不允许替换已经冻结的技术栈。
 
-本项目：
+12. 不允许删除现有功能。
 
-【不支持多租户】
+13. 不允许留下 TODO。
 
-因此：
+14. 不允许留下 FIXME。
 
-禁止出现：
+15. 不允许留下 NotImplementedError。
 
-tenant_id
-tenant_key
-tenant_code
-tenant_scope
+16. 不允许用空数组/空对象伪造接口成功。
 
-等多租户字段。
+17. 不允许为了 TypeScript 编译通过而大量使用 any。
 
-============================================================
-二、项目路径
-============================================================
+18. 不允许使用 @ts-ignore 隐藏真实错误。
 
-唯一项目根目录：
+19. 不允许关闭 ESLint / TypeScript 检查。
+
+20. 不允许通过修改测试来掩盖实现问题。
+
+==================================================
+二、固定目录
+==================================================
 
 F:\project\bmw730
 
-后端：
+├── vctn-api
+├── vctn-admin-web
+└── vctn-tools-web
 
-F:\project\bmw730\vctn-api
+本次只负责：
 
-所有 Python Model：
+vctn-admin-web
+vctn-tools-web
 
-F:\project\bmw730\vctn-api\app\
+不要修改：
 
-所有 Alembic：
+vctn-api
 
-F:\project\bmw730\vctn-api\migrations\
+除非发现明确的 API 契约冲突。
 
-禁止创建其他项目。
+如果发现后端 API 与前端规格不一致：
 
-============================================================
-三、数据库
-============================================================
+记录：
 
-数据库：
+FRONTEND-BLOCKER
 
-PostgreSQL
+不要自行修改后端业务。
 
-ORM：
+==================================================
+三、固定技术栈
+==================================================
 
-SQLAlchemy 2.x
+Vue 3
 
-Migration：
+TypeScript
 
-Alembic
+Vite
 
-数据库时间：
+Vue Router
 
-UTC
+Pinia
 
-ID：
+Element Plus
 
-BIGINT + Snowflake
+Axios
 
-所有数据库主键：
+必须使用当前项目已经冻结的依赖版本。
 
-BIGINT
+禁止自行增加：
 
-禁止使用：
+UI Framework
 
-UUID
+状态管理框架
 
-作为主键。
+HTTP Client
 
-除非完整 DDL 明确指定其他类型。
+CSS Framework
 
-============================================================
-四、Model 必须 100% 对齐 DDL
-============================================================
+Router
 
-必须读取项目提供的完整 DDL。
+Form Framework
 
-不要只读取部分内容。
+Chart Framework
 
-先统计：
+Editor
 
-1. CREATE TABLE 数量
-2. 表名
-3. 字段数量
-4. PRIMARY KEY
-5. FOREIGN KEY
-6. UNIQUE
-7. CHECK
-8. INDEX
-9. DEFAULT
-10. NULL / NOT NULL
+工具库
 
-然后生成 Model。
+除非依赖已经在冻结清单中。
 
-当前数据库基线必须完整覆盖：
+未冻结依赖：
 
-【79 张表】
+DEPENDENCY-BLOCKER
 
-最终必须验证：
+==================================================
+四、两个独立应用
+==================================================
 
-DDL 表数量 = SQLAlchemy Model 表数量
+应用 1：
 
-如果不一致：
+vctn-admin-web
 
-停止。
+用途：
 
-报告：
+后台管理系统。
 
-MODEL-COVERAGE-BLOCKER
+应用 2：
 
-============================================================
-五、Model 目录
-============================================================
+vctn-tools-web
 
-按照业务域组织 Model。
+用途：
 
-建议：
+开发工具平台。
 
-app/
-├── admin/
+两个项目：
+
+独立 package.json
+
+独立 Vite
+
+独立 Router
+
+独立 Pinia
+
+独立 build
+
+独立部署。
+
+但：
+
+API：
+
+共享
+
+业务用户：
+
+共享
+
+Analytics：
+
+共享
+
+==================================================
+五、Admin Web 总体结构
+==================================================
+
+推荐：
+
+src/
+
+├── api/
+│   ├── client.ts
+│   ├── auth.ts
+│   ├── users.ts
+│   ├── departments.ts
+│   ├── roles.ts
+│   ├── permissions.ts
+│   ├── dictionaries.ts
+│   ├── config.ts
+│   ├── featureFlags.ts
+│   ├── audit.ts
+│   ├── traces.ts
+│   ├── logs.ts
+│   ├── tools.ts
+│   ├── analytics.ts
+│   ├── growth.ts
+│   ├── points.ts
+│   ├── levels.ts
+│   ├── cosmetics.ts
+│   ├── tasks.ts
+│   ├── achievements.ts
+│   ├── blog.ts
+│   ├── notifications.ts
+│   ├── files.ts
+│   ├── jobs.ts
+│   └── exports.ts
+│
+├── components/
+│   ├── common/
+│   ├── table/
+│   ├── form/
+│   ├── dialog/
+│   ├── permission/
+│   ├── field/
+│   ├── upload/
+│   └── charts/
+│
+├── composables/
+│
+├── constants/
+│
+├── directives/
+│   ├── permission.ts
+│   └── field.ts
+│
+├── layouts/
+│   ├── AdminLayout.vue
+│   ├── BlankLayout.vue
+│   └── components/
+│
+├── pages/
 │   ├── auth/
+│   ├── dashboard/
 │   ├── users/
 │   ├── departments/
 │   ├── roles/
 │   ├── permissions/
-│   ├── audit/
 │   ├── dictionaries/
-│   └── config/
-│
-├── platform/
-│   ├── users/
+│   ├── config/
+│   ├── feature-flags/
+│   ├── audit/
+│   ├── logs/
+│   ├── sessions/
+│   ├── tools/
+│   ├── analytics/
 │   ├── growth/
 │   ├── points/
 │   ├── levels/
 │   ├── cosmetics/
-│   └── notifications/
+│   ├── tasks/
+│   ├── achievements/
+│   ├── blog/
+│   ├── notifications/
+│   ├── jobs/
+│   ├── files/
+│   └── exports/
 │
-├── tools/
-│   ├── catalog/
-│   ├── access/
-│   ├── usage/
-│   ├── statistics/
-│   └── jobs/
+├── router/
+│   ├── index.ts
+│   ├── guards.ts
+│   └── route-builder.ts
 │
-├── blog/
-│   ├── articles/
-│   ├── comments/
-│   ├── categories/
-│   ├── authors/
-│   └── interactions/
+├── stores/
+│   ├── auth.ts
+│   ├── permission.ts
+│   ├── app.ts
+│   ├── user.ts
+│   ├── role.ts
+│   ├── department.ts
+│   ├── tool.ts
+│   ├── analytics.ts
+│   └── ...
 │
-├── analytics/
-│   ├── events/
-│   └── statistics/
+├── types/
 │
-└── system/
-    ├── files/
-    ├── jobs/
-    ├── search/
-    └── risk/
+├── utils/
+│
+├── styles/
+│
+├── App.vue
+└── main.ts
 
-Model 可以按照模块拆分。
+可以根据实际实现调整文件结构。
+
+不得改变架构原则。
+
+==================================================
+六、Admin Layout
+==================================================
+
+完整实现：
+
+登录页
+
+顶部 Header
+
+侧边栏
+
+Breadcrumb
+
+Tabs / Page Navigation（如果规格存在）
+
+Main Content
+
+用户菜单
+
+Logout
+
+当前用户
+
+修改密码
+
+Session 状态
+
+主题基础能力
+
+响应式布局
+
+Loading
+
+Error Page
+
+404
+
+403
+
+500
+
+==================================================
+七、Admin 登录
+==================================================
+
+实现：
+
+登录
+
+Logout
+
+Refresh Token
+
+Current User
+
+Change Password
+
+Must Change Password
+
+Session 失效
+
+Token 过期
+
+自动刷新
+
+并发刷新请求处理。
+
+不能出现：
+
+多个请求同时 refresh token。
+
+必须：
+
+单飞机制 / Promise Lock。
+
+==================================================
+八、Axios
+==================================================
+
+统一 Axios Client。
+
+必须处理：
+
+Authorization
+
+X-Trace-ID
+
+X-Request-ID
+
+Idempotency-Key
+
+Content-Type
+
+统一 Response Envelope。
+
+后端：
+
+{
+  "code": 0,
+  "message": "success",
+  "data": {}
+}
+
+错误：
+
+{
+  "code": 403001,
+  "message": "permission denied",
+  "data": null
+}
+
+必须统一处理：
+
+401
+
+403
+
+404
+
+409
+
+422
+
+429
+
+500
+
+503
+
+==================================================
+九、Token
+==================================================
+
+严格按照后端认证契约。
+
+不能自行假设：
+
+Token 字段名称
+
+Refresh Token 字段名称
+
+Expires
+
+JWT payload
+
+除非 API Spec 已经明确。
+
+Token 存储必须遵循现有安全规格。
+
+禁止：
+
+localStorage 保存敏感信息
+
+如果规格要求 HttpOnly Cookie：
+
+前端必须按照 Cookie 方案实现。
+
+不要自行改变认证方式。
+
+==================================================
+十、Trace
+==================================================
+
+每次请求：
+
+生成 / 传递：
+
+X-Trace-ID
+
+X-Request-ID
+
+后端返回的 Trace ID：
+
+必须能够在错误页面中展示。
+
+==================================================
+十一、权限系统
+==================================================
+
+必须实现：
+
+Page Permission
+
+Menu Permission
+
+Button Permission
+
+API Permission
+
+Field Permission
+
+Data Scope
+
+前端只负责：
+
+UI 展示
+
+路由控制
+
+按钮控制
+
+字段显示
+
+后端负责：
+
+最终授权。
+
+==================================================
+十二、动态菜单
+==================================================
+
+禁止：
+
+前端写死：
+
+菜单列表。
+
+后端登录 / 权限初始化接口返回：
+
+菜单 / 页面 / 权限资源。
+
+前端：
+
+解析后生成菜单。
+
+支持：
+
+一级菜单
+
+二级菜单
+
+页面
+
+隐藏菜单
+
+排序
+
+图标
+
+权限 code
+
+动态路由。
+
+==================================================
+十三、动态路由
+==================================================
+
+Router 必须支持：
+
+后端菜单
+
+→ Route Definition
+
+→ Vue Component Mapping
 
 但是：
 
-所有 Model 必须最终注册到统一 SQLAlchemy Base.metadata。
+后端不能返回任意 import path。
 
-============================================================
-六、SQLAlchemy Model 规范
-============================================================
+前端必须维护：
 
-使用：
+安全的 component_key
 
-SQLAlchemy 2.x
-
-优先使用：
-
-DeclarativeBase
-Mapped
-mapped_column
+→ 本地组件映射。
 
 例如：
 
-class User(Base):
-    __tablename__ = "sys_user"
+component_key：
 
-    id: Mapped[int] = mapped_column(
-        BigInteger,
-        primary_key=True
-    )
+system.users
 
-必须根据 DDL 精确映射。
+映射：
 
-例如 PostgreSQL：
+UsersPage.vue
 
-BIGINT
-    →
-BigInteger
+禁止：
 
-VARCHAR(n)
-    →
-String(n)
+动态执行：
 
-TEXT
-    →
-Text
+eval
 
-BOOLEAN
-    →
-Boolean
+new Function
 
-INT
-    →
-Integer
+任意远程 import
 
-DATE
-    →
+任意后端路径。
+
+==================================================
+十四、Permission Directive
+==================================================
+
+实现：
+
+v-permission
+
+例如：
+
+v-permission="'user:create'"
+
+没有权限：
+
+不显示。
+
+也支持：
+
+permission.has('user:create')
+
+以及：
+
+permission.any()
+
+permission.all()
+
+==================================================
+十五、Field Permission
+==================================================
+
+实现：
+
+VISIBLE
+
+HIDDEN
+
+READ_ONLY
+
+EDITABLE
+
+组件必须能够：
+
+隐藏字段
+
+只读字段
+
+可编辑字段
+
+后端返回字段权限后：
+
+前端统一处理。
+
+禁止每个页面自己重复实现。
+
+==================================================
+十六、Data Scope
+==================================================
+
+Data Scope 由后端决定。
+
+前端：
+
+不能绕过。
+
+页面需要显示当前 Data Scope 时：
+
+使用后端返回的信息。
+
+==================================================
+十七、用户管理
+==================================================
+
+完整页面：
+
+用户列表
+
+搜索
+
+分页
+
+创建
+
+详情
+
+编辑
+
+启用
+
+禁用
+
+逻辑删除
+
+重置密码
+
+分配角色
+
+修改部门
+
+在线状态
+
+强制下线
+
+批量强制下线
+
+Session
+
+登录记录
+
+操作记录
+
+安全信息
+
+权限信息
+
+==================================================
+十八、用户表单
+==================================================
+
+根据后端 DTO：
+
+动态显示。
+
+字段权限：
+
+严格执行。
+
+敏感字段：
+
+不得展示 password_hash。
+
+MFA Secret：
+
+不得展示。
+
+==================================================
+十九、部门管理
+==================================================
+
+完整：
+
+树
+
+列表
+
+创建
+
+编辑
+
+删除
+
+启用
+
+禁用
+
+子部门
+
+部门管理员
+
+用户数量
+
+数据范围。
+
+==================================================
+二十、角色管理
+==================================================
+
+完整：
+
+角色列表
+
+创建
+
+编辑
+
+删除
+
+权限配置
+
+角色继承
+
+用户列表
+
+Data Scope
+
+权限预览。
+
+==================================================
+二十一、权限管理
+==================================================
+
+实现：
+
+权限资源树。
+
+类型：
+
+PAGE
+
+MENU
+
+BUTTON
+
+API
+
+FIELD
+
+DATA_SCOPE
+
+支持：
+
+查询
+
+创建
+
+编辑
+
+删除
+
+关联。
+
+必须能够查看：
+
+权限 code
+
+资源类型
+
+父级
+
+路径
+
+Method
+
+Component Key
+
+状态。
+
+==================================================
+二十二、字典管理
+==================================================
+
+完整：
+
+字典类型
+
+字典项
+
+创建
+
+编辑
+
+删除
+
+排序
+
+启用/禁用。
+
+==================================================
+二十三、系统配置
+==================================================
+
+完整：
+
+配置列表
+
+查询
+
+编辑。
+
+Secret 配置：
+
+后端如果返回 masked：
+
+前端必须保持 masked。
+
+不能回显真实 Secret。
+
+==================================================
+二十四、Feature Flag
+==================================================
+
+实现：
+
+列表
+
+创建
+
+编辑
+
+启用
+
+禁用
+
+策略。
+
+==================================================
+二十五、Audit
+==================================================
+
+实现：
+
+Audit Log
+
+搜索：
+
+operator
+
+resource
+
+result
+
+trace_id
+
+request_id
+
+date range
+
+查看详情。
+
+before_data
+
+after_data：
+
+使用 JSON Viewer。
+
+敏感数据：
+
+前端不得自行解码 / 恢复。
+
+==================================================
+二十六、Trace
+==================================================
+
+实现：
+
+Trace Search
+
+Trace Detail
+
+展示：
+
+Request
+
+Access
+
+Audit
+
+Application
+
+Security
+
+Operation
+
+按照时间线展示。
+
+==================================================
+二十七、Logs
+==================================================
+
+实现：
+
+Access Log
+
+Security Log
+
+Operation Log
+
+Application Log
+
+统一：
+
+搜索
+
+分页
+
+详情
+
+Trace 跳转。
+
+==================================================
+二十八、在线 Session
+==================================================
+
+实现：
+
+在线用户
+
+Session
+
+登录时间
+
+最后活动
+
+IP
+
+UA
+
+设备
+
+强制下线。
+
+SUPER_ADMIN：
+
+显示全部。
+
+普通管理员：
+
+由后端 Data Scope 决定。
+
+==================================================
+二十九、Tools Admin
+==================================================
+
+完整实现：
+
+工具列表
+
+工具创建
+
+工具编辑
+
+工具详情
+
+工具发布
+
+工具禁用
+
+工具删除
+
+分类
+
+版本
+
+Access Policy
+
+Component Registry
+
+统计
+
+热门工具
+
+Usage。
+
+==================================================
+三十、Tool Editor
+==================================================
+
+表单字段至少包括：
+
+code
+
+name
+
+slug
+
+category
+
+icon
+
+summary
+
+description
+
+keywords
+
+tags
+
+component_key
+
+execution_mode
+
+status
+
+sort_order
+
+version
+
+access policy
+
+必须根据后端 DTO。
+
+==================================================
+三十一、Tool Publish
+==================================================
+
+发布前：
+
+确认。
+
+显示：
+
+版本
+
+Component Registry
+
+状态
+
+Access Policy
+
+发布结果。
+
+后端负责最终校验。
+
+==================================================
+三十二、Analytics Admin
+==================================================
+
+完整页面：
+
+Overview
+
+Users
+
+Tools
+
+Pages
+
+Events
+
+Funnels
+
+Trends
+
+Search
+
+Retention
+
+Export。
+
+Dashboard：
+
+使用现有允许的图表能力。
+
+如果项目依赖没有冻结图表库：
+
+不要新增图表库。
+
+可以使用 Element Plus + CSS / SVG / Canvas 自实现基础图表。
+
+==================================================
+三十三、Growth
+==================================================
+
+实现：
+
+Growth Overview
+
+User Growth
+
+Growth Rules
+
+Growth Events
+
+Level
+
+Level History
+
+Benefits。
+
+==================================================
+三十四、Points
+==================================================
+
+实现：
+
+Point Overview
+
+Transactions
+
+Rules
+
+Manual Adjustment
+
+Balance。
+
+管理员调整：
+
+必须二次确认。
+
+显示：
+
+原因
+
+用户
+
+变更前
+
+变更后。
+
+==================================================
+三十五、Levels
+==================================================
+
+实现：
+
+Level List
+
+Level Detail
+
+Level Benefits
+
+Level History。
+
+==================================================
+三十六、Cosmetics
+==================================================
+
+实现：
+
+Cosmetic List
+
+Create
+
+Edit
+
+Enable/Disable
+
+Grant
+
+Revoke。
+
+类型：
+
+AVATAR
+
+AVATAR_FRAME
+
+CROWN
+
+BADGE
+
+TITLE
+
+NAME_EFFECT。
+
+==================================================
+三十七、Tasks
+==================================================
+
+实现：
+
+Task List
+
+Create
+
+Edit
+
+Enable/Disable
+
+Rule
+
+Reward
+
+User Progress。
+
+==================================================
+三十八、Achievements
+==================================================
+
+实现：
+
+Achievement List
+
+Create
+
+Edit
+
+Enable/Disable
+
+Condition
+
+Reward
+
+User Achievement。
+
+==================================================
+三十九、Blog Admin
+==================================================
+
+完整实现：
+
+文章分类
+
+文章列表
+
+文章详情
+
+文章审核
+
+通过
+
+驳回
+
+发布
+
+下线
+
+作者申请
+
+作者审核
+
+评论管理
+
+==================================================
+四十、富文本编辑器
+==================================================
+
+如果当前依赖已经包含编辑器：
+
+使用现有编辑器。
+
+如果没有：
+
+不要自行安装新编辑器。
+
+可以实现：
+
+基础 Markdown / Text 编辑方案，
+
+或者把编辑器能力封装为独立组件并记录：
+
+DEPENDENCY-BLOCKER。
+
+==================================================
+四十一、Notification
+==================================================
+
+实现：
+
+通知列表
+
+详情
+
+创建/发送
+
+状态
+
+读取。
+
+==================================================
+四十二、Jobs
+==================================================
+
+实现：
+
+任务列表
+
+状态
+
+详情
+
+失败信息
+
+重试（如果 API 支持）
+
+取消（如果 API 支持）。
+
+==================================================
+四十三、Files
+==================================================
+
+实现：
+
+Upload
+
+Presign
+
+Complete
+
+Metadata
+
+Download
+
+Delete。
+
+不能自行直接操作服务器文件系统。
+
+全部通过后端 File API。
+
+==================================================
+四十四、Export
+==================================================
+
+实现：
+
+Export List
+
+Create
+
+Progress
+
+Cancel
+
+Download。
+
+异步任务：
+
+显示：
+
+PENDING
+
+RUNNING
+
+SUCCESS
+
+FAILED
+
+CANCELLED
+
+EXPIRED。
+
+==================================================
+四十五、错误处理
+==================================================
+
+统一：
+
+ErrorHandler
+
+错误：
+
+400xxx
+
+401xxx
+
+403xxx
+
+404xxx
+
+409xxx
+
+422xxx
+
+429xxx
+
+500xxx
+
+503xxx
+
+用户可见错误：
+
+使用 message。
+
+开发调试：
+
+展示 trace_id。
+
+不要向用户展示：
+
+数据库异常
+
+Stack Trace
+
+SQL
+
+内部路径
+
+Secret。
+
+==================================================
+四十六、Loading / Empty / Error
+==================================================
+
+所有页面必须考虑：
+
+Loading
+
+Empty
+
+Error
+
+Retry
+
+Permission Denied。
+
+不能出现：
+
+白屏
+
+空白表格
+
+无限 Loading。
+
+==================================================
+四十七、Pagination
+==================================================
+
+严格使用后端分页协议。
+
+不要自行假设：
+
+page
+
+page_size
+
+offset
+
+cursor
+
+除非当前 API Spec 已冻结。
+
+分页组件：
+
+统一封装。
+
+==================================================
+四十八、Table
+==================================================
+
+创建通用：
+
+BaseTable
+
+支持：
+
+Loading
+
+Empty
+
+Pagination
+
+Selection
+
+Column
+
+Action
+
+Density（如果规格需要）
+
+Responsive。
+
+==================================================
+四十九、Form
+==================================================
+
+创建通用：
+
+BaseForm
+
+统一：
+
+校验
+
+Loading
+
+Submit
+
+Reset
+
+Error。
+
+==================================================
+五十、Dialog
+==================================================
+
+统一：
+
+BaseDialog
+
+支持：
+
+confirm
+
+cancel
+
+loading
+
+destroy-on-close。
+
+危险操作：
+
+二次确认。
+
+==================================================
+五十一、Tools Web
+==================================================
+
+vctn-tools-web：
+
+独立 Vue 应用。
+
+结构：
+
+src/
+
+├── api/
+├── components/
+├── layouts/
+├── pages/
+├── router/
+├── stores/
+├── tools/
+│   ├── registry/
+│   ├── runtime/
+│   └── definitions/
+├── analytics/
+├── quota/
+├── types/
+└── utils/
+
+==================================================
+五十二、Tools 首页
+==================================================
+
+实现：
+
+Header
+
+Logo
+
+Search
+
+Category
+
+Popular
+
+Recent
+
+Tool Cards
+
+Login
+
+User Menu
+
+工具分类。
+
+==================================================
+五十三、Tool Detail
+==================================================
+
+实现：
+
+Tool Header
+
+Description
+
+Tags
+
+Tool Workspace
+
+Quota
+
+Access
+
+Usage
+
+Favorite（如果 API 存在）
+
+Recent。
+
+==================================================
+五十四、Tool Workspace
+==================================================
+
+建立统一工具工作区：
+
+输入区
+
+操作区
+
+输出区
+
+Copy
+
+Download
+
+Clear
+
+Format
+
+Execute
+
+History（如果规格支持）。
+
+每个 Tool：
+
+只负责自身业务。
+
+公共逻辑统一处理：
+
+Access
+
+Quota
+
+Rate Limit
+
+Analytics
+
+Error
+
+Loading
+
+==================================================
+五十五、Tool Registry
+==================================================
+
+禁止：
+
+if tool === 'json'
+
+if tool === 'base64'
+
+if tool === 'uuid'
+
+这种大型硬编码。
+
+必须：
+
+ToolDefinition
+
+ToolRegistry
+
+ToolRuntime
+
+ToolProvider
+
+ToolExecutor。
+
+例如：
+
+registerTool({
+  code,
+  component,
+  metadata
+})
+
+==================================================
+五十六、Tools 必须实现
+==================================================
+
+根据当前工具目录完整实现。
+
+至少：
+
+JSON：
+
+格式化
+
+美化
+
+压缩
+
+校验
+
+XML：
+
+格式化
+
+美化
+
+压缩
+
+校验
+
+YAML：
+
+格式化
+
+校验
+
+TOML：
+
+格式化
+
+校验
+
+SQL：
+
+格式化
+
+压缩
+
+校验
+
+Base64：
+
+Encode
+
+Decode
+
+URL Encode
+
+URL Decode
+
+File Base64
+
+Image Base64
+
+Base64 Image
+
+ID：
+
+UUID
+
+Batch UUID
+
+ULID
+
+NanoID
+
+Snowflake
+
+Snowflake Parse
+
+ObjectId
+
+ObjectId Parse
+
+Random：
+
+String
+
+Number
+
+Letters
+
+Hex
+
+IP
+
+Email
+
+Phone
+
 Date
 
-TIMESTAMPTZ
-    →
-DateTime(timezone=True)
+Color
 
-JSONB
-    →
-JSONB
+Password
 
-INET
-    →
-INET
+时间：
 
-NUMERIC
-    →
-Numeric
+Unix Timestamp
 
-不要自行替换数据库类型。
+Timestamp Converter
 
-============================================================
-七、NULL / NOT NULL
-============================================================
-
-DDL：
-
-NOT NULL
-
-必须对应：
-
-nullable=False
-
-DDL：
-
-允许 NULL
-
-必须对应：
-
-nullable=True
-
-不能自行改变。
-
-============================================================
-八、DEFAULT
-============================================================
-
-DDL 中的：
-
-DEFAULT
-
-必须准确映射。
-
-例如：
-
-DEFAULT FALSE
-
-必须对应：
-
-server_default
-
-而不是自行变成 Python default。
-
-数据库默认值优先保持数据库语义。
-
-例如：
-
-created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-
-Model 必须保持：
-
-server_default=func.now()
-
-============================================================
-九、主键
-============================================================
-
-所有 BIGINT 主键：
-
-必须：
-
-primary_key=True
-
-不要自动：
-
-autoincrement=True
-
-如果 DDL 没有定义数据库自增：
-
-Model 不允许擅自增加自增。
-
-因为本项目使用：
-
-【Snowflake ID】
-
-ID 由应用层生成。
-
-============================================================
-十、外键
-============================================================
-
-DDL 中存在：
-
-REFERENCES
-
-必须在 Model 中建立 ForeignKey。
-
-例如：
-
-ForeignKey(
-    "sys_department.id"
-)
-
-必须保持：
-
-表名
-列名
-ondelete
-
-等定义与 DDL 一致。
-
-禁止自行增加：
-
-CASCADE
-
-禁止自行增加：
-
-SET NULL
-
-除非 DDL 已经定义。
-
-============================================================
-十一、Relationship
-============================================================
-
-SQLAlchemy relationship 可以建立。
-
-但是：
-
-relationship 不得改变数据库结构。
-
-relationship 只是 ORM 层映射。
-
-必须避免：
-
-循环 import。
-
-建议建立：
-
-model/__init__.py
-
-统一导入所有 Model。
-
-最终保证：
-
-Base.metadata
-
-包含全部 79 张表。
-
-============================================================
-十二、索引
-============================================================
-
-DDL 中已有的 INDEX：
-
-必须完整映射。
-
-不能漏。
-
-不能改名字。
-
-不能改变字段顺序。
-
-不能擅自增加索引。
-
-如果发现 DDL 没有索引：
-
-不要自行添加。
-
-============================================================
-十三、UNIQUE
-============================================================
-
-DDL 中：
-
-UNIQUE
-
-必须完整映射。
-
-包括：
-
-单列 UNIQUE
-
-联合 UNIQUE
-
-例如：
-
-UNIQUE(a,b)
-
-必须使用：
-
-UniqueConstraint(
-    "a",
-    "b",
-    name="..."
-)
-
-名称必须与 DDL 一致。
-
-============================================================
-十四、CHECK
-============================================================
-
-DDL 中所有：
-
-CHECK
-
-必须保留。
-
-例如：
-
-CHECK(balance >= 0)
-
-必须在 SQLAlchemy Model 中体现。
-
-不能因为“业务层也会校验”而删除。
-
-数据库约束和 Service 校验是两层。
-
-============================================================
-十五、软删除字段
-============================================================
-
-DDL 中存在：
-
-deleted_at
-
-必须原样保留。
-
-不要使用：
-
-is_deleted
-
-替换。
-
-不要删除：
-
-deleted_at
-
-============================================================
-十六、时间字段
-============================================================
-
-所有：
-
-TIMESTAMPTZ
-
-必须：
-
-DateTime(timezone=True)
-
-不能使用：
-
-DateTime(timezone=False)
-
-数据库统一：
+ISO8601
 
 UTC
 
-============================================================
-十七、JSONB
-============================================================
+Timezone
 
-PostgreSQL：
+Date Format
 
-JSONB
+Date Math
 
-必须使用：
+Weekday
 
-sqlalchemy.dialects.postgresql.JSONB
+Month
 
-不要改成：
+Leap Year
+
+Cron Calculate
+
+Cron Humanize
+
+文本：
+
+Diff
+
+Merge
+
+Dedupe
+
+Sort
+
+Reverse
+
+Remove Blank
+
+Trim
+
+Multiline
+
+Singleline
+
+Batch Replace
+
+Filter
+
+Extract
+
+Line Tools
+
+Prefix
+
+Suffix
+
+Text Stats
+
+Naming Case
+
+图片：
+
+JPG Compression
+
+PNG Compression
+
+WebP Compression
+
+Format Convert
+
+Info
+
+Metadata
+
+EXIF
+
+Hash
+
+Crop
+
+Resize
+
+Rotate
+
+Flip
+
+Color Extract
+
+Image Base64
+
+Data URI
+
+QR：
+
+Generate
+
+Parse
+
+URL
 
 Text
 
-不要改成：
+WiFi
 
-String
+vCard
 
-============================================================
-十八、INET
-============================================================
+Beautify
 
-PostgreSQL：
+Barcode：
 
-INET
+EAN
+
+UPC
+
+Code128
+
+Generate
+
+Parse
+
+URL：
+
+Parser
+
+Encode
+
+Decode
+
+Query Parser
+
+Query Generator
+
+Parameter
+
+Join
+
+Normalize
+
+HTTP：
+
+Headers
+
+Status
+
+Method
+
+MIME
+
+Content-Type
+
+UA Parser
+
+UA Generator
+
+Cookie Parser
+
+Cookie Generator
+
+Unicode：
+
+Unicode Query
+
+Chinese Conversion
+
+Emoji Query
+
+UTF-8
+
+GBK
+
+Encoding Conversion
+
+以及当前工具目录中定义的其他工具。
+
+==================================================
+五十七、Frontend-only Tools
+==================================================
+
+以下类型：
+
+JSON
+
+XML
+
+YAML
+
+TOML
+
+Base64
+
+URL
+
+UUID
+
+ULID
+
+Snowflake
+
+Random
+
+Text
+
+部分 Image
+
+QR
+
+Unicode
+
+等，
+
+优先前端执行。
+
+禁止上传用户原始输入。
+
+只发送：
+
+usage event
+
+analytics event。
+
+==================================================
+五十八、Backend Tools
+==================================================
+
+需要服务器执行的：
+
+HTTP
+
+DNS
+
+IP
+
+第三方 API
+
+等：
+
+调用后端 Tool API。
+
+==================================================
+五十九、Async Tools
+==================================================
+
+大文件
+
+复杂转换
+
+批处理
+
+必须：
+
+创建 Job
+
+轮询/查询 Job
+
+展示状态
+
+下载结果。
+
+==================================================
+六十、Tool Quota
+==================================================
+
+前端显示：
+
+quota
+
+remaining
+
+rate limit
+
+access。
+
+但是：
+
+后端是最终裁决。
+
+Quota 不允许只在前端扣减。
+
+==================================================
+六十一、Tool Analytics
+==================================================
+
+Frontend Tool：
+
+TOOL_VIEW
+
+TOOL_START
+
+TOOL_EXECUTE
+
+TOOL_EXECUTE_SUCCESS
+
+TOOL_EXECUTE_FAILURE
+
+TOOL_COPY
+
+TOOL_DOWNLOAD
+
+TOOL_CLEAR
+
+等。
 
 必须使用：
 
-sqlalchemy.dialects.postgresql.INET
+analytics.track()
 
-不能改成：
+统一 SDK。
 
-String
+禁止：
+
+每个页面自己 axios 上报。
+
+==================================================
+六十二、Analytics SDK
+==================================================
+
+实现：
+
+analytics.track(event_code, properties)
+
+自动补充：
+
+anonymous_id
+
+user_id
+
+session_id
+
+page_code
+
+page_url
+
+referrer
+
+platform
+
+device_type
+
+os
+
+browser
+
+app_code
+
+app_version。
+
+禁止：
+
+password
+
+token
+
+JWT
+
+API Key
+
+Cookie
+
+Authorization
+
+raw SQL
+
+raw input
+
+uploaded file
+
+image content
+
+MFA secret。
+
+==================================================
+六十三、Anonymous ID
+==================================================
+
+首次访问：
+
+生成 anonymous_id。
+
+必须：
+
+不可预测。
+
+保存：
+
+按照安全设计。
+
+注册 / 登录：
+
+调用 identity merge。
+
+不能把：
+
+IP
+
+当 anonymous_id。
+
+==================================================
+六十四、搜索
+==================================================
+
+Tools Web：
+
+实现工具搜索。
+
+调用：
+
+/tools/search
+
+或当前 API Spec 定义的接口。
+
+支持：
+
+关键词
+
+分类
+
+标签
+
+==================================================
+六十五、响应式
+==================================================
+
+Admin：
+
+Desktop First。
+
+Tools：
+
+Desktop + Mobile。
+
+必须处理：
+
+768
+
+1024
+
+1280
+
+1440
+
+等常见宽度。
+
+不能出现：
+
+横向溢出
+
+按钮被遮挡
+
+弹窗超出屏幕。
+
+==================================================
+六十六、国际化
+==================================================
+
+如果当前规格没有冻结多语言：
+
+不要自行引入 i18n 依赖。
+
+中文作为默认 UI。
+
+所有业务文案集中管理。
+
+不要散落大量硬编码字符串。
+
+==================================================
+六十七、主题
+==================================================
+
+使用 Element Plus。
+
+统一：
+
+颜色
+
+Typography
+
+Spacing
+
+Border
+
+Radius
+
+Button
+
+Table
+
+Form
+
+Dialog
+
+保持后台一致。
+
+不要引入第二套 UI Framework。
+
+==================================================
+六十八、类型系统
+==================================================
+
+所有 API：
+
+必须定义 TypeScript Types。
 
 例如：
 
-ip
-last_login_ip
+User
 
-必须保持 INET。
+Role
 
-============================================================
-十九、所有 79 张表
-============================================================
+Permission
 
-必须完整生成。
+Department
 
-至少覆盖以下领域：
+Tool
 
-----------------------------------------
-System
-----------------------------------------
+ToolVersion
 
-sys_department
-sys_user
-sys_role
-sys_user_role
-sys_role_inheritance
-sys_permission
-sys_role_permission
-sys_role_data_scope
-sys_permission_field
-sys_session
-sys_mfa_factor
-sys_password_history
-sys_dict_type
-sys_dict_item
-sys_config
-sys_feature_flag
+ToolAccessPolicy
 
-----------------------------------------
-Business User
-----------------------------------------
+Growth
 
-biz_user
-biz_user_profile
-biz_user_login_identity
-biz_user_password_history
-biz_user_verification
-biz_user_session
-biz_user_login_log
+Point
 
-----------------------------------------
-Growth / Points
-----------------------------------------
+Level
 
-biz_user_level
-biz_user_growth_account
-biz_user_point_account
-biz_growth_rule
-biz_point_rule
-biz_growth_event
-biz_point_transaction
-biz_growth_transaction
-biz_user_level_history
-biz_user_level_benefit
+Cosmetic
 
-以及 DDL 中定义的全部成长中心表。
+Task
 
-----------------------------------------
-Cosmetics
-----------------------------------------
+Achievement
 
-biz_cosmetic
-biz_user_cosmetic
-biz_user_equipment
+BlogArticle
 
-----------------------------------------
-Task / Achievement
-----------------------------------------
+AnalyticsEvent
 
-biz_task
-biz_user_task
-biz_achievement
-biz_user_achievement
+Notification
 
-----------------------------------------
-Tools
-----------------------------------------
+Job
 
-tool_category
-tool
-tool_version
-tool_component_registry
-tool_access_policy
-tool_usage_event
-tool_usage_daily
-tool_recent_usage
-tool_popularity_daily
+ExportJob
 
-以及 DDL 中存在的全部 Tools 表。
+等。
 
-----------------------------------------
-Blog
-----------------------------------------
+禁止：
 
-blog_author
-blog_author_application
-blog_category
-blog_article
-blog_article_tag
-blog_article_like
-blog_article_favorite
-blog_comment
-blog_user_follow
+API 返回：
 
-以及 DDL 中存在的全部 Blog 表。
+any。
 
-----------------------------------------
-Analytics
-----------------------------------------
+==================================================
+六十九、API 类型
+==================================================
 
-behavior_event
-behavior_event_daily
-behavior_user_daily
-behavior_page_daily
-behavior_tool_daily
-behavior_search_daily
-behavior_funnel
-behavior_identity_merge
+推荐：
 
-----------------------------------------
-Infrastructure
-----------------------------------------
+ApiResponse<T>
 
-sys_outbox_event
-sys_idempotency_record
-sys_job
-sys_job_definition
-sys_notification
-sys_file
-sys_export_job
-risk_rule
+PaginatedResponse<T>
 
-----------------------------------------
-Logs
-----------------------------------------
+ApiError
 
-sys_audit_log
-sys_access_log
-sys_security_log
-sys_operation_log
-sys_application_log
+PaginationParams
 
-注意：
+统一定义。
 
-以上只是核对清单。
+BIGINT：
 
-【最终以完整 DDL 为准。】
+后端 JSON 是 string。
 
-如果清单和 DDL 不一致：
+前端：
 
-以 DDL 为准。
+ID 类型统一：
 
-============================================================
-二十、统一 Base
-============================================================
+string。
+
+禁止：
+
+number
+
+保存 BIGINT ID。
+
+==================================================
+七十、Store
+==================================================
+
+至少实现：
+
+Admin：
+
+authStore
+
+permissionStore
+
+appStore
+
+userStore
+
+roleStore
+
+departmentStore
+
+toolStore
+
+analyticsStore
+
+以及实际业务需要的：
+
+growthStore
+
+pointStore
+
+levelStore
+
+cosmeticStore
+
+taskStore
+
+achievementStore
+
+blogStore
+
+notificationStore
+
+jobStore
+
+exportStore。
+
+Tools：
+
+authStore
+
+toolStore
+
+quotaStore
+
+analyticsStore
+
+==================================================
+七十一、Router Guard
+==================================================
+
+处理：
+
+未登录
+
+登录
+
+Token Refresh
+
+Must Change Password
+
+Permission
+
+404
+
+403。
+
+禁止：
+
+通过前端 Guard 绕过后端。
+
+==================================================
+七十二、自动刷新
+==================================================
+
+Axios Interceptor：
+
+401
+
+→ refresh
+
+→ retry original request。
+
+如果 refresh 失败：
+
+清理认证状态
+
+→ 登录页。
+
+必须避免：
+
+refresh 无限循环。
+
+==================================================
+七十三、权限失效
+==================================================
+
+后端返回：
+
+403
+
+前端：
+
+显示权限不足。
+
+不能：
+
+自动修改权限。
+
+不能：
+
+重试无限次数。
+
+==================================================
+七十四、API 冲突处理
+==================================================
+
+如果出现：
+
+Frontend Spec
+
+与
+
+Backend API
+
+不一致：
 
 建立：
 
-app/shared/database/base.py
+FRONTEND_API_CONFLICTS.md
 
-例如：
+记录：
 
-class Base(DeclarativeBase):
-    pass
+页面
 
-所有 Model 必须继承：
+API
 
-Base
+预期
 
-禁止出现多个独立 Base。
+实际
 
-最终：
+影响
 
-Base.metadata
+建议。
 
-必须包含全部 79 张表。
+不要自行改变 API。
 
-============================================================
-二十一、Model 导入
-============================================================
+==================================================
+七十五、Build
+==================================================
 
-建立统一 Model Registry。
+两个项目分别执行：
 
-例如：
+npm install
 
-app/shared/database/models.py
+npm run type-check
 
-负责导入全部 Model。
+npm run lint
 
-目的：
+npm run build
 
-保证：
+如果已有脚本：
 
-Base.metadata
+使用项目现有脚本。
 
-完整收集所有表。
+不得通过：
 
-启动时执行：
+关闭 TypeScript
 
-from app.shared.database.models import ...
+关闭 ESLint
 
-不能遗漏 Model。
+来解决错误。
 
-============================================================
-二十二、Alembic
-============================================================
+==================================================
+七十六、代码扫描
+==================================================
 
-正确初始化 Alembic。
+扫描：
 
-目录：
+TODO
 
-vctn-api/
-├── migrations/
-│   ├── env.py
-│   ├── script.py.mako
-│   └── versions/
-│
-└── alembic.ini
+FIXME
 
-Alembic 必须使用：
+any
 
-Base.metadata
+ts-ignore
 
-作为 target_metadata。
+ts-expect-error
 
-============================================================
-二十三、第一次 Migration
-============================================================
+NotImplementedError
+
+mock
+
+fake
+
+stub
+
+空方法
+
+空页面
+
+空组件。
+
+业务代码中不允许存在伪实现。
+
+==================================================
+七十七、页面覆盖矩阵
+==================================================
 
 生成：
 
-Initial Database Schema
+FRONTEND_PAGE_COVERAGE.md
 
-例如：
+格式：
 
-0001_initial_schema.py
+| Application | Page | Route | API | Store | Permission | Field Permission | Status |
+|---|---|---|---|---|---|---|---|
 
-必须创建完整数据库结构。
+Status：
 
-包括：
+IMPLEMENTED
 
-Tables
-Columns
-PK
-FK
-Unique
-Check
-Indexes
+BLOCKED
 
-不能只创建部分表。
+FAILED
 
-============================================================
-二十四、Migration 顺序
-============================================================
+禁止：
 
-必须正确处理 Foreign Key 依赖。
+UNKNOWN。
 
-例如：
+==================================================
+七十八、API 覆盖矩阵
+==================================================
 
-sys_department
+生成：
 
-必须先于：
+FRONTEND_API_COVERAGE.md
 
-sys_user
+格式：
 
-sys_role
+| API | Application | Page | API Client | Type | Loading | Error | Permission | Status |
+|---|---|---|---|---|---|---|---|---|
 
-必须先于：
+必须检查：
 
-sys_user_role
+所有前端需要使用的 API。
 
-sys_permission
+==================================================
+七十九、组件覆盖
+==================================================
 
-必须先于：
+生成：
 
-sys_role_permission
+FRONTEND_COMPONENT_COVERAGE.md
 
-biz_user
+至少统计：
 
-必须先于：
+Pages
 
-biz_user_profile
+Components
 
-以及其他引用 biz_user 的表。
+Stores
 
-如果存在循环外键：
+API Clients
 
-必须按照 PostgreSQL / Alembic 正确方式处理。
+Routes
 
-不能删除外键来解决问题。
+Directives
 
-============================================================
-二十五、不要直接复制 DDL 到 Migration
-============================================================
+Composables
 
-Migration 必须使用：
+Tools。
 
-op.create_table()
-op.create_index()
-op.create_unique_constraint()
-op.create_check_constraint()
-等 Alembic API。
+==================================================
+八十、测试
+==================================================
 
-不要把整个 SQL DDL：
+Admin：
 
-op.execute("""
-CREATE TABLE ...
-""")
+登录
 
-作为主要 Migration 实现。
+Logout
 
-目标是：
+Refresh
 
-SQLAlchemy Model
-    ↕
-Alembic
-    ↕
-PostgreSQL
+User
 
-三者保持一致。
+Department
 
-============================================================
-二十六、Migration 执行
-============================================================
+Role
 
-配置：
+Permission
 
-DATABASE_URL
+Data Scope
 
-连接真实 PostgreSQL。
+Dictionary
 
-执行：
+Config
 
-alembic upgrade head
+Feature Flag
 
-必须真正执行。
+Audit
 
-不是只生成文件。
+Logs
 
-============================================================
-二十七、数据库验证
-============================================================
+Tools
 
-Migration 完成后必须执行：
+Analytics
 
-alembic current
+Growth
 
-确认：
+Points
 
-HEAD
+Level
 
-然后通过 PostgreSQL 查询验证。
+Cosmetics
+
+Tasks
+
+Achievements
+
+Blog
+
+Notification
+
+Jobs
+
+Export。
+
+Tools：
+
+首页
+
+搜索
+
+分类
+
+工具打开
+
+工具执行
+
+复制
+
+下载
+
+清空
+
+Quota
+
+Rate Limit
+
+Guest
+
+Login
+
+Recent
+
+Popular
+
+Async Job。
+
+==================================================
+八十一、关键安全测试
+==================================================
 
 必须验证：
 
-1. 表数量
-2. 表名
-3. 字段
-4. 字段类型
-5. nullable
-6. default
-7. primary key
-8. foreign key
-9. unique
-10. check
-11. indexes
+无 Token：
 
-============================================================
-二十八、Model ↔ Database 对比
-============================================================
+不能访问 Admin。
 
-必须实现自动检查。
+无 Permission：
 
-检查：
+按钮隐藏。
 
-DDL
-    ↓
-Model
-    ↓
-Alembic
-    ↓
-PostgreSQL
+无 Page Permission：
 
-最终：
+页面不能访问。
 
-DDL = Model = PostgreSQL
+403：
 
-任何不一致：
+正确显示。
 
-禁止进入下一阶段。
+Token 过期：
 
-============================================================
-二十九、禁止自动修改数据库
-============================================================
+自动 refresh。
 
-如果发现 PostgreSQL 已经存在旧表：
+Refresh 失败：
 
-不要：
+回登录。
 
-DROP DATABASE
+BIGINT：
 
-不要：
+不会精度丢失。
 
-DROP SCHEMA
+敏感数据：
 
-不要：
+不会进入 Analytics。
 
-DROP TABLE
+工具输入：
 
-不要：
+不会上传。
 
-TRUNCATE
+密码：
 
-不要：
+不会进入 Analytics。
 
-覆盖已有数据库。
+JWT：
 
-先检查：
+不会进入 Analytics。
 
-alembic_version
+API Key：
 
-以及当前数据库结构。
+不会进入 Analytics。
 
-如果数据库不是空数据库：
+==================================================
+八十二、E2E
+==================================================
 
-报告：
+如果项目已有 E2E 框架：
 
-DATABASE-STATE-BLOCKER
+执行。
 
-等待确认。
+如果没有：
 
-============================================================
-三十、生产安全
-============================================================
+不要自行引入新的 E2E 框架。
 
-禁止 AI 自己执行：
+至少完成：
 
-DROP DATABASE
-DROP SCHEMA CASCADE
-DROP TABLE CASCADE
+真实浏览器 Smoke Flow。
 
-禁止删除用户现有数据。
+如果环境无法执行：
 
-禁止执行破坏性 Migration。
+记录：
 
-============================================================
-三十一、如果 PostgreSQL 未安装
-============================================================
+E2E-BLOCKER。
 
-如果本机 PostgreSQL 不存在：
+==================================================
+八十三、真实后端联调
+==================================================
 
-不要自行安装。
-
-不要自行下载。
-
-不要使用 Docker 替代。
-
-报告：
-
-POSTGRESQL-NOT-AVAILABLE
-
-并输出：
-
-1. 当前检查结果
-2. PostgreSQL 版本
-3. 连接状态
-4. DATABASE_URL 是否存在
-5. 缺少什么
-
-然后停止。
-
-============================================================
-三十二、如果 DATABASE_URL 缺失
-============================================================
-
-报告：
-
-DATABASE-CONNECTION-BLOCKER
-
-不要猜测：
-
-用户名
-密码
-端口
-数据库名
-
-不要把默认值当成真实数据库配置。
-
-============================================================
-三十三、Alembic 验证
-============================================================
-
-必须执行：
-
-alembic check
-
-如果版本支持。
-
-然后：
-
-alembic upgrade head
-
-然后：
-
-alembic current
-
-然后：
-
-alembic downgrade -1
-
-然后：
-
-alembic upgrade head
-
-验证：
-
-升级成功
-降级成功
-再次升级成功
-
-如果数据库中存在不可逆 Migration：
-
-必须报告。
-
-============================================================
-三十四、测试
-============================================================
-
-建立数据库 Schema Test。
-
-至少验证：
-
-1. Model 数量
-2. Table 数量
-3. Primary Key
-4. Foreign Key
-5. Unique
-6. Check
-7. Index
-8. PostgreSQL 类型
-9. Alembic migration
-10. Upgrade / Downgrade
-
-============================================================
-三十五、禁止业务开发
-============================================================
-
-本阶段禁止实现：
-
-登录
-注册
-用户 CRUD
-部门 CRUD
-角色 CRUD
-权限
-RBAC
-MFA
-Session 业务
-Tools 业务
-Blog 业务
-积分业务
-等级业务
-Analytics 业务
-Notification 业务
-文件业务
-Search 业务
-
-只做：
-
-【Model + Migration + PostgreSQL】
-
-============================================================
-三十六、完成标准
-============================================================
-
-只有以下全部满足：
-
-[ ] 79 张表全部有 Model
-[ ] Base.metadata 包含全部表
-[ ] Model 与 DDL 一致
-[ ] Alembic 初始 Migration 完成
-[ ] PostgreSQL upgrade head 成功
-[ ] alembic current 正常
-[ ] 数据库表创建完成
-[ ] FK 正常
-[ ] PK 正常
-[ ] Unique 正常
-[ ] Check 正常
-[ ] Index 正常
-[ ] PostgreSQL 类型正确
-[ ] Upgrade 成功
-[ ] Downgrade 成功
-[ ] 再次 Upgrade 成功
-[ ] Schema 验证通过
-[ ] 测试通过
-[ ] 没有新增依赖
-[ ] 没有修改 DDL
-[ ] 没有增加 tenant_id
-[ ] 没有删除任何 DDL 定义
-[ ] 没有破坏现有数据库数据
-
-才算 Phase 1 完成。
-
-============================================================
-三十七、最终报告
-============================================================
-
-完成后输出：
-
-# Phase 1 Database Verification Report
-
-## 1. Project
+必须优先连接：
 
 F:\project\bmw730\vctn-api
 
-## 2. PostgreSQL
+真实 API。
 
-PostgreSQL version:
+禁止默认：
 
-Database:
+Mock API。
 
-Host:
+开发环境如果后端未启动：
 
-Port:
+明确记录：
 
-Connection:
+BACKEND-CONNECTION-BLOCKER。
 
-## 3. Model
+==================================================
+八十四、两个项目必须分别启动
+==================================================
 
-DDL table count:
+Admin：
 
-Model table count:
+npm run dev
 
-Base.metadata table count:
+Tools：
 
-结果：
+npm run dev
 
+必须分别验证：
+
+页面启动
+
+路由
+
+API
+
+静态资源。
+
+==================================================
+八十五、最终 Build
+==================================================
+
+必须：
+
+Admin Build PASS
+
+Tools Build PASS。
+
+不能存在：
+
+TypeScript Error
+
+Vite Error
+
+Module Not Found
+
+Import Error
+
+Circular Runtime Error
+
+==================================================
+八十六、最终验收
+==================================================
+
+必须达到：
+
+[ ] Admin Web 完成
+
+[ ] Tools Web 完成
+
+[ ] 所有页面完成
+
+[ ] 所有路由完成
+
+[ ] 动态菜单完成
+
+[ ] 动态权限完成
+
+[ ] Button Permission 完成
+
+[ ] Field Permission 完成
+
+[ ] Axios 完成
+
+[ ] Token 完成
+
+[ ] Refresh 完成
+
+[ ] Trace 完成
+
+[ ] Error Handler 完成
+
+[ ] User Management 完成
+
+[ ] Department 完成
+
+[ ] Role 完成
+
+[ ] Permission 完成
+
+[ ] Dictionary 完成
+
+[ ] Config 完成
+
+[ ] Feature Flag 完成
+
+[ ] Audit 完成
+
+[ ] Logs 完成
+
+[ ] Session 完成
+
+[ ] Tools Admin 完成
+
+[ ] Analytics Admin 完成
+
+[ ] Growth 完成
+
+[ ] Points 完成
+
+[ ] Levels 完成
+
+[ ] Cosmetics 完成
+
+[ ] Tasks 完成
+
+[ ] Achievements 完成
+
+[ ] Blog Admin 完成
+
+[ ] Notification 完成
+
+[ ] Jobs 完成
+
+[ ] Files 完成
+
+[ ] Export 完成
+
+[ ] Tools 首页完成
+
+[ ] Tools Search 完成
+
+[ ] Tools Category 完成
+
+[ ] Tool Workspace 完成
+
+[ ] Tool Registry 完成
+
+[ ] Frontend Tool 完成
+
+[ ] Backend Tool 对接完成
+
+[ ] Async Tool 完成
+
+[ ] Quota UI 完成
+
+[ ] Rate Limit UI 完成
+
+[ ] Analytics SDK 完成
+
+[ ] Anonymous ID 完成
+
+[ ] Identity Merge 完成
+
+[ ] Mobile Responsive 完成
+
+[ ] TypeScript PASS
+
+[ ] Lint PASS
+
+[ ] Build PASS
+
+[ ] 无 TODO
+
+[ ] 无 FIXME
+
+[ ] 无伪实现
+
+[ ] 无大面积 any
+
+[ ] 无 ts-ignore
+
+[ ] 无 Mock API
+
+==================================================
+八十七、最终报告
+==================================================
+
+生成：
+
+FRONTEND_IMPLEMENTATION_REPORT.md
+
+内容：
+
+1. Admin Web 状态
+
+2. Tools Web 状态
+
+3. 页面数量
+
+4. 路由数量
+
+5. API Client 数量
+
+6. Store 数量
+
+7. Component 数量
+
+8. Tool 数量
+
+9. Permission 数量
+
+10. Analytics Event 数量
+
+11. TypeScript
+
+12. ESLint
+
+13. Build
+
+14. API Integration
+
+15. Security
+
+16. Responsive
+
+17. E2E
+
+18. Blockers
+
+19. Remaining Risks
+
+==================================================
+八十八、最终输出
+==================================================
+
+最后输出：
+
+========================================
+VCTN FRONTEND IMPLEMENTATION
+========================================
+
+Project:
+F:\project\bmw730
+
+Admin Web:
+COMPLETE / BLOCKED
+
+Tools Web:
+COMPLETE / BLOCKED
+
+Pages:
+xxx
+
+Routes:
+xxx
+
+API Clients:
+xxx
+
+Stores:
+xxx
+
+Components:
+xxx
+
+Tools:
+xxx
+
+TypeScript:
 PASS / FAIL
 
-## 4. Alembic
+Lint:
+PASS / FAIL
 
-Current revision:
+Admin Build:
+PASS / FAIL
 
-Migration:
+Tools Build:
+PASS / FAIL
 
-Upgrade:
+Backend Integration:
+PASS / BLOCKED
 
-Downgrade:
+Permission:
+PASS / FAIL
 
-Re-upgrade:
+Field Permission:
+PASS / FAIL
 
-## 5. Schema
+Analytics:
+PASS / FAIL
 
-Tables:
+Responsive:
+PASS / FAIL
 
-Primary Keys:
+E2E:
+PASS / BLOCKED
 
-Foreign Keys:
+TODO:
+0 / xxx
 
-Unique Constraints:
+Mock:
+0 / xxx
 
-Check Constraints:
+ts-ignore:
+0 / xxx
 
-Indexes:
+Blockers:
+0 / xxx
 
-全部进行数量和名称核对。
+Reports:
 
-## 6. Model / DDL Difference
+FRONTEND_IMPLEMENTATION_REPORT.md
 
-必须输出：
+FRONTEND_PAGE_COVERAGE.md
 
-NONE
+FRONTEND_API_COVERAGE.md
 
-或者逐项列出。
+FRONTEND_COMPONENT_COVERAGE.md
 
-## 7. Database / Model Difference
+FRONTEND_API_CONFLICTS.md
 
-必须输出：
+========================================
 
-NONE
+重要：
 
-或者逐项列出。
+这是一次性全量前端开发任务。
 
-## 8. Tests
+不要完成一部分就停止询问是否继续。
 
-输出全部测试结果。
+正确流程：
 
-## 9. Files
+读取规格
+→ 检查现有项目
+→ 检查依赖
+→ 检查后端 API
+→ 实现 Admin
+→ 实现 Tools
+→ API 联调
+→ 修复
+→ TypeScript
+→ Lint
+→ Build
+→ 测试
+→ 再修复
+→ 最终验收
 
-列出所有新增/修改文件。
-
-## 10. Git
-
-提交：
-
-feat(database): add complete sqlalchemy models and migrations
-
-输出 commit hash。
-
-============================================================
-三十八、最终停止
-============================================================
-
-Phase 1 完成后：
-
-立即停止。
-
-不要进入 Phase 2。
-
-不要开发 API。
-
-不要开发业务逻辑。
-
-等待下一条指令。
-
-============================================================
-最终原则
-============================================================
-
-【DDL 是数据库唯一事实来源。】
-
-【SQLAlchemy Model 必须与 DDL 一致。】
-
-【Alembic 必须与 Model 一致。】
-
-【PostgreSQL 必须与 Alembic 一致。】
-
-最终必须达到：
-
-DDL
- ↓
-SQLAlchemy Models
- ↓
-Alembic
- ↓
-PostgreSQL
-
-四者一致。
-
-任何不一致：
-
-立即停止并报告 BLOCKER。
-
-禁止自行猜测。
-
-禁止自行修改。
-
-禁止自行简化。
+除非出现真正外部 BLOCKER，否则不要停止。

@@ -24,6 +24,46 @@ SUBJECT_GUEST: str = "GUEST"
 SUBJECT_USER: str = "USER"
 ACTIVE_STATUS: str = "ACTIVE"
 
+# Two visibility levels are supported by the frozen schema, which has no
+# subject_id column: an access policy row can only address every guest or every
+# signed in user, never one named user. The levels are therefore expressed as a
+# pair of policy rows (GUEST / USER).
+VISIBILITY_PUBLIC: str = "PUBLIC"
+VISIBILITY_REGISTERED: str = "REGISTERED"
+VISIBILITY_VALUES: tuple[str, ...] = (VISIBILITY_PUBLIC, VISIBILITY_REGISTERED)
+
+
+def default_subject_enabled(subject_type: str, default_visibility: str) -> bool:
+    """Whether an absent policy row allows ``subject_type``.
+
+    A tool without any policy row falls back to the configured default
+    visibility. An unrecognised configuration value fails closed: nothing is
+    granted that the operator did not clearly ask for.
+    """
+    visibility = str(default_visibility or "").strip().upper()
+    if visibility == VISIBILITY_PUBLIC:
+        return True
+    if visibility == VISIBILITY_REGISTERED:
+        return str(subject_type).strip().upper() != SUBJECT_GUEST
+    return False
+
+
+def visibility_subjects(visibility: str) -> dict[str, bool]:
+    """Expand a visibility level into its per subject enabled flags."""
+    level = str(visibility or "").strip().upper()
+    if level == VISIBILITY_PUBLIC:
+        return {SUBJECT_GUEST: True, SUBJECT_USER: True}
+    if level == VISIBILITY_REGISTERED:
+        return {SUBJECT_GUEST: False, SUBJECT_USER: True}
+    raise ValueError(f"unknown tool visibility: {visibility}")
+
+
+def visibility_of(guest_enabled: bool, user_enabled: bool) -> str:
+    """Collapse the two per subject flags back into one visibility level."""
+    if guest_enabled and user_enabled:
+        return VISIBILITY_PUBLIC
+    return VISIBILITY_REGISTERED
+
 
 class ToolAccessService:
     """Resolve whether a caller may run a tool and how much of it."""
@@ -58,8 +98,12 @@ class ToolAccessService:
 
         subject_type = SUBJECT_GUEST if is_guest else SUBJECT_USER
         policy = await self.policy_for(tool_id, subject_type)
-        enabled = bool(policy.enabled) if policy is not None else not is_guest
-        if policy is not None and not bool(policy.enabled):
+        enabled = (
+            bool(policy.enabled)
+            if policy is not None
+            else default_subject_enabled(subject_type, self._settings.TOOL_DEFAULT_VISIBILITY)
+        )
+        if not enabled:
             raise BusinessRuleError("the tool is not available for this caller")
 
         default_quota = (
@@ -99,11 +143,23 @@ class ToolAccessService:
             ),
         )
 
+    async def enabled_for(self, tool_id: int, subject_type: str) -> bool:
+        """Whether ``subject_type`` may use the tool, resolving the default."""
+        policy = await self.policy_for(tool_id, subject_type)
+        if policy is None:
+            return default_subject_enabled(subject_type, self._settings.TOOL_DEFAULT_VISIBILITY)
+        return bool(policy.enabled)
+
     async def enforce_quota(
         self, tool_id: int, *, is_guest: bool, user_id: int | None, ip: str | None
     ) -> None:
         """Consume one unit of quota and enforce the per minute rate limit."""
         subject_type = SUBJECT_GUEST if is_guest else SUBJECT_USER
+        # The visibility gate. It must agree with resolve(): a tool that is not
+        # visible to the caller must never reach the provider, even though the
+        # execution path only spends quota here.
+        if not await self.enabled_for(tool_id, subject_type):
+            raise BusinessRuleError("the tool is not available for this caller")
         policy = await self.policy_for(tool_id, subject_type)
         default_quota = (
             self._settings.TOOL_GUEST_DAILY_QUOTA

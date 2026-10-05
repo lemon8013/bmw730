@@ -19,6 +19,7 @@ import base64
 import binascii
 import hashlib
 import json
+import math
 import re
 import secrets
 import time
@@ -339,6 +340,86 @@ class RandomStringProvider:
         )
 
 
+class PasswordGenerateProvider:
+    """Generate passwords from a caller chosen character pool.
+
+    Unlike :class:`RandomStringProvider` this understands *character classes*
+    (lower / upper / digits / symbols), guarantees that every enabled class is
+    represented at least once, supports excluding specific characters, and
+    reports the entropy of the generated values.
+
+    Nothing is echoed into logs: only counts and the resulting password are
+    returned, never the caller supplied alphabet.
+    """
+
+    component_key = "password.generate"
+    execution_mode = EXECUTION_MODE_BACKEND
+
+    _LOWER: Final[str] = "abcdefghijklmnopqrstuvwxyz"
+    _UPPER: Final[str] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    _DIGITS: Final[str] = "0123456789"
+    _SYMBOLS: Final[str] = "!@#$%^&*()-_=+[]{};:,.?/"
+    _AMBIGUOUS: Final[str] = "0O1lI|`'\";:,."
+    _MAX_LENGTH: Final[int] = 256
+    _MAX_COUNT: Final[int] = 50
+
+    async def execute(self, request: ToolExecutionRequest) -> ToolExecutionResult:
+        length = max(1, min(int(request.inputs.get("length", 16)), self._MAX_LENGTH))
+        count = max(1, min(int(request.inputs.get("count", 5)), self._MAX_COUNT))
+
+        pools: list[str] = []
+        if bool(request.inputs.get("lowercase", True)):
+            pools.append(self._LOWER)
+        if bool(request.inputs.get("uppercase", True)):
+            pools.append(self._UPPER)
+        if bool(request.inputs.get("digits", True)):
+            pools.append(self._DIGITS)
+        if bool(request.inputs.get("symbols", True)):
+            pools.append(self._SYMBOLS)
+
+        excluded = str(request.inputs.get("exclude", ""))
+        if bool(request.inputs.get("exclude_ambiguous", False)):
+            excluded += self._AMBIGUOUS
+        excluded_set = set(excluded)
+
+        usable = ["".join(c for c in pool if c not in excluded_set) for pool in pools]
+        usable = [pool for pool in usable if pool]
+        if not usable:
+            return ToolExecutionResult(
+                False, None, "PASSWORD_ALPHABET_EMPTY", "排除规则后没有任何可用字符"
+            )
+
+        combined = "".join(usable)
+        if length < len(usable):
+            return ToolExecutionResult(
+                False,
+                None,
+                "PASSWORD_TOO_SHORT",
+                f"长度 {length} 不足以同时包含所选的 {len(usable)} 类字符",
+            )
+
+        values: list[str] = []
+        for _ in range(count):
+            picks = [secrets.choice(pool) for pool in usable]
+            picks += [secrets.choice(combined) for _ in range(length - len(usable))]
+            # Fisher-Yates so the mandatory characters are not predictable.
+            for i in range(len(picks) - 1, 0, -1):
+                j = secrets.randbelow(i + 1)
+                picks[i], picks[j] = picks[j], picks[i]
+            values.append("".join(picks))
+
+        entropy = round(length * math.log2(len(set(combined))), 1)
+        return ToolExecutionResult(
+            True,
+            {
+                "values": values,
+                "length": length,
+                "alphabet_size": len(set(combined)),
+                "entropy_bits": entropy,
+            },
+        )
+
+
 class UnicodeInspectProvider:
     """Show code points of a text."""
 
@@ -448,6 +529,7 @@ def build_default_registry() -> ToolRegistry:
         TextStatsProvider(),
         TimestampProvider(),
         RandomStringProvider(),
+        PasswordGenerateProvider(),
         UnicodeInspectProvider(),
         MarkdownRenderProvider(),
         FrontendEchoProvider(),

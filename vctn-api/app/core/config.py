@@ -212,6 +212,11 @@ class Settings(BaseSettings):
     TOOL_GUEST_DAILY_QUOTA: int = 50
     TOOL_USER_DAILY_QUOTA: int = 500
 
+    # Default visibility of a tool that has no explicit access policy row.
+    # PUBLIC opens the tool to everyone, REGISTERED keeps it to signed in users
+    # until an operator relaxes it.
+    TOOL_DEFAULT_VISIBILITY: str = "PUBLIC"
+
     # ------------------------------------------------------------------
     # Idempotency
     # ------------------------------------------------------------------

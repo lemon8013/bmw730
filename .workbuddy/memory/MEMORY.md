@@ -34,7 +34,50 @@ VCTN：**双前端 + 单 FastAPI 模块化单体**。
 - 后端 venv：`vctn-api/.venv`（Python 3.13.14）；依赖锁：`vctn-api/requirements.lock.txt`。
 - 待关闭：PG/Redis 连接信息（BLOCKER-1）；Spec 回写根目录与版本清单（BLOCKER-2）。
 
+## 工具可见性两档 + 管理员侧用量统计（2026-10-05，勿回退）
+- 可见性只有两档：`PUBLIC`（所有人可用）/ `REGISTERED`（注册用户可用），写入 `tool_access_policy`
+  的 GUEST + USER 两行。表无 `subject_id`，**做不到指定用户/角色可见**（B-35 未决）。
+- 默认可见性 = `Settings.TOOL_DEFAULT_VISIBILITY`（默认 `PUBLIC`，已同步 `.env.example`）。
+- 管理入口：工具列表页 `/tools` 的「可见性」列行内下拉 → `PUT /admin/tools/visibility/{tool_id}`
+  （TOOL_ACCESS_MANAGE）；列表读 `GET /admin/tools/visibility`（TOOL_VIEW）。
+- **执行与读侧都必须过滤**：`ToolAccessService.enforce_quota()` 开头拦可见性；目录
+  `list_tools/search/get_by_slug/get_tool/popular` 按 `OptionalPrincipal 为空 = 游客` 过滤。
+  只改一处会漏：改 resolve 不改目录 → 游客看得到但不能用；反过来更糟。
+- 管理员侧用量：`GET /admin/tools/usage[?days]`、`GET /admin/tools/usage/daily?tool_id&days`
+  （TOOL_STAT_VIEW）。**直接聚合 `tool_usage_event`**，不读 `tool_usage_daily` /
+  `tool_popularity_daily`（后者恒为 0，B-36）。
+- 平台侧 `/tools/usage/*`、`/tools/statistics/*` 读接口全要业务用户身份，**Operator 必 401**，
+  管理端页面不要碰它们（B-33 同类问题）。
+- FastAPI 陷阱：`/admin/tools/visibility`、`/admin/tools/usage` 等字面量路由必须注册在
+  `/admin/tools/{tool_id}` 之前。
+- 执行端点真实路径：`/api/v1/tools/runtime/execute/{tool_id}`。
+
+## tools-web 工具门户（2026-10-04 实现完成）
+- 6 条路由全部落地：`/` `/category/:slug`（=category_code）`/search` `/popular` `/recent` `/tool/:slug`。
+- component_key 白名单 = `src/tools/definitions/index.ts`（18 个），**必须与
+  `vctn-api/app/tools/runtime/providers.py::build_default_registry` 保持同步**；
+  守门测试 `vctn-tools-web/tests/definitions.spec.ts` 会比对两侧 key 集合。
+- **新增工具的三处必改**：① providers.py 加 Provider 并注册到 `build_default_registry`
+  ② `app/scripts/seed/catalog.py::TOOLS` 加条目（指定分类）③ 前端 definitions 加表单 +
+  测试 key 集合。改完必须重跑 seed（`VCTN_SEED_ADMIN_PASSWORD` 要显式给）才能进目录。
+- 全站返回首页：`AppLayout` 非首页显示「返回首页」按钮 + `AppBreadcrumb` 面包屑
+  （首级恒为首页），5 个二级页面都已接入。
+- 工作区表单由 ToolFieldDescriptor 驱动；FRONTEND 本地算 result 再 POST；
+  ASYNC 拿 job_id 轮询 `/tools/jobs/{id}`（终态 SUCCESS/FAILED/CANCELLED）。
+- 最近使用走 localStorage；服务端 `/tools/recent` 需业务用户登录，tools-web 登录未实现。
+- 工具目录/分类/搜索/热门/执行匿名即可用；无需 token。
+- tools-web 浏览器验证脚本：`vctn-tools-web/scripts/browser-verify.sh`（无需 token）。
+- 后端曾有 bug：usage record 与 repository 重复传 `id` 导致执行 500，已修（勿回退：
+  id 由 `ToolUsageRepository.add_event` 统一生成）。
+
 ## 环境坑
+- **启动服务（2026-10-03 验证）**
+  - Git Bash 里 `nohup ... &` / `&` 起的进程会在父任务结束时被回收，**不可靠**。
+  - `Start-Process` 被安全策略拦截（`F:\project\bmw730\scripts\start-all.ps1` 因此不可用）。
+  - **可靠方式：Bash 工具 `run_in_background=true`，命令本身就是前台长驻进程**，三个服务
+    各起一个后台任务（api:8000 / admin-web:5173 / tools-web:5174）。
+  - 本机探测必须加 `--noproxy '*'`（否则被 http_proxy 吞掉），且用 `localhost` 而非
+    `127.0.0.1`（Vite 只监听 IPv6）。
 - `aicoding/spec/` 目录与文件名是**双重编码乱码**，标准文件 API 无法按中文名访问；需先按导
   出为 ASCII 文件名再读取（`cp` 到临时目录即可）。
 - 本机**已有可用 PostgreSQL 18 + Redis**（配置在 `vctn-api/.env`，账号 `bmw730` **无 CREATEDB 权限**，无法建临时库）。
@@ -52,6 +95,14 @@ VCTN：**双前端 + 单 FastAPI 模块化单体**。
 - 权限码权威 = `aicoding/spec/07-API业务Spec/11-权限矩阵.md`（64 条）；控制器里 9 个矩阵外码
   已登记 `vctn-api/BLOCKERS.md`，属待决策差异。
 - 端点级 API 权限由「实际路由 + 控制器真实 `require_permission` 依赖」生成，不维护手写映射表。
+
+## 成长体系的管理端可见性（2026-10-03 确立）
+- 管理平台以 Operator（`sys_user`）登录；成长/积分/任务/装扮的端点**全是 `/me` 形式**，
+  按平台业务用户取数，Operator 调用返回 401 `401001 a business user identity is required`。
+- OpenAPI 中**没有任何** `/admin/growth|points|tasks` 按用户查询端点（已登记 BLOCKERS §七 / B-33）。
+- 目录型端点 Operator 可读：`/levels`、`/achievements`、`/cosmetics`、`/point-rules/public`。
+- 前端结论：管理员身份下不要调任何 `/me` 成长端点；相关区块统一渲染
+  `components/common/BizIdentityNotice.vue` 说明，而不是抛加载失败。
 
 ## Seed 初始数据（2026-10-01 落地）
 - 代码：`vctn-api/app/scripts/seed/`；命令：`python -m app.scripts.seed [--mode=system|test] [--runs=N]`。

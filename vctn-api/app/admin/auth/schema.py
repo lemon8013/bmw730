@@ -6,7 +6,12 @@ import datetime
 
 from pydantic import Field
 
-from app.shared.response.dto import ApiModel, OptionalStringId, StringId
+from app.shared.response.dto import (
+    ApiModel,
+    OptionalIpAddress,
+    OptionalStringId,
+    StringId,
+)
 
 
 class LoginRequest(ApiModel):
@@ -120,7 +125,7 @@ class SessionBrief(ApiModel):
     id: StringId
     user_id: StringId
     session_status: str
-    ip: str | None = None
+    ip: OptionalIpAddress = None
     device_type: str | None = None
     login_at: datetime.datetime
     last_active_at: datetime.datetime | None = None

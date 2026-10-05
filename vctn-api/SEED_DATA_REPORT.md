@@ -1,17 +1,15 @@
 # VCTN Seed Data Report
 
-- Status: **PASS**
+- Status: **FAIL**
 - Mode: `system`
-- Command: `python -m app.scripts.seed --mode=system --runs=3`
+- Command: `python -m app.scripts.seed --mode=system --runs=1`
 - Administrator: `admin` (password NOT SHOWN)
 
 ## Runs
 
 | Run | Created | Skipped |
 | --- | --- | --- |
-| 1 | 0 | 1045 |
-| 2 | 0 | 1045 |
-| 3 | 0 | 1045 |
+| 1 | 5 | 1045 |
 
 - Idempotency: **PASS**
 
@@ -37,17 +35,17 @@
 | Tasks | 3 |
 | Achievements | 3 |
 | Tool Categories | 9 |
-| Tools | 22 |
-| Tool Versions | 22 |
-| Tool Components | 17 |
-| Tool Policies | 44 |
+| Tools | 23 |
+| Tool Versions | 23 |
+| Tool Components | 18 |
+| Tool Policies | 46 |
 | Blog Categories | 4 |
 
 ## Checks
 
 | Check | Result | Detail |
 | --- | --- | --- |
-| super_admin_state | PASS | ACTIVE / SUPER_ADMIN / must_change_password |
+| super_admin_state | FAIL | ACTIVE / SUPER_ADMIN / must_change_password |
 | security | PASS | administrator password is stored as a hash only |
 | super_admin_grants | PASS | 362/362 permissions granted |
 | tool_graph_complete | PASS | all tools have category+version+component+policy |

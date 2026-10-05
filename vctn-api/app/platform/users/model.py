@@ -19,6 +19,7 @@ from sqlalchemy.dialects.postgresql import INET, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class BizUser(Base):
@@ -27,7 +28,11 @@ class BizUser(Base):
     __tablename__ = "biz_user"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     username: Mapped[str | None] = mapped_column(sa.String(64), comment="用户名", nullable=True)
     nickname: Mapped[str] = mapped_column(sa.String(128), comment="昵称", nullable=False)
@@ -116,7 +121,11 @@ class BizUserLoginIdentity(Base):
     __tablename__ = "biz_user_login_identity"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     user_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("biz_user.id"), comment="业务用户 ID", nullable=True
@@ -155,7 +164,11 @@ class BizUserPasswordHistory(Base):
     __tablename__ = "biz_user_password_history"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     user_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("biz_user.id"), comment="业务用户 ID", nullable=True
@@ -177,7 +190,11 @@ class BizUserVerification(Base):
     __tablename__ = "biz_user_verification"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     user_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("biz_user.id"), comment="业务用户 ID", nullable=True
@@ -216,7 +233,11 @@ class BizUserSession(Base):
     __tablename__ = "biz_user_session"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     user_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("biz_user.id"), comment="业务用户 ID", nullable=True
@@ -271,7 +292,11 @@ class BizUserLoginLog(Base):
     __tablename__ = "biz_user_login_log"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     user_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("biz_user.id"), comment="业务用户 ID", nullable=True

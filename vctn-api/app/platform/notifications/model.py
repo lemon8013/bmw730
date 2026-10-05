@@ -18,6 +18,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class SysNotification(Base):
@@ -26,7 +27,11 @@ class SysNotification(Base):
     __tablename__ = "sys_notification"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     user_type: Mapped[str] = mapped_column(sa.String(32), comment="接收者类型", nullable=False)
     user_id: Mapped[int] = mapped_column(

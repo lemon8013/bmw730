@@ -18,6 +18,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class SysJob(Base):
@@ -26,7 +27,11 @@ class SysJob(Base):
     __tablename__ = "sys_job"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     job_code: Mapped[str] = mapped_column(sa.String(128), comment="任务编码", nullable=False)
     job_name: Mapped[str] = mapped_column(sa.String(128), comment="任务名称", nullable=False)
@@ -90,7 +95,11 @@ class SysJobDefinition(Base):
     __tablename__ = "sys_job_definition"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     job_code: Mapped[str] = mapped_column(sa.String(128), comment="任务编码", nullable=False)
     job_name: Mapped[str] = mapped_column(sa.String(128), comment="任务名称", nullable=False)
@@ -129,7 +138,11 @@ class SysOutboxEvent(Base):
     __tablename__ = "sys_outbox_event"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     event_id: Mapped[str] = mapped_column(sa.String(128), comment="事件唯一 ID", nullable=False)
     event_type: Mapped[str] = mapped_column(sa.String(128), comment="事件类型", nullable=False)
@@ -184,7 +197,11 @@ class SysIdempotencyRecord(Base):
     __tablename__ = "sys_idempotency_record"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     idempotency_key: Mapped[str] = mapped_column(sa.String(255), comment="幂等键", nullable=False)
     scope: Mapped[str] = mapped_column(sa.String(128), comment="幂等作用域", nullable=False)

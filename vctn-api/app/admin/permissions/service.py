@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import datetime
+from collections.abc import Sequence
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.admin.permissions.model import SysPermission
+from app.admin.permissions.model import SysPermission, SysPermissionField
 from app.admin.permissions.repository import PermissionRepository
 from app.admin.permissions.schema import (
     CreateResourceRequest,
@@ -62,11 +63,19 @@ class PermissionService:
         return roots
 
     async def list_resources(self, *, page: PageParams) -> Page[PermissionResourceResponse]:
-        rows = await self._repository.list_all()
-        items = [await self._to_response(row) for row in rows]
-        total = len(items)
-        window = items[page.offset : page.offset + page.limit]
-        return Page.build(items=window, total=total, params=page)
+        """Return one page of resources, each with its field policies.
+
+        Two queries in total, whatever the page size: one for the rows of the
+        page and one for their field policies. Paginating in the database keeps
+        the cost proportional to the page rather than to the table.
+        """
+        total = await self._repository.count_all()
+        rows = await self._repository.list_page(offset=page.offset, limit=page.limit)
+        field_map = await self._repository.fields_of_many([int(row.id) for row in rows])
+        items = [
+            self._build_response(row, field_map.get(int(row.id), [])) for row in rows
+        ]
+        return Page.build(items=items, total=total, params=page)
 
     async def get_resource(self, permission_id: int) -> PermissionResourceResponse:
         row = await self._repository.get(permission_id)
@@ -205,6 +214,12 @@ class PermissionService:
 
     async def _to_response(self, row: SysPermission) -> PermissionResourceResponse:
         fields = await self._repository.fields_of(int(row.id))
+        return self._build_response(row, fields)
+
+    def _build_response(
+        self, row: SysPermission, fields: Sequence[SysPermissionField]
+    ) -> PermissionResourceResponse:
+        """Render one resource; the caller supplies its already loaded fields."""
         return PermissionResourceResponse(
             id=str(int(row.id)),
             permission_code=str(row.permission_code),

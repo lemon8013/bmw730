@@ -14,7 +14,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 from app.shared.events.codes import OutboxEventType
-from app.shared.ids import new_id
 from app.shared.outbox.service import OutboxService
 from app.shared.tracing.context import get_request_id, get_trace_id
 from app.tools.usage.repository import ToolUsageRepository
@@ -45,8 +44,9 @@ class ToolUsageService:
     ) -> int:
         """Write one usage event, refresh the rollups and publish the fact."""
         now = datetime.datetime.now(datetime.UTC)
+        # The repository generates the Snowflake id; passing one here as well
+        # would collide with its own injection (duplicate keyword argument).
         event = await self._repository.add_event(
-            id=new_id(),
             tool_id=tool_id,
             tool_version_id=tool_version_id,
             subject_type="GUEST" if user_id is None else "USER",

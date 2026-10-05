@@ -17,6 +17,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class ToolUsageDaily(Base):
@@ -25,7 +26,11 @@ class ToolUsageDaily(Base):
     __tablename__ = "tool_usage_daily"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     stat_date: Mapped[datetime.date] = mapped_column(sa.Date, comment="统计日期", nullable=False)
     tool_id: Mapped[int | None] = mapped_column(
@@ -80,7 +85,11 @@ class ToolPopularityDaily(Base):
     __tablename__ = "tool_popularity_daily"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     stat_date: Mapped[datetime.date] = mapped_column(sa.Date, comment="统计日期", nullable=False)
     window_days: Mapped[int] = mapped_column(sa.Integer, comment="统计窗口天数", nullable=False)

@@ -18,6 +18,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class SysFile(Base):
@@ -30,7 +31,11 @@ class SysFile(Base):
     __tablename__ = "sys_file"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     owner_type: Mapped[str | None] = mapped_column(
         sa.String(32), comment="归属对象类型", nullable=True
@@ -86,7 +91,11 @@ class SysExportJob(Base):
     __tablename__ = "sys_export_job"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     requested_by: Mapped[int | None] = mapped_column(
         sa.BigInteger,

@@ -1,0 +1,927 @@
+
+===== admin:analytics (4) =====
+  GET    /api/v1/admin/analytics/events/daily                        
+         summary=Analytics Events Daily
+         resp=app__shared__response__schema__ApiResponse_Page_EventDailyResponse____1
+         query=event_code:opt start:opt end:opt page:opt page_size:opt
+  GET    /api/v1/admin/analytics/overview                            
+         summary=Analytics Overview
+         resp=ApiResponse_AnalyticsOverviewResponse_
+         query=start:opt end:opt
+  POST   /api/v1/admin/analytics/recompute                           
+         summary=Analytics Recompute
+         resp=ApiResponse_RecomputeResponse_
+         query=start:opt end:opt
+  GET    /api/v1/admin/analytics/tool-usage                          
+         summary=Analytics Tool Usage
+         resp=ApiResponse_Page_ToolUsageResponse__
+         query=start:opt end:opt page:opt page_size:opt
+
+===== admin:audit (6) =====
+  GET    /api/v1/admin/access/logs                                   
+         summary=List Access Logs
+         resp=ApiResponse_Page_AccessLogResponse__
+         query=method:opt path:opt status_code:opt user_id:opt start:opt end:opt page:opt page_size:opt
+  GET    /api/v1/admin/audit/logs                                    
+         summary=List Audit Logs
+         resp=ApiResponse_Page_AuditLogResponse__
+         query=action:opt operator_id:opt resource_type:opt resource_id:opt result:opt start:opt end:opt page:opt page_size:opt
+  GET    /api/v1/admin/audit/logs/{log_id}                           
+         summary=Get Audit Log
+         resp=ApiResponse_AuditLogResponse_
+         query=log_id:req
+  GET    /api/v1/admin/operation/logs                                
+         summary=List Operation Logs
+         resp=ApiResponse_Page_OperationLogResponse__
+         query=operation:opt operator_id:opt resource_type:opt result:opt start:opt end:opt page:opt page_size:opt
+  GET    /api/v1/admin/security/logs                                 
+         summary=List Security Logs
+         resp=ApiResponse_Page_SecurityLogResponse__
+         query=event_type:opt user_id:opt result:opt start:opt end:opt page:opt page_size:opt
+  GET    /api/v1/admin/traces/{trace_id}                             
+         summary=Get Trace
+         resp=ApiResponse_TraceResponse_
+         query=trace_id:req
+
+===== admin:auth (7) =====
+  POST   /api/v1/admin/auth/change-password                          
+         summary=修改当前管理员密码
+         body=ChangePasswordRequest
+         resp=ApiResponse_dict_
+  POST   /api/v1/admin/auth/login                                    
+         summary=管理员登录
+         body=app__admin__auth__schema__LoginRequest
+         resp=app__shared__response__schema__ApiResponse_LoginResponse___1
+  POST   /api/v1/admin/auth/logout                                   
+         summary=退出登录
+         resp=ApiResponse_dict_
+  GET    /api/v1/admin/auth/me                                       
+         summary=当前管理员
+         resp=ApiResponse_CurrentUserResponse_
+  GET    /api/v1/admin/auth/permissions                              
+         summary=动态权限与菜单
+         resp=ApiResponse_PermissionsResponse_
+  POST   /api/v1/admin/auth/refresh                                  
+         summary=刷新令牌
+         body=app__admin__auth__schema__RefreshRequest
+         resp=ApiResponse_TokenResponse_
+  POST   /api/v1/admin/auth/reset-password                           
+         summary=管理员重置他人密码
+         body=ResetPasswordRequest
+         resp=ApiResponse_ResetPasswordResponse_
+
+===== admin:config (7) =====
+  GET    /api/v1/admin/config                                        
+         summary=List Configs
+         resp=ApiResponse_Page_ConfigResponse__
+         query=page:opt page_size:opt
+  PUT    /api/v1/admin/config/{config_key}                           
+         summary=Update Config
+         body=UpdateConfigRequest
+         resp=ApiResponse_ConfigResponse_
+         query=config_key:req
+  GET    /api/v1/admin/feature-flags                                 
+         summary=List Flags
+         resp=ApiResponse_Page_FeatureFlagResponse__
+         query=page:opt page_size:opt
+  POST   /api/v1/admin/feature-flags                                 
+         summary=Create Flag
+         body=CreateFeatureFlagRequest
+         resp=ApiResponse_FeatureFlagResponse_
+  PUT    /api/v1/admin/feature-flags/{flag_id}                       
+         summary=Update Flag
+         body=UpdateFeatureFlagRequest
+         resp=ApiResponse_FeatureFlagResponse_
+         query=flag_id:req
+  POST   /api/v1/admin/feature-flags/{flag_id}/disable               
+         summary=Disable Flag
+         resp=ApiResponse_FeatureFlagResponse_
+         query=flag_id:req
+  POST   /api/v1/admin/feature-flags/{flag_id}/enable                
+         summary=Enable Flag
+         resp=ApiResponse_FeatureFlagResponse_
+         query=flag_id:req
+
+===== admin:departments (8) =====
+  GET    /api/v1/admin/departments                                   
+         summary=List Departments
+         resp=ApiResponse_Page_DepartmentResponse__
+         query=page:opt page_size:opt
+  POST   /api/v1/admin/departments                                   
+         summary=Create Department
+         body=CreateDepartmentRequest
+         resp=ApiResponse_DepartmentResponse_
+  GET    /api/v1/admin/departments/tree                              
+         summary=Department Tree
+         resp=ApiResponse_list_DepartmentTreeNode__
+  GET    /api/v1/admin/departments/{department_id}                   
+         summary=Get Department
+         resp=ApiResponse_DepartmentResponse_
+         query=department_id:req
+  PUT    /api/v1/admin/departments/{department_id}                   
+         summary=Update Department
+         body=UpdateDepartmentRequest
+         resp=ApiResponse_DepartmentResponse_
+         query=department_id:req
+  DELETE /api/v1/admin/departments/{department_id}                   
+         summary=Delete Department
+         resp=ApiResponse_dict_
+         query=department_id:req
+  GET    /api/v1/admin/departments/{department_id}/children          
+         summary=Department Children
+         resp=ApiResponse_list_DepartmentResponse__
+         query=department_id:req
+  GET    /api/v1/admin/departments/{department_id}/users             
+         summary=Department Users
+         resp=ApiResponse_list_dict__
+         query=department_id:req
+
+===== admin:dictionaries (8) =====
+  PUT    /api/v1/admin/dictionaries/items/{item_id}                  
+         summary=Update Item
+         body=UpdateDictItemRequest
+         resp=ApiResponse_DictItemResponse_
+         query=item_id:req
+  DELETE /api/v1/admin/dictionaries/items/{item_id}                  
+         summary=Delete Item
+         resp=ApiResponse_dict_
+         query=item_id:req
+  GET    /api/v1/admin/dictionaries/types                            
+         summary=List Types
+         resp=ApiResponse_Page_DictTypeResponse__
+         query=page:opt page_size:opt
+  POST   /api/v1/admin/dictionaries/types                            
+         summary=Create Type
+         body=CreateDictTypeRequest
+         resp=ApiResponse_DictTypeResponse_
+  PUT    /api/v1/admin/dictionaries/types/{type_id}                  
+         summary=Update Type
+         body=UpdateDictTypeRequest
+         resp=ApiResponse_DictTypeResponse_
+         query=type_id:req
+  DELETE /api/v1/admin/dictionaries/types/{type_id}                  
+         summary=Delete Type
+         resp=ApiResponse_dict_
+         query=type_id:req
+  GET    /api/v1/admin/dictionaries/types/{type_id}/items            
+         summary=List Items
+         resp=ApiResponse_list_DictItemResponse__
+         query=type_id:req
+  POST   /api/v1/admin/dictionaries/types/{type_id}/items            
+         summary=Create Item
+         body=CreateDictItemRequest
+         resp=ApiResponse_DictItemResponse_
+         query=type_id:req
+
+===== admin:export (4) =====
+  POST   /api/v1/admin/export/tasks                                  
+         summary=Create Export Task
+         body=CreateExportTaskRequest
+         resp=ApiResponse_ExportTaskResponse_
+  GET    /api/v1/admin/export/tasks                                  
+         summary=List Export Tasks
+         resp=ApiResponse_Page_ExportTaskResponse__
+         query=export_type:opt status:opt page:opt page_size:opt
+  GET    /api/v1/admin/export/tasks/{task_id}                        
+         summary=Get Export Task
+         resp=ApiResponse_ExportTaskResponse_
+         query=task_id:req
+  POST   /api/v1/admin/export/tasks/{task_id}/retry                  
+         summary=Retry Export Task
+         resp=ApiResponse_ExportTaskResponse_
+         query=task_id:req
+
+===== admin:logs (4) =====
+  GET    /api/v1/admin/logs                                          
+         summary=Logs Summary
+         resp=ApiResponse_LogsSummaryResponse_
+  GET    /api/v1/admin/logs/audit/traces/{trace_id}                  
+         summary=Logs Trace
+         resp=ApiResponse_TraceResponse_
+         query=trace_id:req
+  GET    /api/v1/admin/logs/{log_type}                               
+         summary=Query Logs
+         resp=ApiResponse_Page_Union_AuditLogResponse__SecurityLogResponse__OperationLogResponse__AccessLogResponse__ApplicationLogResponse___
+         query=log_type:req start:opt end:opt level:opt result:opt keyword:opt user_id:opt page:opt page_size:opt
+  POST   /api/v1/admin/logs/{log_type}/export                        
+         summary=Export Logs
+         resp=ApiResponse_ExportTaskResponse_
+         query=log_type:req start:opt end:opt level:opt result:opt keyword:opt user_id:opt
+
+===== admin:notifications (4) =====
+  GET    /api/v1/admin/notifications                                 
+         summary=List Notifications
+         resp=ApiResponse_Page_NotificationResponse__
+         query=user_type:opt user_id:opt notification_type:opt unread_only:opt start:opt end:opt page:opt page_size:opt
+  POST   /api/v1/admin/notifications                                 
+         summary=Send Notification
+         body=CreateNotificationRequest
+         resp=ApiResponse_NotificationResponse_
+  GET    /api/v1/admin/notifications/stats                           
+         summary=Notification Stats
+         resp=ApiResponse_list_NotificationTypeStat__
+         query=start:opt end:opt
+  POST   /api/v1/admin/notifications/{notification_id}/read          
+         summary=Mark Notification Read
+         resp=ApiResponse_NotificationResponse_
+         query=notification_id:req
+
+===== admin:permissions (5) =====
+  GET    /api/v1/admin/permissions/resources                         
+         summary=List Resources
+         resp=ApiResponse_Page_PermissionResourceResponse__
+         query=page:opt page_size:opt
+  POST   /api/v1/admin/permissions/resources                         
+         summary=Create Resource
+         body=CreateResourceRequest
+         resp=ApiResponse_PermissionResourceResponse_
+  PUT    /api/v1/admin/permissions/resources/{resource_id}           
+         summary=Update Resource
+         body=UpdateResourceRequest
+         resp=ApiResponse_PermissionResourceResponse_
+         query=resource_id:req
+  DELETE /api/v1/admin/permissions/resources/{resource_id}           
+         summary=Delete Resource
+         resp=ApiResponse_dict_
+         query=resource_id:req
+  GET    /api/v1/admin/permissions/tree                              
+         summary=Permission Tree
+         resp=ApiResponse_list_PermissionTreeNode__
+
+===== admin:roles (9) =====
+  GET    /api/v1/admin/roles                                         
+         summary=List Roles
+         resp=ApiResponse_Page_RoleResponse__
+         query=page:opt page_size:opt
+  POST   /api/v1/admin/roles                                         
+         summary=Create Role
+         body=CreateRoleRequest
+         resp=ApiResponse_RoleResponse_
+  GET    /api/v1/admin/roles/{role_id}                               
+         summary=Get Role
+         resp=ApiResponse_RoleResponse_
+         query=role_id:req
+  PUT    /api/v1/admin/roles/{role_id}                               
+         summary=Update Role
+         body=UpdateRoleRequest
+         resp=ApiResponse_RoleResponse_
+         query=role_id:req
+  DELETE /api/v1/admin/roles/{role_id}                               
+         summary=Delete Role
+         resp=ApiResponse_dict_
+         query=role_id:req
+  GET    /api/v1/admin/roles/{role_id}/parents                       
+         summary=Get Role Parents
+         resp=ApiResponse_list_ParentRoleBrief__
+         query=role_id:req
+  PUT    /api/v1/admin/roles/{role_id}/parents                       
+         summary=Assign Role Parents
+         body=AssignParentsRequest
+         resp=ApiResponse_list_ParentRoleBrief__
+         query=role_id:req
+  GET    /api/v1/admin/roles/{role_id}/permissions                   
+         summary=Get Role Permissions
+         resp=ApiResponse_list_PermissionBrief__
+         query=role_id:req
+  PUT    /api/v1/admin/roles/{role_id}/permissions                   
+         summary=Assign Role Permissions
+         body=AssignPermissionsRequest
+         resp=ApiResponse_list_PermissionBrief__
+         query=role_id:req
+
+===== admin:tools (7) =====
+  GET    /api/v1/admin/tools                                         
+         summary=List Tools
+         resp=ApiResponse_Page_ToolResponse__
+         query=status:opt category_id:opt keyword:opt page:opt page_size:opt
+  POST   /api/v1/admin/tools                                         
+         summary=Create Tool
+         body=ToolCreateRequest
+         resp=ApiResponse_ToolResponse_
+  GET    /api/v1/admin/tools/access-policies                         
+         summary=List Access Policies
+         resp=ApiResponse_list_AccessPolicyAdminResponse__
+  PUT    /api/v1/admin/tools/access-policies/{tool_id}               
+         summary=Upsert Access Policy
+         body=AccessPolicyRequest
+         resp=ApiResponse_AccessPolicyAdminResponse_
+         query=tool_id:req
+  GET    /api/v1/admin/tools/{tool_id}                               
+         summary=Get Tool
+         resp=ApiResponse_ToolResponse_
+         query=tool_id:req
+  PUT    /api/v1/admin/tools/{tool_id}                               
+         summary=Update Tool
+         body=ToolUpdateRequest
+         resp=ApiResponse_ToolResponse_
+         query=tool_id:req
+  PUT    /api/v1/admin/tools/{tool_id}/status                        
+         summary=Set Tool Status
+         body=ToolStatusRequest
+         resp=ApiResponse_ToolResponse_
+         query=tool_id:req
+
+===== admin:users (15) =====
+  GET    /api/v1/admin/users                                         
+         summary=List Users
+         resp=ApiResponse_Page_UserResponse__
+         query=keyword:opt department_id:opt status:opt page:opt page_size:opt
+  POST   /api/v1/admin/users                                         
+         summary=Create User
+         body=CreateUserRequest
+         resp=ApiResponse_UserResponse_
+  POST   /api/v1/admin/users/batch-force-logout                      
+         summary=批量强制下线
+         body=BatchForceLogoutRequest
+         resp=ApiResponse_dict_
+  GET    /api/v1/admin/users/online                                  
+         summary=Online Users
+         resp=ApiResponse_list_OnlineUserResponse__
+  GET    /api/v1/admin/users/{user_id}                               
+         summary=Get User
+         resp=ApiResponse_UserResponse_
+         query=user_id:req
+  PUT    /api/v1/admin/users/{user_id}                               
+         summary=Update User
+         body=UpdateUserRequest
+         resp=ApiResponse_UserResponse_
+         query=user_id:req
+  DELETE /api/v1/admin/users/{user_id}                               
+         summary=Delete User
+         resp=ApiResponse_dict_
+         query=user_id:req
+  PUT    /api/v1/admin/users/{user_id}/department                    
+         summary=Move User Department
+         body=MoveDepartmentRequest
+         resp=ApiResponse_UserResponse_
+         query=user_id:req
+  POST   /api/v1/admin/users/{user_id}/disable                       
+         summary=Disable User
+         resp=ApiResponse_UserResponse_
+         query=user_id:req
+  POST   /api/v1/admin/users/{user_id}/enable                        
+         summary=Enable User
+         resp=ApiResponse_UserResponse_
+         query=user_id:req
+  POST   /api/v1/admin/users/{user_id}/force-logout                  
+         summary=Force Logout
+         body=ForceLogoutRequest
+         resp=ApiResponse_ForceLogoutResponse_
+         query=user_id:req
+  POST   /api/v1/admin/users/{user_id}/reset-password                
+         summary=Reset User Password
+         body=ResetPasswordRequest
+         resp=ApiResponse_ResetPasswordResponse_
+         query=user_id:req
+  GET    /api/v1/admin/users/{user_id}/roles                         
+         summary=Get User Roles
+         resp=ApiResponse_list_RoleBrief__
+         query=user_id:req
+  PUT    /api/v1/admin/users/{user_id}/roles                         
+         summary=Assign User Roles
+         body=AssignRolesRequest
+         resp=ApiResponse_list_RoleBrief__
+         query=user_id:req
+  GET    /api/v1/admin/users/{user_id}/sessions                      
+         summary=Get User Sessions
+         resp=ApiResponse_list_dict__
+         query=user_id:req
+
+===== analytics:events (4) =====
+  POST   /api/v1/analytics/events                                    
+         summary=Ingest Event
+         body=BehaviorEventWriteRequest
+         resp=ApiResponse_BehaviorEventResponse_
+  GET    /api/v1/analytics/events                                    
+         summary=Query Events
+         resp=ApiResponse_Page_BehaviorEventResponse__
+         query=event_code:opt date_from:opt date_to:opt page:opt page_size:opt
+  POST   /api/v1/analytics/identity-merge                            
+         summary=Merge Identity
+         body=IdentityMergeRequest
+         resp=ApiResponse_IdentityMergeResponse_
+  GET    /api/v1/analytics/identity-merges                           
+         summary=Query Identity Merges
+         resp=ApiResponse_Page_IdentityMergeResponse__
+         query=anonymous_id_hash:opt user_id:opt page:opt page_size:opt
+
+===== analytics:reports (4) =====
+  GET    /api/v1/analytics/funnel-summary                            
+         summary=Funnel Summary
+         resp=ApiResponse_list_FunnelSummaryItem__
+         query=start_date:opt end_date:opt
+  GET    /api/v1/analytics/overview                                  
+         summary=Overview
+         resp=ApiResponse_OverviewResponse_
+         query=start_date:opt end_date:opt limit:opt
+  GET    /api/v1/analytics/tool-rankings                             
+         summary=Tool Rankings
+         resp=ApiResponse_list_ToolRankingItem__
+         query=start_date:opt end_date:opt limit:opt
+  GET    /api/v1/analytics/trends                                    
+         summary=Trends
+         resp=ApiResponse_TrendResponse_
+         query=start_date:opt end_date:opt
+
+===== analytics:statistics (10) =====
+  GET    /api/v1/analytics/events/daily                              
+         summary=Events Daily
+         resp=app__shared__response__schema__ApiResponse_Page_EventDailyResponse____2
+         query=start_date:opt end_date:opt event_code:opt page:opt page_size:opt
+  GET    /api/v1/analytics/funnels                                   
+         summary=List Funnels
+         resp=ApiResponse_list_FunnelResponse__
+         query=enabled_only:opt
+  POST   /api/v1/analytics/funnels                                   
+         summary=Create Funnel
+         body=FunnelCreateRequest
+         resp=ApiResponse_FunnelResponse_
+  PUT    /api/v1/analytics/funnels/{funnel_id}                       
+         summary=Update Funnel
+         body=FunnelUpdateRequest
+         resp=ApiResponse_FunnelResponse_
+         query=funnel_id:req
+  DELETE /api/v1/analytics/funnels/{funnel_id}                       
+         summary=Delete Funnel
+         resp=ApiResponse_bool_
+         query=funnel_id:req
+  GET    /api/v1/analytics/pages/daily                               
+         summary=Pages Daily
+         resp=ApiResponse_Page_PageDailyResponse__
+         query=start_date:opt end_date:opt page_code:opt page:opt page_size:opt
+  POST   /api/v1/analytics/recompute                                 
+         summary=Recompute
+         body=RecomputeRequest
+         resp=ApiResponse_dict_str__int__
+  GET    /api/v1/analytics/searches/daily                            
+         summary=Searches Daily
+         resp=ApiResponse_Page_SearchDailyResponse__
+         query=start_date:opt end_date:opt search_type:opt page:opt page_size:opt
+  GET    /api/v1/analytics/tools/daily                               
+         summary=Tools Daily
+         resp=ApiResponse_Page_ToolDailyResponse__
+         query=start_date:opt end_date:opt tool_id:opt page:opt page_size:opt
+  GET    /api/v1/analytics/users/daily                               
+         summary=Users Daily
+         resp=ApiResponse_Page_UserDailyResponse__
+         query=start_date:opt end_date:opt user_id:opt page:opt page_size:opt
+
+===== blog:articles (9) =====
+  GET    /api/v1/blog/articles                                       
+         summary=List Articles
+         resp=ApiResponse_Page_ArticleResponse__
+         query=keyword:opt category_id:opt status:opt page:opt page_size:opt
+  POST   /api/v1/blog/articles                                       
+         summary=Create Article
+         body=ArticleCreateRequest
+         resp=ApiResponse_ArticleResponse_
+  GET    /api/v1/blog/articles/review-queue                          
+         summary=Review Queue
+         resp=ApiResponse_Page_ArticleResponse__
+         query=page:opt page_size:opt
+  GET    /api/v1/blog/articles/{article_id}                          
+         summary=Get Article
+         resp=ApiResponse_ArticleResponse_
+         query=article_id:req
+  PUT    /api/v1/blog/articles/{article_id}                          
+         summary=Update Article
+         body=ArticleUpdateRequest
+         resp=ApiResponse_ArticleResponse_
+         query=article_id:req
+  DELETE /api/v1/blog/articles/{article_id}                          
+         summary=Delete Article
+         resp=ApiResponse_dict_
+         query=article_id:req
+  POST   /api/v1/blog/articles/{article_id}/publish                  
+         summary=Publish Article
+         resp=ApiResponse_ArticleResponse_
+         query=article_id:req
+  POST   /api/v1/blog/articles/{article_id}/review                   
+         summary=Review Article
+         body=ArticleReviewRequest
+         resp=ApiResponse_ArticleResponse_
+         query=article_id:req
+  GET    /api/v1/blog/articles/{article_id}/tags                     
+         summary=Get Article Tags
+         resp=ApiResponse_list_str__
+         query=article_id:req
+
+===== blog:authors (5) =====
+  GET    /api/v1/blog/authors                                        
+         summary=List Authors
+         resp=ApiResponse_Page_AuthorResponse__
+         query=status:opt page:opt page_size:opt
+  GET    /api/v1/blog/authors/applications                           
+         summary=List Applications
+         resp=ApiResponse_Page_AuthorApplicationResponse__
+         query=status:opt page:opt page_size:opt
+  POST   /api/v1/blog/authors/applications/{application_id}/review   
+         summary=Review Application
+         body=AuthorApplicationReviewRequest
+         resp=ApiResponse_AuthorApplicationResponse_
+         query=application_id:req
+  POST   /api/v1/blog/authors/apply                                  
+         summary=Apply Author
+         body=AuthorApplyRequest
+         resp=ApiResponse_AuthorApplicationResponse_
+  GET    /api/v1/blog/authors/{author_id}                            
+         summary=Get Author
+         resp=ApiResponse_AuthorResponse_
+         query=author_id:req
+
+===== blog:categories (5) =====
+  GET    /api/v1/blog/categories                                     
+         summary=List Categories
+         resp=ApiResponse_Page_CategoryResponse__
+         query=keyword:opt status:opt page:opt page_size:opt
+  POST   /api/v1/blog/categories                                     
+         summary=Create Category
+         body=CategoryCreateRequest
+         resp=ApiResponse_CategoryResponse_
+  GET    /api/v1/blog/categories/{category_id}                       
+         summary=Get Category
+         resp=ApiResponse_CategoryResponse_
+         query=category_id:req
+  PUT    /api/v1/blog/categories/{category_id}                       
+         summary=Update Category
+         body=CategoryUpdateRequest
+         resp=ApiResponse_CategoryResponse_
+         query=category_id:req
+  DELETE /api/v1/blog/categories/{category_id}                       
+         summary=Delete Category
+         resp=ApiResponse_dict_
+         query=category_id:req
+
+===== blog:comments (5) =====
+  GET    /api/v1/blog/articles/{article_id}/comments                 
+         summary=List Comments
+         resp=ApiResponse_Page_CommentResponse__
+         query=article_id:req page:opt page_size:opt
+  POST   /api/v1/blog/articles/{article_id}/comments                 
+         summary=Create Comment
+         body=CommentCreateRequest
+         resp=ApiResponse_CommentResponse_
+         query=article_id:req
+  GET    /api/v1/blog/comments/pending                               
+         summary=Pending Comments
+         resp=ApiResponse_Page_CommentResponse__
+         query=page:opt page_size:opt
+  DELETE /api/v1/blog/comments/{comment_id}                          
+         summary=Delete Comment
+         resp=ApiResponse_dict_
+         query=comment_id:req
+  POST   /api/v1/blog/comments/{comment_id}/review                   
+         summary=Review Comment
+         body=CommentReviewRequest
+         resp=ApiResponse_CommentResponse_
+         query=comment_id:req
+
+===== blog:interactions (6) =====
+  POST   /api/v1/blog/articles/{article_id}/favorite                 
+         summary=Favorite Article
+         resp=ApiResponse_FavoriteResponse_
+         query=article_id:req
+  DELETE /api/v1/blog/articles/{article_id}/favorite                 
+         summary=Unfavorite Article
+         resp=ApiResponse_FavoriteResponse_
+         query=article_id:req
+  POST   /api/v1/blog/articles/{article_id}/like                     
+         summary=Like Article
+         resp=ApiResponse_LikeResponse_
+         query=article_id:req
+  DELETE /api/v1/blog/articles/{article_id}/like                     
+         summary=Unlike Article
+         resp=ApiResponse_LikeResponse_
+         query=article_id:req
+  POST   /api/v1/blog/users/{user_id}/follow                         
+         summary=Follow User
+         resp=ApiResponse_FollowResponse_
+         query=user_id:req
+  DELETE /api/v1/blog/users/{user_id}/follow                         
+         summary=Unfollow User
+         resp=ApiResponse_FollowResponse_
+         query=user_id:req
+
+===== platform:achievements (2) =====
+  GET    /api/v1/achievements                                        
+         summary=List Achievements
+         resp=ApiResponse_list_AchievementResponse__
+  GET    /api/v1/achievements/me                                     
+         summary=My Achievements
+         resp=ApiResponse_list_UserAchievementResponse__
+
+===== platform:auth (8) =====
+  POST   /api/v1/auth/change-password                                
+         summary=Change Password
+         body=ChangePasswordRequest
+         resp=ApiResponse_dict_
+  POST   /api/v1/auth/login                                          
+         summary=Login
+         body=app__platform__auth__schema__LoginRequest
+         resp=app__shared__response__schema__ApiResponse_LoginResponse___2
+         query=X-Anonymous-Id:opt
+  POST   /api/v1/auth/logout                                         
+         summary=Logout
+         resp=ApiResponse_dict_
+  GET    /api/v1/auth/me                                             
+         summary=Me
+         resp=ApiResponse_PlatformUserBrief_
+  POST   /api/v1/auth/refresh                                        
+         summary=Refresh
+         body=app__platform__auth__schema__RefreshRequest
+         resp=ApiResponse_TokenResponse_
+  POST   /api/v1/auth/register                                       
+         summary=Register
+         body=RegisterRequest
+         resp=ApiResponse_PlatformUserBrief_
+  POST   /api/v1/auth/send-verification                              
+         summary=Send Verification
+         body=SendVerificationRequest
+         resp=ApiResponse_SendVerificationResponse_
+  POST   /api/v1/auth/verify                                         
+         summary=Verify
+         body=VerifyRequest
+         resp=ApiResponse_VerifyResponse_
+
+===== platform:cosmetics (3) =====
+  GET    /api/v1/cosmetics                                           
+         summary=List Cosmetics
+         resp=ApiResponse_list_CosmeticResponse__
+  GET    /api/v1/cosmetics/me                                        
+         summary=My Cosmetics
+         resp=ApiResponse_list_UserCosmeticResponse__
+  PUT    /api/v1/cosmetics/me/equipment                              
+         summary=Equip Cosmetics
+         body=EquipmentRequest
+         resp=ApiResponse_EquipmentResponse_
+
+===== platform:growth (2) =====
+  GET    /api/v1/growth/me                                           
+         summary=My Growth
+         resp=ApiResponse_GrowthAccountResponse_
+  GET    /api/v1/growth/me/transactions                              
+         summary=My Growth Transactions
+         resp=ApiResponse_Page_GrowthTransactionResponse__
+         query=page:opt page_size:opt
+
+===== platform:levels (3) =====
+  GET    /api/v1/levels                                              
+         summary=List Levels
+         resp=ApiResponse_list_LevelResponse__
+  GET    /api/v1/levels/me                                           
+         summary=My Level
+         resp=ApiResponse_MyLevelResponse_
+  GET    /api/v1/levels/me/history                                   
+         summary=My Level History
+         resp=ApiResponse_Page_LevelHistoryResponse__
+         query=page:opt page_size:opt
+
+===== platform:notifications (3) =====
+  GET    /api/v1/notifications                                       
+         summary=List Notifications
+         resp=ApiResponse_NotificationPage_
+         query=unread_only:opt page:opt page_size:opt
+  POST   /api/v1/notifications/read-all                              
+         summary=Read All Notifications
+         resp=ApiResponse_dict_
+  POST   /api/v1/notifications/{notification_id}/read                
+         summary=Read Notification
+         resp=ApiResponse_dict_
+         query=notification_id:req
+
+===== platform:points (3) =====
+  GET    /api/v1/point-rules/public                                  
+         summary=Public Point Rules
+         resp=ApiResponse_list_PointRuleResponse__
+  GET    /api/v1/points/me                                           
+         summary=My Points
+         resp=ApiResponse_PointAccountResponse_
+  GET    /api/v1/points/me/transactions                              
+         summary=My Point Transactions
+         resp=ApiResponse_Page_PointTransactionResponse__
+         query=page:opt page_size:opt
+
+===== platform:tasks (3) =====
+  GET    /api/v1/tasks                                               
+         summary=List Tasks
+         resp=ApiResponse_list_TaskResponse__
+  GET    /api/v1/tasks/me                                            
+         summary=My Tasks
+         resp=ApiResponse_list_UserTaskResponse__
+  POST   /api/v1/tasks/{task_id}/claim                               
+         summary=Claim Task
+         resp=ApiResponse_ClaimResponse_
+         query=task_id:req
+
+===== platform:users (6) =====
+  GET    /api/v1/users/me                                            
+         summary=Me
+         resp=ApiResponse_UserMeResponse_
+  PUT    /api/v1/users/me                                            
+         summary=Update Me
+         body=UpdateProfileRequest
+         resp=ApiResponse_UserMeResponse_
+  GET    /api/v1/users/me/equipment                                  
+         summary=My Equipment
+         resp=ApiResponse_EquipmentResponse_
+  PUT    /api/v1/users/me/equipment                                  
+         summary=Update My Equipment
+         body=EquipmentRequest
+         resp=ApiResponse_EquipmentResponse_
+  GET    /api/v1/users/me/sessions                                   
+         summary=My Sessions
+         resp=ApiResponse_list_PlatformSessionBrief__
+  POST   /api/v1/users/me/sessions/{session_id}/revoke               
+         summary=Revoke My Session
+         resp=ApiResponse_dict_
+         query=session_id:req
+
+===== system:files (8) =====
+  POST   /api/v1/files                                               
+         summary=Record file metadata
+         body=FileCreateRequest
+         resp=ApiResponse_FileCreatedResponse_
+  POST   /api/v1/files                                               
+         summary=Record file metadata
+         body=FileCreateRequest
+         resp=ApiResponse_FileCreatedResponse_
+  GET    /api/v1/files                                               
+         summary=List file metadata
+         resp=ApiResponse_Page_FileResponse__
+         query=page:opt page_size:opt status:opt owner_type:opt
+  GET    /api/v1/files                                               
+         summary=List file metadata
+         resp=ApiResponse_Page_FileResponse__
+         query=page:opt page_size:opt status:opt owner_type:opt
+  GET    /api/v1/files/{file_id}                                     
+         summary=Get a file record
+         resp=ApiResponse_FileResponse_
+         query=file_id:req
+  GET    /api/v1/files/{file_id}                                     
+         summary=Get a file record
+         resp=ApiResponse_FileResponse_
+         query=file_id:req
+  DELETE /api/v1/files/{file_id}                                     
+         summary=Delete (logically) a file record
+         resp=ApiResponse_FileResponse_
+         query=file_id:req
+  DELETE /api/v1/files/{file_id}                                     
+         summary=Delete (logically) a file record
+         resp=ApiResponse_FileResponse_
+         query=file_id:req
+
+===== system:health (3) =====
+  GET    /health                                                     
+         summary=Liveness probe
+         resp={}
+  GET    /ready                                                      
+         summary=Readiness probe
+         resp={}
+  GET    /version                                                    
+         summary=Application version
+         resp={}
+
+===== system:jobs (8) =====
+  GET    /api/v1/jobs                                                
+         summary=List system jobs
+         resp=ApiResponse_Page_JobResponse__
+         query=page:opt page_size:opt status:opt job_type:opt
+  GET    /api/v1/jobs                                                
+         summary=List system jobs
+         resp=ApiResponse_Page_JobResponse__
+         query=page:opt page_size:opt status:opt job_type:opt
+  POST   /api/v1/jobs                                                
+         summary=Create a system job record
+         body=JobCreateRequest
+         resp=ApiResponse_JobResponse_
+  POST   /api/v1/jobs                                                
+         summary=Create a system job record
+         body=JobCreateRequest
+         resp=ApiResponse_JobResponse_
+  GET    /api/v1/jobs/{job_id}                                       
+         summary=Get a system job
+         resp=ApiResponse_JobResponse_
+         query=job_id:req
+  GET    /api/v1/jobs/{job_id}                                       
+         summary=Get a system job
+         resp=ApiResponse_JobResponse_
+         query=job_id:req
+  POST   /api/v1/jobs/{job_id}/retry                                 
+         summary=Re-queue a system job
+         resp=ApiResponse_JobResponse_
+         query=job_id:req
+  POST   /api/v1/jobs/{job_id}/retry                                 
+         summary=Re-queue a system job
+         resp=ApiResponse_JobResponse_
+         query=job_id:req
+
+===== system:search (2) =====
+  GET    /api/v1/search                                              
+         summary=Unified site search
+         resp=ApiResponse_list_SearchResultItem__
+         query=q:opt type:opt
+  GET    /api/v1/search                                              
+         summary=Unified site search
+         resp=ApiResponse_list_SearchResultItem__
+         query=q:opt type:opt
+
+===== tools:access (3) =====
+  GET    /api/v1/tools/access/policies                               
+         summary=Access Policies
+         resp=ApiResponse_list_ToolAccessResponse__
+         query=tool_id:opt
+  PUT    /api/v1/tools/access/policies/{tool_id}                     
+         summary=Upsert Access Policy
+         body=AccessPolicyRequest
+         resp=ApiResponse_ToolAccessResponse_
+         query=tool_id:req
+  GET    /api/v1/tools/access/policy                                 
+         summary=Access Policy
+         resp=ApiResponse_ToolAccessResponse_
+         query=tool_id:req subject_type:opt
+
+===== tools:catalog (7) =====
+  GET    /api/v1/tool-categories                                     
+         summary=List Categories
+         resp=ApiResponse_list_ToolCategoryResponse__
+  GET    /api/v1/tools                                               
+         summary=List Tools
+         resp=ApiResponse_list_ToolResponse__
+         query=category_id:opt
+  GET    /api/v1/tools/by-slug/{slug}                                
+         summary=Tool By Slug
+         resp=ApiResponse_ToolResponse_
+         query=slug:req
+  GET    /api/v1/tools/popular                                       
+         summary=Popular Tools
+         resp=ApiResponse_list_PopularToolResponse__
+         query=window_days:opt limit:opt
+  GET    /api/v1/tools/recent                                        
+         summary=Recent Tools
+         resp=ApiResponse_list_RecentToolResponse__
+         query=limit:opt
+  GET    /api/v1/tools/search                                        
+         summary=Search Tools
+         resp=ApiResponse_list_ToolResponse__
+         query=keyword:req
+  GET    /api/v1/tools/{tool_id}                                     
+         summary=Get Tool
+         resp=ApiResponse_ToolResponse_
+         query=tool_id:req
+
+===== tools:jobs (3) =====
+  GET    /api/v1/tools/jobs                                          
+         summary=List Jobs
+         resp=ApiResponse_ToolJobListResponse_
+         query=status:opt job_type:opt page:opt page_size:opt
+  GET    /api/v1/tools/jobs/{job_id}                                 
+         summary=Get Job
+         resp=ApiResponse_ToolJobResponse_
+         query=job_id:req
+  POST   /api/v1/tools/jobs/{job_id}/retry                           
+         summary=Retry Job
+         resp=ApiResponse_ToolJobResponse_
+         query=job_id:req
+
+===== tools:runtime (1) =====
+  POST   /api/v1/tools/runtime/execute/{tool_id}                     
+         summary=Execute Tool
+         body=ToolExecuteRequest
+         resp=ApiResponse_ToolExecuteResponse_
+         query=tool_id:req
+
+===== tools:statistics (3) =====
+  GET    /api/v1/tools/statistics/popularity                         
+         summary=Popularity
+         resp=ApiResponse_list_ToolPopularityDailyResponse__
+         query=stat_date:req window_days:opt limit:opt
+  POST   /api/v1/tools/statistics/refresh                            
+         summary=Refresh
+         body=StatisticsRefreshRequest
+         resp=ApiResponse_StatisticsRefreshResponse_
+  GET    /api/v1/tools/statistics/usage-daily                        
+         summary=Usage Daily
+         resp=ApiResponse_list_ToolUsageDailyResponse__
+         query=tool_id:req start:req end:req
+
+===== tools:usage (5) =====
+  GET    /api/v1/tools/usage/daily                                   
+         summary=Usage Daily
+         resp=ApiResponse_list_ToolUsageDailyResponse__
+         query=tool_id:req start:req end:req
+  GET    /api/v1/tools/usage/popularity                              
+         summary=Usage Popularity
+         resp=ApiResponse_list_ToolPopularityDailyResponse__
+         query=stat_date:req window_days:opt limit:opt
+  GET    /api/v1/tools/usage/recent                                  
+         summary=Usage Recent
+         resp=ApiResponse_list_ToolRecentUsageResponse__
+         query=user_id:opt limit:opt
+  POST   /api/v1/tools/usage/refresh-popularity                      
+         summary=Refresh Popularity
+         body=PopularityRefreshRequest
+         resp=ApiResponse_PopularityRefreshResponse_
+  GET    /api/v1/tools/usage/summary                                 
+         summary=Usage Summary
+         resp=ApiResponse_ToolUsageSummary_
+         query=tool_id:req start:req end:req

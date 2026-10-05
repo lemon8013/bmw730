@@ -18,6 +18,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class BehaviorEventDaily(Base):
@@ -26,7 +27,11 @@ class BehaviorEventDaily(Base):
     __tablename__ = "behavior_event_daily"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     stat_date: Mapped[datetime.date] = mapped_column(sa.Date, comment="统计日期", nullable=False)
     event_code: Mapped[str] = mapped_column(sa.String(128), comment="事件编码", nullable=False)
@@ -66,7 +71,11 @@ class BehaviorUserDaily(Base):
     __tablename__ = "behavior_user_daily"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     stat_date: Mapped[datetime.date] = mapped_column(sa.Date, comment="统计日期", nullable=False)
     user_id: Mapped[int | None] = mapped_column(
@@ -114,7 +123,11 @@ class BehaviorPageDaily(Base):
     __tablename__ = "behavior_page_daily"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     stat_date: Mapped[datetime.date] = mapped_column(sa.Date, comment="统计日期", nullable=False)
     page_code: Mapped[str] = mapped_column(sa.String(128), comment="页面编码", nullable=False)
@@ -157,7 +170,11 @@ class BehaviorToolDaily(Base):
     __tablename__ = "behavior_tool_daily"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     stat_date: Mapped[datetime.date] = mapped_column(sa.Date, comment="统计日期", nullable=False)
     tool_id: Mapped[int | None] = mapped_column(
@@ -214,7 +231,11 @@ class BehaviorSearchDaily(Base):
     __tablename__ = "behavior_search_daily"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     stat_date: Mapped[datetime.date] = mapped_column(sa.Date, comment="统计日期", nullable=False)
     search_type: Mapped[str] = mapped_column(sa.String(64), comment="搜索类型", nullable=False)
@@ -249,7 +270,11 @@ class BehaviorFunnel(Base):
     __tablename__ = "behavior_funnel"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     funnel_code: Mapped[str] = mapped_column(sa.String(128), comment="漏斗编码", nullable=False)
     funnel_name: Mapped[str] = mapped_column(sa.String(128), comment="漏斗名称", nullable=False)

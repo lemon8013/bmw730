@@ -16,6 +16,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class SysRole(Base):
@@ -24,7 +25,11 @@ class SysRole(Base):
     __tablename__ = "sys_role"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     role_code: Mapped[str] = mapped_column(sa.String(64), comment="角色编码", nullable=False)
     role_name: Mapped[str] = mapped_column(sa.String(128), comment="角色名称", nullable=False)
@@ -124,7 +129,11 @@ class SysRoleDataScope(Base):
     __tablename__ = "sys_role_data_scope"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     role_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("sys_role.id"), comment="角色 ID", nullable=True

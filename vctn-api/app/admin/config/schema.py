@@ -66,7 +66,7 @@ class FeatureFlagResponse(ApiModel):
     flag_name: str
     enabled: bool
     strategy: str
-    percentage: int
+    percentage: int | None = None
     conditions: dict | None = None
     description: str | None = None
     version: int

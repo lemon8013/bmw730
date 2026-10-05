@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import datetime
 
-from app.shared.response.dto import ApiModel, StringId
+from pydantic import Field
+
+from app.shared.response.dto import METADATA_COLUMN_ALIAS, ApiModel, StringId
 
 
 class ApplicationLogResponse(ApiModel):
@@ -16,7 +18,7 @@ class ApplicationLogResponse(ApiModel):
     logger_name: str | None = None
     message: str
     exception_type: str | None = None
-    metadata: dict | None = None
+    metadata: dict | None = Field(default=None, validation_alias=METADATA_COLUMN_ALIAS)
     created_at: datetime.datetime
 
 

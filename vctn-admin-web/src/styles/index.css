@@ -1,3 +1,5 @@
+/** Global styles: layout resets and the shared design tokens. */
+
 :root {
   color-scheme: light;
   font-family:
@@ -5,6 +7,18 @@
     sans-serif;
   font-size: 14px;
   line-height: 1.5;
+
+  /* Console spacing scale. */
+  --vctn-space-xs: 4px;
+  --vctn-space-sm: 8px;
+  --vctn-space-md: 16px;
+  --vctn-space-lg: 24px;
+
+  /* Console surface tokens, layered on top of Element Plus. */
+  --vctn-page-bg: #f5f7fa;
+  --vctn-panel-bg: #ffffff;
+  --vctn-panel-radius: 6px;
+  --vctn-panel-border: #e4e7ed;
 }
 
 * {
@@ -19,6 +33,53 @@ body,
 }
 
 body {
-  background-color: #f5f7fa;
+  background-color: var(--vctn-page-bg);
   color: #303133;
+}
+
+/* A read-only field keeps its layout but cannot be interacted with. */
+.is-field-readonly {
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Shared panel used by every detail screen. */
+.vctn-panel {
+  padding: var(--vctn-space-md);
+  border: 1px solid var(--vctn-panel-border);
+  border-radius: var(--vctn-panel-radius);
+  background-color: var(--vctn-panel-bg);
+}
+
+.vctn-panel + .vctn-panel {
+  margin-top: var(--vctn-space-md);
+}
+
+/* Toolbar row above a table. */
+.vctn-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vctn-space-sm);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--vctn-space-md);
+}
+
+.vctn-toolbar__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vctn-space-sm);
+  align-items: center;
+}
+
+.vctn-muted {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .vctn-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

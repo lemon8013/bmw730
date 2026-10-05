@@ -8,6 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 from app.core.exceptions import NotFoundError
+from app.tools.access.service import (
+    SUBJECT_GUEST,
+    SUBJECT_USER,
+    ToolAccessService,
+    default_subject_enabled,
+)
 from app.tools.catalog.model import Tool, ToolCategory, ToolVersion
 from app.tools.catalog.repository import ToolCatalogRepository
 from app.tools.catalog.schema import (
@@ -27,45 +33,88 @@ class ToolCatalogService:
         self._usage = ToolUsageRepository(session)
         self._settings = settings or get_settings()
 
+    def _policy_scope(self, *, is_guest: bool) -> tuple[str, bool]:
+        """The caller's subject type and whether a missing policy row allows it."""
+        subject_type = SUBJECT_GUEST if is_guest else SUBJECT_USER
+        return subject_type, default_subject_enabled(
+            subject_type, self._settings.TOOL_DEFAULT_VISIBILITY
+        )
+
     async def categories(self) -> list[ToolCategoryResponse]:
         rows = await self._repository.active_categories()
         return [self._to_category(row) for row in rows]
 
-    async def list_tools(self, category_id: int | None = None) -> list[ToolResponse]:
+    async def list_tools(
+        self, category_id: int | None = None, *, is_guest: bool = False
+    ) -> list[ToolResponse]:
+        """List the tools the caller is allowed to see.
+
+        Guests never receive a tool whose GUEST policy is disabled; browse,
+        search and slug lookups share that same rule so a hidden tool cannot be
+        reached by guessing an identifier.
+        """
+        subject_type, default_enabled = self._policy_scope(is_guest=is_guest)
         rows = (
-            await self._repository.tools_of_category(category_id)
+            await self._repository.tools_of_category(
+                category_id, subject_type=subject_type, default_enabled=default_enabled
+            )
             if category_id is not None
-            else await self._repository.active_tools()
+            else await self._repository.active_tools(
+                subject_type=subject_type, default_enabled=default_enabled
+            )
         )
         return [self._to_tool(row) for row in rows]
 
-    async def get_tool(self, tool_id: int) -> ToolResponse:
+    async def get_tool(self, tool_id: int, *, is_guest: bool = False) -> ToolResponse:
         row = await self._repository.get_tool(tool_id)
-        if row is None:
-            raise NotFoundError("tool not found")
+        await self._assert_visible(row, is_guest=is_guest)
+        assert row is not None
         return self._to_tool(row)
 
-    async def get_by_slug(self, slug: str) -> ToolResponse:
+    async def get_by_slug(self, slug: str, *, is_guest: bool = False) -> ToolResponse:
         row = await self._repository.get_tool_by_slug(slug)
-        if row is None:
-            raise NotFoundError("tool not found")
+        await self._assert_visible(row, is_guest=is_guest)
+        assert row is not None
         return self._to_tool(row)
 
-    async def search(self, keyword: str) -> list[ToolResponse]:
-        rows = await self._repository.search(keyword)
+    async def search(self, keyword: str, *, is_guest: bool = False) -> list[ToolResponse]:
+        subject_type, default_enabled = self._policy_scope(is_guest=is_guest)
+        rows = await self._repository.search(
+            keyword, subject_type=subject_type, default_enabled=default_enabled
+        )
         return [self._to_tool(row) for row in rows]
 
-    async def popular(self, *, window_days: int = 7, limit: int = 20) -> list[dict]:
+    async def _visible(self, row: Tool | None, *, is_guest: bool) -> bool:
+        """Whether the caller's access policy allows reading ``row``."""
+        if row is None:
+            return False
+        subject_type = SUBJECT_GUEST if is_guest else SUBJECT_USER
+        return await ToolAccessService(self._session, settings=self._settings).enabled_for(
+            int(row.id), subject_type
+        )
+
+    async def _assert_visible(self, row: Tool | None, *, is_guest: bool) -> None:
+        """Hide a tool the caller may not see behind a plain not found."""
+        if not await self._visible(row, is_guest=is_guest):
+            raise NotFoundError("tool not found")
+
+    async def popular(
+        self, *, window_days: int = 7, limit: int = 20, is_guest: bool = False
+    ) -> list[dict]:
         """Return the popularity ranking.
 
         ``usage_count`` counts executions, ``unique_user_count`` counts distinct
         users: the two numbers answer different questions and are never mixed.
+        Tools the caller may not use never appear in the ranking.
         """
         today = datetime.datetime.now(datetime.UTC).date()
         rows = await self._usage.popularity(stat_date=today, window_days=window_days, limit=limit)
         result: list[dict] = []
         for row in rows:
             tool = await self._repository.get_tool(int(row.tool_id))
+            if not await self._visible(tool, is_guest=is_guest):
+                continue
+            assert tool is not None
             result.append(
                 {
                     "tool_id": str(int(row.tool_id)),

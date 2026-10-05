@@ -10,6 +10,12 @@ from app.admin.tools.schema import (
     ToolCreateRequest,
     ToolStatusRequest,
     ToolUpdateRequest,
+    ToolUsageAdminResponse,
+    ToolUsageOverviewAdminResponse,
+    ToolUsagePointAdminResponse,
+    ToolUsageTrendPointAdminResponse,
+    ToolVisibilityRequest,
+    ToolVisibilityResponse,
 )
 from app.admin.tools.service import AdminToolService
 from app.core.dependencies import DbSessionDep
@@ -58,6 +64,113 @@ async def create_tool(
     )
 
 
+# The literal ``/tools/access-policies`` path must be declared before
+# ``/tools/{tool_id}``: FastAPI matches routes in registration order, so a
+# parameterised route declared first would swallow it and try to parse
+# "access-policies" as an integer id.
+# The literal ``/tools/visibility`` and ``/tools/usage`` paths must be declared
+# before ``/tools/{tool_id}``: FastAPI matches routes in registration order, so a
+# parameterised route declared first would swallow them and try to parse the
+# literal segment as an integer id.
+@router.get("/tools/usage", response_model=ApiResponse[list[ToolUsageAdminResponse]])
+async def list_tool_usage(
+    session: DbSessionDep,
+    days: int = Query(default=30, ge=1, le=365),
+    principal: Principal = Depends(require_permission("TOOL_STAT_VIEW")),
+) -> ApiResponse[list[ToolUsageAdminResponse]]:
+    return success(await AdminToolService(session).tool_usage(days=days))
+
+
+@router.get(
+    "/tools/usage/overview", response_model=ApiResponse[ToolUsageOverviewAdminResponse]
+)
+async def tool_usage_overview(
+    session: DbSessionDep,
+    days: int = Query(default=30, ge=1, le=365),
+    principal: Principal = Depends(require_permission("TOOL_STAT_VIEW")),
+) -> ApiResponse[ToolUsageOverviewAdminResponse]:
+    return success(await AdminToolService(session).tool_usage_overview(days=days))
+
+
+@router.get(
+    "/tools/usage/trend", response_model=ApiResponse[list[ToolUsageTrendPointAdminResponse]]
+)
+async def tool_usage_trend(
+    session: DbSessionDep,
+    days: int = Query(default=30, ge=1, le=365),
+    principal: Principal = Depends(require_permission("TOOL_STAT_VIEW")),
+) -> ApiResponse[list[ToolUsageTrendPointAdminResponse]]:
+    return success(await AdminToolService(session).tool_usage_trend(days=days))
+
+
+@router.get("/tools/usage/daily", response_model=ApiResponse[list[ToolUsagePointAdminResponse]])
+async def tool_usage_daily(
+    session: DbSessionDep,
+    tool_id: str = Query(),
+    days: int = Query(default=30, ge=1, le=365),
+    principal: Principal = Depends(require_permission("TOOL_STAT_VIEW")),
+) -> ApiResponse[list[ToolUsagePointAdminResponse]]:
+    return success(
+        await AdminToolService(session).tool_usage_daily(tool_id=int(tool_id), days=days)
+    )
+
+
+@router.get("/tools/visibility", response_model=ApiResponse[list[ToolVisibilityResponse]])
+async def list_tool_visibility(
+    session: DbSessionDep,
+    principal: Principal = Depends(require_permission("TOOL_VIEW")),
+) -> ApiResponse[list[ToolVisibilityResponse]]:
+    return success(await AdminToolService(session).list_tool_visibility())
+
+
+@router.put(
+    "/tools/visibility/{tool_id}", response_model=ApiResponse[ToolVisibilityResponse]
+)
+async def set_tool_visibility(
+    tool_id: str,
+    payload: ToolVisibilityRequest,
+    session: DbSessionDep,
+    principal: Principal = Depends(require_permission("TOOL_ACCESS_MANAGE")),
+) -> ApiResponse[ToolVisibilityResponse]:
+    return success(
+        await AdminToolService(session).set_tool_visibility(
+            tool_id=int(tool_id),
+            payload=payload,
+            actor_id=principal.subject_id,
+            actor_username=principal.username,
+        )
+    )
+
+
+@router.get("/tools/access-policies", response_model=ApiResponse[list[AccessPolicyAdminResponse]])
+async def list_access_policies(
+    session: DbSessionDep,
+    principal: Principal = Depends(require_permission("TOOL_VIEW")),
+) -> ApiResponse[list[AccessPolicyAdminResponse]]:
+    return success(await AdminToolService(session).list_access_policies())
+
+
+@router.put(
+    "/tools/access-policies/{tool_id}",
+    response_model=ApiResponse[AccessPolicyAdminResponse],
+)
+async def upsert_access_policy(
+    tool_id: str,
+    payload: AccessPolicyRequest,
+    session: DbSessionDep,
+    principal: Principal = Depends(require_permission("TOOL_MANAGE")),
+) -> ApiResponse[AccessPolicyAdminResponse]:
+    return success(
+        await AdminToolService(session).upsert_access_policy(
+            tool_id=int(tool_id),
+            subject_type=payload.subject_type,
+            actor_id=principal.subject_id,
+            actor_username=principal.username,
+            payload=payload,
+        )
+    )
+
+
 @router.get("/tools/{tool_id}", response_model=ApiResponse[ToolResponse])
 async def get_tool(
     tool_id: str,
@@ -94,35 +207,6 @@ async def set_tool_status(
     return success(
         await AdminToolService(session).set_status(
             tool_id=int(tool_id),
-            actor_id=principal.subject_id,
-            actor_username=principal.username,
-            payload=payload,
-        )
-    )
-
-
-@router.get("/tools/access-policies", response_model=ApiResponse[list[AccessPolicyAdminResponse]])
-async def list_access_policies(
-    session: DbSessionDep,
-    principal: Principal = Depends(require_permission("TOOL_VIEW")),
-) -> ApiResponse[list[AccessPolicyAdminResponse]]:
-    return success(await AdminToolService(session).list_access_policies())
-
-
-@router.put(
-    "/tools/access-policies/{tool_id}",
-    response_model=ApiResponse[AccessPolicyAdminResponse],
-)
-async def upsert_access_policy(
-    tool_id: str,
-    payload: AccessPolicyRequest,
-    session: DbSessionDep,
-    principal: Principal = Depends(require_permission("TOOL_MANAGE")),
-) -> ApiResponse[AccessPolicyAdminResponse]:
-    return success(
-        await AdminToolService(session).upsert_access_policy(
-            tool_id=int(tool_id),
-            subject_type=payload.subject_type,
             actor_id=principal.subject_id,
             actor_username=principal.username,
             payload=payload,

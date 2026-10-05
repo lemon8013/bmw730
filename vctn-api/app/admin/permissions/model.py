@@ -16,6 +16,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class SysPermission(Base):
@@ -24,7 +25,11 @@ class SysPermission(Base):
     __tablename__ = "sys_permission"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     permission_code: Mapped[str] = mapped_column(sa.String(128), comment="权限编码", nullable=False)
     permission_name: Mapped[str] = mapped_column(sa.String(128), comment="权限名称", nullable=False)
@@ -110,7 +115,11 @@ class SysPermissionField(Base):
     __tablename__ = "sys_permission_field"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     permission_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("sys_permission.id"), comment="权限 ID", nullable=True

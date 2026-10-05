@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import datetime
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.elements import ColumnElement
 
+from app.tools.access.model import ToolAccessPolicy
 from app.tools.catalog.model import (
     Tool,
     ToolCategory,
@@ -16,6 +18,38 @@ from app.tools.catalog.model import (
 
 ACTIVE_STATUS: str = "ACTIVE"
 PUBLISHED_STATUS: str = "PUBLISHED"
+
+
+def visibility_condition(subject_type: str, *, default_enabled: bool) -> ColumnElement[bool]:
+    """Restrict the catalogue to the tools ``subject_type`` is allowed to see.
+
+    A policy row with ``enabled = false`` hides the tool from that subject. A
+    missing row falls back to the configured default visibility: when the
+    default denies the subject, only tools carrying an explicit row survive.
+    ``tool_id`` is nullable on ``tool_access_policy``, so NULL rows are always
+    excluded — a NULL inside ``NOT IN``/``IN`` would swallow every row.
+    """
+    denied = (
+        select(ToolAccessPolicy.tool_id)
+        .where(
+            ToolAccessPolicy.subject_type == subject_type,
+            ToolAccessPolicy.enabled.is_(False),
+            ToolAccessPolicy.tool_id.isnot(None),
+        )
+        .scalar_subquery()
+    )
+    condition: ColumnElement[bool] = Tool.id.notin_(denied)
+    if not default_enabled:
+        declared = (
+            select(ToolAccessPolicy.tool_id)
+            .where(
+                ToolAccessPolicy.subject_type == subject_type,
+                ToolAccessPolicy.tool_id.isnot(None),
+            )
+            .scalar_subquery()
+        )
+        condition = and_(condition, Tool.id.in_(declared))
+    return condition
 
 
 class ToolCatalogRepository:
@@ -32,10 +66,16 @@ class ToolCatalogRepository:
         )
         return list(result.scalars())
 
-    async def active_tools(self) -> list[Tool]:
+    async def active_tools(
+        self, *, subject_type: str, default_enabled: bool
+    ) -> list[Tool]:
         result = await self._session.execute(
             select(Tool)
-            .where(Tool.status == ACTIVE_STATUS, Tool.deleted_at.is_(None))
+            .where(
+                Tool.status == ACTIVE_STATUS,
+                Tool.deleted_at.is_(None),
+                visibility_condition(subject_type, default_enabled=default_enabled),
+            )
             .order_by(Tool.sort_order, Tool.id)
         )
         return list(result.scalars())
@@ -54,13 +94,16 @@ class ToolCatalogRepository:
         )
         return result.scalar_one_or_none()
 
-    async def search(self, keyword: str) -> list[Tool]:
+    async def search(
+        self, keyword: str, *, subject_type: str, default_enabled: bool
+    ) -> list[Tool]:
         pattern = f"%{keyword.lower()}%"
         result = await self._session.execute(
             select(Tool)
             .where(
                 Tool.status == ACTIVE_STATUS,
                 Tool.deleted_at.is_(None),
+                visibility_condition(subject_type, default_enabled=default_enabled),
                 or_(
                     func.lower(Tool.name).like(pattern),
                     func.lower(Tool.slug).like(pattern),
@@ -72,13 +115,16 @@ class ToolCatalogRepository:
         )
         return list(result.scalars())
 
-    async def tools_of_category(self, category_id: int) -> list[Tool]:
+    async def tools_of_category(
+        self, category_id: int, *, subject_type: str, default_enabled: bool
+    ) -> list[Tool]:
         result = await self._session.execute(
             select(Tool)
             .where(
                 Tool.category_id == category_id,
                 Tool.status == ACTIVE_STATUS,
                 Tool.deleted_at.is_(None),
+                visibility_condition(subject_type, default_enabled=default_enabled),
             )
             .order_by(Tool.sort_order, Tool.id)
         )

@@ -18,6 +18,7 @@ from sqlalchemy.dialects.postgresql import INET, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class SysAuditLog(Base):
@@ -26,7 +27,11 @@ class SysAuditLog(Base):
     __tablename__ = "sys_audit_log"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     trace_id: Mapped[str | None] = mapped_column(
         sa.String(128), comment="链路追踪 ID", nullable=True
@@ -73,7 +78,11 @@ class SysAccessLog(Base):
     __tablename__ = "sys_access_log"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     trace_id: Mapped[str | None] = mapped_column(
         sa.String(128), comment="链路追踪 ID", nullable=True
@@ -114,7 +123,11 @@ class SysSecurityLog(Base):
     __tablename__ = "sys_security_log"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     trace_id: Mapped[str | None] = mapped_column(
         sa.String(128), comment="链路追踪 ID", nullable=True
@@ -152,7 +165,11 @@ class SysOperationLog(Base):
     __tablename__ = "sys_operation_log"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     trace_id: Mapped[str | None] = mapped_column(
         sa.String(128), comment="链路追踪 ID", nullable=True
@@ -192,7 +209,11 @@ class SysApplicationLog(Base):
     __tablename__ = "sys_application_log"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     trace_id: Mapped[str | None] = mapped_column(
         sa.String(128), comment="链路追踪 ID", nullable=True

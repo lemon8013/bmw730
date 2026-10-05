@@ -6,12 +6,12 @@ import { apiBaseUrl } from '@/api/client'
 /**
  * Application level store.
  *
- * Phase 0 keeps it free of business state: authentication, tool and usage state
- * belong to the phases that freeze their contracts.
+ * Authentication state belongs to the phase that freezes its contract; tool and
+ * usage state live in the pages that own them.
  */
 export const useAppStore = defineStore('app', () => {
   const applicationName = ref('VCTN Tools')
-  const buildPhase = ref('Phase 0 — project skeleton')
+  const buildPhase = ref('工具门户')
   const apiPrefix = computed(() => apiBaseUrl)
   const isDevelopment = computed(() => import.meta.env.DEV)
 

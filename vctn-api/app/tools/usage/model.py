@@ -16,6 +16,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class ToolUsageEvent(Base):
@@ -24,7 +25,11 @@ class ToolUsageEvent(Base):
     __tablename__ = "tool_usage_event"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     tool_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("tool.id"), comment="所属工具 ID", nullable=True
@@ -74,7 +79,11 @@ class ToolRecentUsage(Base):
     __tablename__ = "tool_recent_usage"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     user_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("biz_user.id"), comment="业务用户 ID", nullable=True

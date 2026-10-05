@@ -24,6 +24,10 @@ class SeedCounter:
     def __init__(self) -> None:
         self.created: dict[str, int] = {}
         self.skipped: dict[str, int] = {}
+        # Rows whose value was missing and has been filled in. A repair is
+        # deliberately kept apart from `created`: it is not a new row, and the
+        # "a second run inserts nothing" invariant still holds.
+        self.repaired: dict[str, int] = {}
 
     def created_one(self, collection: str) -> None:
         """Record one inserted row."""
@@ -32,6 +36,10 @@ class SeedCounter:
     def skipped_one(self, collection: str) -> None:
         """Record one row that already existed."""
         self.skipped[collection] = self.skipped.get(collection, 0) + 1
+
+    def repaired_one(self, collection: str) -> None:
+        """Record one row whose missing value has been filled in."""
+        self.repaired[collection] = self.repaired.get(collection, 0) + 1
 
     def total_created(self) -> int:
         return sum(self.created.values())
@@ -43,6 +51,7 @@ class SeedCounter:
         return {
             "created": dict(sorted(self.created.items())),
             "skipped": dict(sorted(self.skipped.items())),
+            "repaired": dict(sorted(self.repaired.items())),
         }
 
 

@@ -16,3 +16,5 @@ export type {
 
 /** Application level runtime instance bound to the application registry. */
 export const toolRuntime = new ToolRuntime(toolRegistry)
+export { registerBuiltinExecutors } from '@/tools/runtime/executors'
+export type { WorkbenchInput } from '@/tools/runtime/executors'

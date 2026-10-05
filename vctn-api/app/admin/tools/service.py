@@ -7,6 +7,8 @@ tool runtime behaviour (resolution, quota enforcement, execution).
 
 from __future__ import annotations
 
+import datetime
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.tools.repository import AdminToolRepository
@@ -16,13 +18,41 @@ from app.admin.tools.schema import (
     ToolCreateRequest,
     ToolStatusRequest,
     ToolUpdateRequest,
+    ToolUsageAdminResponse,
+    ToolUsageOverviewAdminResponse,
+    ToolUsagePointAdminResponse,
+    ToolUsageTrendPointAdminResponse,
+    ToolVisibilityRequest,
+    ToolVisibilityResponse,
 )
 from app.core.config import Settings, get_settings
 from app.core.exceptions import NotFoundError, ValidationError
 from app.shared.audit.service import AuditService
 from app.shared.logging.writers import RESULT_SUCCESS, write_operation_log
 from app.shared.pagination.params import Page, PageParams
+from app.tools.access.service import (
+    SUBJECT_GUEST,
+    SUBJECT_USER,
+    VISIBILITY_VALUES,
+    default_subject_enabled,
+    visibility_of,
+    visibility_subjects,
+)
 from app.tools.catalog.schema import ToolResponse
+
+
+def _window(days: int) -> tuple[datetime.datetime, datetime.datetime]:
+    """The ``[start, end)`` UTC window covering the last ``days`` calendar days.
+
+    ``start`` is midnight UTC ``days - 1`` days ago rather than ``now - days``:
+    a rolling window would spill into a partial day at both ends, so today's
+    events would fall off the trend axis while still counting towards the
+    totals. Aligned to midnight the window holds exactly ``days`` dates and the
+    per day series adds up to the overview.
+    """
+    end = datetime.datetime.now(datetime.UTC)
+    midnight = end.replace(hour=0, minute=0, second=0, microsecond=0)
+    return midnight - datetime.timedelta(days=days - 1), end
 
 
 class AdminToolService:
@@ -176,6 +206,188 @@ class AdminToolService:
         )
         await self._session.commit()
         return ToolResponse.model_validate(row)
+
+    async def tool_usage(self, *, days: int) -> list[ToolUsageAdminResponse]:
+        """Usage counts per tool over the last ``days`` days.
+
+        The management side has no business user identity, so it cannot call the
+        platform's ``/tools/usage/*`` read model; this aggregates the raw events
+        directly and is therefore independent of the daily rollup.
+        """
+        start, end = _window(days)
+        rows = await self._repository.usage_by_tool(start=start, end=end)
+        names = await self._repository.tool_names([row[0] for row in rows])
+        result: list[ToolUsageAdminResponse] = []
+        for tool_id, total, success, failure, users, guests, last_used in rows:
+            name, slug = names.get(tool_id, (None, None))
+            result.append(
+                ToolUsageAdminResponse(
+                    tool_id=str(tool_id),
+                    tool_name=name,
+                    tool_slug=slug,
+                    total_count=total,
+                    success_count=success,
+                    failure_count=failure,
+                    unique_user_count=users,
+                    unique_guest_count=guests,
+                    last_used_at=last_used,
+                )
+            )
+        return result
+
+    async def tool_usage_trend(self, *, days: int) -> list[ToolUsageTrendPointAdminResponse]:
+        """Platform wide usage per day, zero filled across the whole window."""
+        start, end = _window(days)
+        rows = await self._repository.usage_trend(start=start, end=end)
+        counts = {
+            stat_date: (total, success, failure)
+            for stat_date, total, success, failure in rows
+        }
+        result: list[ToolUsageTrendPointAdminResponse] = []
+        for offset in range(days):
+            stat_date = (start + datetime.timedelta(days=offset)).date()
+            total, success, failure = counts.get(stat_date, (0, 0, 0))
+            result.append(
+                ToolUsageTrendPointAdminResponse(
+                    stat_date=stat_date,
+                    total_count=total,
+                    success_count=success,
+                    failure_count=failure,
+                )
+            )
+        return result
+
+    async def tool_usage_overview(self, *, days: int) -> ToolUsageOverviewAdminResponse:
+        """Window wide totals for the report header cards."""
+        start, end = _window(days)
+        (
+            total,
+            success,
+            failure,
+            users,
+            guests,
+            tools,
+            last_used,
+        ) = await self._repository.usage_overview(start=start, end=end)
+        return ToolUsageOverviewAdminResponse(
+            start_date=start.date(),
+            end_date=end.date(),
+            total_count=total,
+            success_count=success,
+            failure_count=failure,
+            success_rate=round(success / total * 100, 2) if total else 0.0,
+            unique_user_count=users,
+            unique_guest_count=guests,
+            active_tool_count=tools,
+            last_used_at=last_used,
+        )
+
+    async def tool_usage_daily(
+        self, *, tool_id: int, days: int
+    ) -> list[ToolUsagePointAdminResponse]:
+        """One tool's usage per day over the last ``days`` days."""
+        tool = await self._repository.get_tool(tool_id)
+        if tool is None:
+            raise NotFoundError("tool not found")
+        start, end = _window(days)
+        rows = await self._repository.usage_daily(tool_id=tool_id, start=start, end=end)
+        return [
+            ToolUsagePointAdminResponse(
+                stat_date=stat_date,
+                total_count=total,
+                success_count=success,
+                failure_count=failure,
+            )
+            for stat_date, total, success, failure in rows
+        ]
+
+    async def list_tool_visibility(self) -> list[ToolVisibilityResponse]:
+        """Every tool with the visibility its access policies resolve to."""
+        rows = await self._repository.list_tools_with_policies()
+        result: list[ToolVisibilityResponse] = []
+        for tool, guest_policy, user_policy in rows:
+            guest_enabled = (
+                bool(guest_policy.enabled)
+                if guest_policy is not None
+                else default_subject_enabled(
+                    SUBJECT_GUEST, self._settings.TOOL_DEFAULT_VISIBILITY
+                )
+            )
+            user_enabled = (
+                bool(user_policy.enabled)
+                if user_policy is not None
+                else default_subject_enabled(SUBJECT_USER, self._settings.TOOL_DEFAULT_VISIBILITY)
+            )
+            result.append(
+                ToolVisibilityResponse(
+                    tool_id=str(int(tool.id)),
+                    tool_code=str(tool.code),
+                    tool_name=str(tool.name),
+                    tool_slug=str(tool.slug),
+                    status=str(tool.status),
+                    visibility=visibility_of(guest_enabled, user_enabled),
+                    guest_enabled=guest_enabled,
+                    user_enabled=user_enabled,
+                    configured=guest_policy is not None or user_policy is not None,
+                )
+            )
+        return result
+
+    async def set_tool_visibility(
+        self, *, tool_id: int, payload: ToolVisibilityRequest, actor_id: int, actor_username: str
+    ) -> ToolVisibilityResponse:
+        """Apply one visibility level as the tool's GUEST and USER policy rows."""
+        tool = await self._repository.get_tool(tool_id)
+        if tool is None:
+            raise NotFoundError("tool not found")
+        visibility = str(payload.visibility or "").strip().upper()
+        if visibility not in VISIBILITY_VALUES:
+            raise ValidationError(
+                f"visibility must be one of {', '.join(VISIBILITY_VALUES)}"
+            )
+        flags = visibility_subjects(visibility)
+        # Snapshot before writing: the session keeps one ORM instance per row, so
+        # the previous flags have to be captured as plain values first.
+        before_guest = await self._repository.policy_for(tool_id, SUBJECT_GUEST)
+        before_user = await self._repository.policy_for(tool_id, SUBJECT_USER)
+        before = {
+            "guest_enabled": None if before_guest is None else bool(before_guest.enabled),
+            "user_enabled": None if before_user is None else bool(before_user.enabled),
+        }
+        for subject_type, enabled in flags.items():
+            await self._repository.upsert_policy(tool_id, subject_type, enabled=enabled)
+        guest_policy = await self._repository.policy_for(tool_id, SUBJECT_GUEST)
+        user_policy = await self._repository.policy_for(tool_id, SUBJECT_USER)
+        await self._audit.record(
+            self._session,
+            action="TOOL_VISIBILITY_CHANGE",
+            operator_id=int(actor_id),
+            operator_username=actor_username,
+            resource_type="tool",
+            resource_id=tool_id,
+            before_data=before,
+            after_data={"visibility": visibility, **flags},
+        )
+        await write_operation_log(
+            self._session,
+            operation="TOOL_VISIBILITY_CHANGE",
+            result=RESULT_SUCCESS,
+            operator_id=int(actor_id),
+            resource_type="tool",
+            resource_id=str(tool_id),
+        )
+        await self._session.commit()
+        return ToolVisibilityResponse(
+            tool_id=str(int(tool.id)),
+            tool_code=str(tool.code),
+            tool_name=str(tool.name),
+            tool_slug=str(tool.slug),
+            status=str(tool.status),
+            visibility=visibility,
+            guest_enabled=bool(flags[SUBJECT_GUEST]),
+            user_enabled=bool(flags[SUBJECT_USER]),
+            configured=guest_policy is not None or user_policy is not None,
+        )
 
     async def list_access_policies(self) -> list[AccessPolicyAdminResponse]:
         rows = await self._repository.list_policies()

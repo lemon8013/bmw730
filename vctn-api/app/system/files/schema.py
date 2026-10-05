@@ -10,7 +10,14 @@ from __future__ import annotations
 import datetime
 from typing import Any
 
-from app.shared.response.dto import ApiModel, OptionalStringId, StringId
+from pydantic import Field
+
+from app.shared.response.dto import (
+    METADATA_COLUMN_ALIAS,
+    ApiModel,
+    OptionalStringId,
+    StringId,
+)
 
 
 class FileCreateRequest(ApiModel):
@@ -43,7 +50,9 @@ class FileResponse(ApiModel):
     size_bytes: int | None = None
     checksum: str | None = None
     status: str
-    metadata: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = Field(
+        default=None, validation_alias=METADATA_COLUMN_ALIAS
+    )
     created_at: datetime.datetime
     deleted_at: datetime.datetime | None = None
 

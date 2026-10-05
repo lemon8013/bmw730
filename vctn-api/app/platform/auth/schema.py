@@ -6,7 +6,11 @@ import datetime
 
 from pydantic import Field
 
-from app.shared.response.dto import ApiModel, OptionalStringId, StringId
+from app.shared.response.dto import (
+    ApiModel,
+    OptionalIpAddress,
+    StringId,
+)
 
 
 class RegisterRequest(ApiModel):
@@ -126,4 +130,4 @@ class PlatformSessionBrief(ApiModel):
     expires_at: datetime.datetime
     revoked_at: datetime.datetime | None = None
     revoke_reason: str | None = None
-    ip: OptionalStringId | None = None
+    ip: OptionalIpAddress = None

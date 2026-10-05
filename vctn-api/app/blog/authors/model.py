@@ -16,6 +16,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class BlogAuthor(Base):
@@ -24,7 +25,11 @@ class BlogAuthor(Base):
     __tablename__ = "blog_author"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     user_id: Mapped[int] = mapped_column(
         sa.BigInteger, sa.ForeignKey("biz_user.id"), comment="业务用户 ID", nullable=False
@@ -66,7 +71,11 @@ class BlogAuthorApplication(Base):
     __tablename__ = "blog_author_application"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     user_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("biz_user.id"), comment="业务用户 ID", nullable=True

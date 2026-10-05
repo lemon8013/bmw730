@@ -18,6 +18,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class BehaviorEvent(Base):
@@ -26,7 +27,11 @@ class BehaviorEvent(Base):
     __tablename__ = "behavior_event"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     event_id: Mapped[str] = mapped_column(sa.String(128), comment="事件唯一 ID", nullable=False)
     event_code: Mapped[str] = mapped_column(sa.String(128), comment="事件编码", nullable=False)
@@ -91,7 +96,11 @@ class BehaviorIdentityMerge(Base):
     __tablename__ = "behavior_identity_merge"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     anonymous_id_hash: Mapped[str] = mapped_column(
         sa.String(128), comment="匿名访客标识哈希", nullable=False

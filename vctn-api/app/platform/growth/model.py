@@ -19,6 +19,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class BizGrowthRule(Base):
@@ -27,7 +28,11 @@ class BizGrowthRule(Base):
     __tablename__ = "biz_growth_rule"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     rule_code: Mapped[str] = mapped_column(sa.String(128), comment="规则编码", nullable=False)
     rule_name: Mapped[str] = mapped_column(sa.String(128), comment="规则名称", nullable=False)
@@ -83,7 +88,11 @@ class BizGrowthEvent(Base):
     __tablename__ = "biz_growth_event"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     event_id: Mapped[str] = mapped_column(sa.String(128), comment="事件唯一 ID", nullable=False)
     idempotency_key: Mapped[str] = mapped_column(sa.String(255), comment="幂等键", nullable=False)
@@ -123,7 +132,11 @@ class BizUserGrowthTransaction(Base):
     __tablename__ = "biz_user_growth_transaction"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     user_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("biz_user.id"), comment="业务用户 ID", nullable=True
@@ -184,7 +197,11 @@ class BizTask(Base):
     __tablename__ = "biz_task"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     task_code: Mapped[str] = mapped_column(sa.String(128), comment="任务编码", nullable=False)
     task_name: Mapped[str] = mapped_column(sa.String(128), comment="任务名称", nullable=False)
@@ -239,7 +256,11 @@ class BizUserTask(Base):
     __tablename__ = "biz_user_task"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     user_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("biz_user.id"), comment="业务用户 ID", nullable=True
@@ -282,7 +303,11 @@ class BizAchievement(Base):
     __tablename__ = "biz_achievement"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     achievement_code: Mapped[str] = mapped_column(
         sa.String(128), comment="成就编码", nullable=False
@@ -331,7 +356,11 @@ class BizUserAchievement(Base):
     __tablename__ = "biz_user_achievement"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     user_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("biz_user.id"), comment="业务用户 ID", nullable=True

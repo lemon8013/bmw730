@@ -1,0 +1,18 @@
+- generic [ref=f6e3]:
+  - banner [ref=f6e4]:
+    - generic [ref=f6e5]:
+      - link "VCTN Tools" [ref=f6e6] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=f6e7]:
+        - link "首页" [ref=f6e8] [cursor=pointer]:
+          - /url: /
+        - link "热门" [ref=f6e9] [cursor=pointer]:
+          - /url: /popular
+        - link "最近使用" [ref=f6e10] [cursor=pointer]:
+          - /url: /recent
+      - generic [ref=f6e11]:
+        - textbox "搜索工具…" [ref=f6e13]
+        - button "搜索" [ref=f6e16] [cursor=pointer]
+  - main [ref=f6e18]:
+    - generic [ref=f6e19]: 加载中…
+  - contentinfo [ref=f6e25]: VCTN Tools · 输入内容默认只在浏览器内处理，不会因埋点自动上传

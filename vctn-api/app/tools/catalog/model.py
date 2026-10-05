@@ -18,6 +18,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class ToolCategory(Base):
@@ -26,7 +27,11 @@ class ToolCategory(Base):
     __tablename__ = "tool_category"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     category_code: Mapped[str] = mapped_column(sa.String(64), comment="分类编码", nullable=False)
     category_name: Mapped[str] = mapped_column(sa.String(128), comment="分类名称", nullable=False)
@@ -79,7 +84,11 @@ class Tool(Base):
     __tablename__ = "tool"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     code: Mapped[str] = mapped_column(sa.String(128), comment="工具编码", nullable=False)
     name: Mapped[str] = mapped_column(sa.String(128), comment="工具名称", nullable=False)
@@ -153,7 +162,11 @@ class ToolVersion(Base):
     __tablename__ = "tool_version"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     tool_id: Mapped[int | None] = mapped_column(
         sa.BigInteger, sa.ForeignKey("tool.id"), comment="所属工具 ID", nullable=True
@@ -186,7 +199,11 @@ class ToolComponentRegistry(Base):
     __tablename__ = "tool_component_registry"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     component_key: Mapped[str] = mapped_column(
         sa.String(128), comment="组件唯一标识", nullable=False

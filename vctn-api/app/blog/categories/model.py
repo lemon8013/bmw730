@@ -16,6 +16,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.database.base import Base
+from app.shared.ids import new_id
 
 
 class BlogCategory(Base):
@@ -24,7 +25,11 @@ class BlogCategory(Base):
     __tablename__ = "blog_category"
 
     id: Mapped[int] = mapped_column(
-        sa.BigInteger, comment="主键 ID（雪花算法生成）", primary_key=True, autoincrement=False
+        sa.BigInteger,
+        comment="主键 ID（雪花算法生成）",
+        default=new_id,
+        primary_key=True,
+        autoincrement=False,
     )
     category_code: Mapped[str] = mapped_column(sa.String(64), comment="分类编码", nullable=False)
     category_name: Mapped[str] = mapped_column(sa.String(128), comment="分类名称", nullable=False)

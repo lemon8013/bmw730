@@ -1,0 +1,6 @@
+INFO:     Started server process [12052]
+INFO:     Waiting for application startup.
+2026-10-01 12:36:51,918 INFO     vctn.app [trace_id=-] application started app=vctn-api env=development version=0.1.0
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:49793 - "POST /api/v1/admin/auth/login HTTP/1.1" 401 Unauthorized

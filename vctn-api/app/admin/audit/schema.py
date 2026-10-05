@@ -4,7 +4,15 @@ from __future__ import annotations
 
 import datetime
 
-from app.shared.response.dto import ApiModel, OptionalStringId, StringId
+from pydantic import Field
+
+from app.shared.response.dto import (
+    METADATA_COLUMN_ALIAS,
+    ApiModel,
+    OptionalIpAddress,
+    OptionalStringId,
+    StringId,
+)
 
 
 class AuditLogResponse(ApiModel):
@@ -22,7 +30,7 @@ class AuditLogResponse(ApiModel):
     after_data: dict | None = None
     result: str
     error_code: str | None = None
-    ip: str | None = None
+    ip: OptionalIpAddress = None
     user_agent: str | None = None
     created_at: datetime.datetime
 
@@ -36,9 +44,9 @@ class SecurityLogResponse(ApiModel):
     event_type: str
     result: str
     error_code: str | None = None
-    ip: str | None = None
+    ip: OptionalIpAddress = None
     user_agent: str | None = None
-    metadata: dict | None = None
+    metadata: dict | None = Field(default=None, validation_alias=METADATA_COLUMN_ALIAS)
     created_at: datetime.datetime
 
 
@@ -53,7 +61,7 @@ class OperationLogResponse(ApiModel):
     resource_type: str | None = None
     resource_id: str | None = None
     result: str
-    metadata: dict | None = None
+    metadata: dict | None = Field(default=None, validation_alias=METADATA_COLUMN_ALIAS)
     created_at: datetime.datetime
 
 
@@ -67,7 +75,7 @@ class AccessLogResponse(ApiModel):
     method: str
     path: str
     status_code: int | None = None
-    ip: str | None = None
+    ip: OptionalIpAddress = None
     user_agent: str | None = None
     duration_ms: int | None = None
     created_at: datetime.datetime
