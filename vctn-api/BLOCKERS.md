@@ -273,10 +273,10 @@ PUT    /api/v1/tools/access/policies/{id}
 | **B-26** | Snowflake 位布局（DD-14）未冻结 | 由 `app.shared.ids` 配置化实现，位布局参数待冻结 |
 | **B-27** | CUSTOM 数据范围的存储与解析未冻结 | 只保留权限资源与 `DataScope` 分支 |
 | **B-28** | 「角色继承 SQL 规则」未冻结 | `AuthorizationService` 已有递归 CTE 实现，但**是否启用**待冻结 |
-| **B-33** | **成长 / 积分 / 任务 / 装扮没有管理员侧读端点** | 现有全部端点均为 `/me` 形式，按**平台业务用户**取数；Operator 会话调用于是返回 401 `401001 a business user identity is required`。未自行发明 `/api/v1/admin/users/{user_id}/growth` 一类端点（新增 API 面 = 规格决策）。前端暂以说明组件替代报错区块，详见下方 §七 |
+| ~~B-33~~ | ~~成长 / 积分 / 任务 / 装扮没有管理员侧读端点~~ **已关闭（2026-10-05）** | 负责人授权「成长/积分/任务 你拥有所有权限」。已新增 `app/admin/growth/` 模块（24 个端点，挂载在 `/api/v1/admin`），覆盖总览、业务用户检索、成长规则/积分规则/等级/任务 CRUD、以及按用户的成长账户、流水、成长值调整、积分账户、流水、积分调整、等级与升级历史、任务进度、成就、装扮、装备、汇总。写操作复用 `GrowthService.apply_event` / `PointService.adjust`，不复制记账逻辑。详见下方 §七 |
 | **B-34** | ~~工具用量统计没有管理员可读的数据源~~ **已关闭（2026-10-05）** | 已新增 `GET /admin/tools/usage`（每工具使用次数）与 `GET /admin/tools/usage/daily`（按日序列），权限复用矩阵内已有的 `TOOL_STAT_VIEW`，均直接聚合 `tool_usage_event`，不依赖汇总表；`ToolStatisticsPage.vue` 已改为只消费管理端接口 + 公开热门榜，Operator 打开不再 401。详见下方 §八 |
 | **B-35** | **工具访问策略粒度不足以支撑「指定用户 / 角色可见」** | `tool_access_policy` 唯一约束为 `(tool_id, subject_type)`，**无 `subject_id` 列**，且 `subject_type` 后端限定 `^(GUEST\|USER)$`（`app/tools/access/service.py`）。因此可见性只能分「游客 / 登录用户」两档，无法针对具体用户或角色。这是冻结 DDL 的结构限制，属规格决策，未改表。当前可用的两档控制见下方 §八 |
-| **B-36** | **热门榜汇总表从未生成，tools-web 热门榜恒为空** | `tool_popularity_daily` 当前 0 行，`popular()` 读它，故 `/tools/popular` 返回 `[]`。唯一生成入口 `POST /tools/statistics/refresh` 与 `/tools/usage/refresh-popularity` 同样要求业务用户身份。**没有定时任务或触发器负责刷新**，也没有定义刷新频率与责任人，属未决的产品口径 |
+| **B-36** | **热门榜汇总表从未生成（已部分解决 2026-10-05）** | `tool_popularity_daily` 仍为 0 行，没有任何定时任务刷新它，`tool_popularity_daily` 的生成入口（`POST /tools/statistics/refresh` 等）也要求业务用户身份。**已做的兜底**：`ToolCatalogService.popular()` 在汇总表为空时回退到直接聚合 `tool_usage_event`（新 `ToolUsageRepository.popularity_from_events`），所以 `/tools/popular` 与 tools-web 热门页现在有数据。**仍未决**：汇总表的刷新频率与责任人依旧空缺，回退只是绕过它，不是替代它 |
 | **B-37** | **行为分析全链路没有任何数据，`/analytics` 八个页签恒为空** | 实测行数：`behavior_event` / `behavior_event_daily` / `behavior_user_daily` / `behavior_page_daily` / `behavior_tool_daily` / `behavior_search_daily` / `behavior_funnel` **全部 0 行**；`POST /admin/analytics/recompute` 返回 `recomputed_rows: 0`。根因是**没有任何埋点上报方**：tools-web 调 `/tools/runtime/execute` 只写 `tool_usage_event`，admin-web 也不上报页面事件，规格未定义谁负责埋点。工具侧数据走的是另一条链路（`tool_usage_event` 31 行），因此「工具统计」有数而「行为分析」为空。属埋点范围与责任人的产品口径空缺，未自行发明埋点 |
 
 ---
@@ -356,7 +356,100 @@ class SysExportTask(Base):
 
 ---
 
-## 七、本轮登记（2026-10-03 前端缺陷修复轮）：成长体系没有管理员侧读端点
+## 七、成长体系的管理员侧端点（B-33：2026-10-03 登记 / 2026-10-05 关闭）
+
+> **状态：已关闭。** 负责人于 2026-10-05 授权「成长/积分/任务 你拥有所有权限」，
+> 管理员侧端点已实现并浏览器验证通过。本节先记**本轮解法**，随后保留 2026-10-03
+> 的原始登记内容作为历史背景。
+
+### 解法一：新增 `app/admin/growth/` 模块（24 个端点，挂载在 `/api/v1/admin`）
+
+| 文件 | 职责 |
+| --- | --- |
+| `app/admin/growth/schema.py` | 全部管理员侧 DTO（账户、流水、调整入参/出参、规则、等级、任务、成就、装扮、装备、汇总、总览） |
+| `app/admin/growth/repository.py` | `AdminGrowthRepository`：业务用户检索、任务/规则/等级 CRUD、成就与装扮矩阵、升级历史、计数器 |
+| `app/admin/growth/service.py` | `AdminGrowthService`：读侧组装 + 写侧**委托**给既有平台 Service |
+| `app/admin/growth/router.py` | 全部端点，逐条挂 `require_permission(...)` |
+| `app/main.py` | `_BUSINESS_ROUTERS` 增加 `("/admin", "admin:growth", admin_growth_router)` |
+
+端点清单（`/api/v1/admin` 前缀下）：
+
+* 总览与检索：`GET /growth/overview`、`GET /biz-users`
+* 成长规则：`GET/POST /growth/rules`、`PUT/DELETE /growth/rules/{rule_id}`
+* 积分规则：`GET/POST /points/rules`、`PUT/DELETE /points/rules/{rule_id}`
+* 等级：`GET/POST /levels`、`PUT/DELETE /levels/{level_id}`
+* 任务：`GET/POST /tasks`、`PUT/DELETE /tasks/{task_id}`
+* 按用户：`GET /users/{user_id}/summary`、`/growth`、`/growth/transactions`、
+  `POST /growth/adjust`、`/points`、`/points/transactions`、`POST /points/adjust`、
+  `/levels`、`/levels/history`、`/tasks`、`/achievements`、`/cosmetics`、`/cosmetics/equipment`
+
+**关键设计：委托而非复制。** 管理员侧的「调整成长值 / 调整积分」不自己写账，而是调用
+`GrowthService.apply_event` 与 `PointService.adjust`，因此幂等键、`SELECT ... FOR UPDATE`
+行锁、`version` 自增、等级重算、审计日志全部照常生效。调整使用的事件码
+`ADMIN_ADJUST` **故意不在规则表里播种**，保证「管理员填多少就是多少」，不会被规则倍率二次放大。
+
+**删除一律软删。** `biz_user_growth_account.current_level_id` 与 `biz_user_task.task_id`
+都是外键，物理删除会被 PostgreSQL 拒绝；等级/任务的删除接口因此只写 `deleted_at`
++ 状态置 `DISABLED`，并先做引用计数，有引用时返回 `409001`
+（实测：`"2 user record(s) still reference this level"`）。
+
+**主键差异。** `biz_user_growth_account` 与 `biz_user_point_account` 以 `user_id`
+为主键而非 `id`；通用计数方法 `count_rows` / `count_rows_where` 因此接受 `column`
+覆盖参数，调用处显式传 `BizUserGrowthAccount.user_id` / `BizUserPointAccount.user_id`。
+
+### 解法二：权限码
+
+冻结矩阵内已存在的码直接复用：`LEVEL_CONFIG_VIEW/EDIT`、`GROWTH_RULE_VIEW/EDIT`、
+`POINT_RULE_VIEW/EDIT`、`COSMETIC_VIEW/EDIT`、`USER_GROWTH_ADJUST`、`USER_POINT_ADJUST`。
+
+**矩阵外新增 4 个**（已登记进 `app/scripts/seed/catalog.py::RUNTIME_EXTRA_PERMISSIONS`，
+即规格差异的既定登记处）：
+
+| 权限码 | 用途 |
+| --- | --- |
+| `BIZ_USER_VIEW` | 管理员检索平台业务用户（用户选择器） |
+| `TASK_CONFIG_VIEW` | 查看任务定义 |
+| `TASK_CONFIG_EDIT` | 新建/编辑/停用任务定义 |
+| `ACHIEVEMENT_CONFIG_VIEW` | 查看成就定义 |
+
+重新 seed 后 `SUPER_ADMIN` 持 **407 / 407** 权限，4 个新码均已授予。
+
+### 解法三：补齐被留空的默认配置（顺带发现的独立缺陷）
+
+原 seed 里成长体系**全部数值均为惰性占位**：只有 1 个等级（LV1）、规则 `enabled=false`
+且积分为 0、任务与成就状态 `DISABLED` 且无奖励。已改为播种真实默认值：
+
+* 等级阶梯 5 级：LV1(0) / LV2(100) / LV3(300) / LV4(1000) / LV5(3000)
+* 成长规则 5 条、积分规则 5 条，`enabled=true`，含真实积分值与每日上限
+* 任务 3 条、成就 3 条，状态 `ACTIVE`，附积分 / 成长值奖励
+
+因 seed 是 **insert-if-not-exists（绝不 UPDATE 已有行）**，另用一次性脚本把新默认值回填进
+既有库（退役遗留的 `LV_2` 测试等级、补齐阶梯、启用规则、挂奖励、`GrowthService.recalculate()`
+重算全部用户等级）。该脚本已随本轮结束删除。
+
+### 顺带修好的既有 Bug：`PointService.ensure_account`
+
+`app/platform/points/service.py::ensure_account` 原实现调用
+`self._repository.ensure_account(...)`，而该方法是 `GrowthService` 才有、`GrowthRepository`
+**根本没有**的——任何「积分账户首次创建」都会 `AttributeError` 500。之所以此前从未暴露，
+是因为积分表一直是空的。已改为用 `account_for_update` + `create_account` 两个仓储原语实现，
+并在创建积分账户前先确保成长账户存在（外键依赖）。
+
+### 验证结果
+
+| 项 | 结果 |
+| --- | --- |
+| `GET /admin/growth/overview` | `biz_user_count 1`、`growth_account_count 1`、`point_account_count 1`、`growth_rule_enabled 5/5`、`point_rule_enabled 5/5`、`level_count 5`、`task_count 3`、`achievement_count 3`、`cosmetic_count 6` |
+| 等级自动重算 | +50 → LV1；再 +60 → **LV2 自动升级**，`level_changed: true` |
+| 删除保护 | 删除有引用的等级 → `409001` |
+| 页面验证 | `/growth`、`/growth/points`、`/growth/levels`、`/growth/tasks`、`/growth/achievements`、`/growth/cosmetics` 六页全部出数据，**控制台 0 错误** |
+| 页内调整流程 | 选 `testuser` → 调整 `-10` → 累计成长值 100 / Lv.2 进阶 / 还需 200 / 33%，流水新增 `-10 / 100 / EARN / ADMIN_ADJUSTMENT` |
+| 后端 | `ruff check app` 全过；`pytest -q` **137 passed** |
+| 前端 | `vue-tsc --noEmit` 无输出；`eslint src` 无输出 |
+
+---
+
+### 原始登记（2026-10-03 现象记录）
 
 ### 现象
 
@@ -375,7 +468,7 @@ OpenAPI 全部 162 条路径中，**不存在**任何 `/admin/growth`、`/admin/
 而同一批资源里的**目录型**端点不鉴业务身份，Operator 可读：`/levels`、`/achievements`、
 `/cosmetics`、`/point-rules/public`。这也是本次前端到现在仍能出数据的部分。
 
-### 本轮处理（前端侧，未改动后端 API 面）
+### 当时的临时处理（2026-10-03，前端侧，未改动后端 API 面）
 
 * `growth` / `tasks` 两页：整页依赖全是 `/me` 系列，改为渲染 **`BizIdentityNotice`**
   说明组件 + 指向可用目录页的入口，不再抛加载失败。
@@ -386,13 +479,16 @@ OpenAPI 全部 162 条路径中，**不存在**任何 `/admin/growth`、`/admin/
   `achievements` / `cosmetics` 四个 api 模块中移除对应的 `/me` 封装，避免留下会再次触发
   401 的死代码。
 
-### 待决策（需先于后端实现）
+### 当时的待决策项（2026-10-05 逐条答复）
 
-1. 是否新增管理员侧查询端点？建议形态 `/api/v1/admin/users/{user_id}/growth`、
-   `/points`、`/tasks`、`/levels`、`/achievements`、`/cosmetics`。
-2. 若新增，其**权限码**需并入 §二-A 的矩阵差异清单（目前无对应冻结权限码）。
-3. 若决定「管理平台不展示任何用户级成长数据」，则需在导航层面移除 `/growth*` 路由，
-   而非保留说明页。
+1. **是否新增管理员侧查询端点？** → **是**，已实现，见本节开头「解法一」。实际形态为
+   `GET /api/v1/admin/users/{user_id}/growth` / `points` / `tasks` / `achievements` /
+   `cosmetics`，与当初建议一致；额外补了 `summary`、`levels`、`levels/history`、
+   `cosmetics/equipment` 与两个调整端点。
+2. **权限码需并入矩阵差异清单** → 已并入
+   `app/scripts/seed/catalog.py::RUNTIME_EXTRA_PERMISSIONS`（4 个新码，见「解法二」）。
+3. **是否在导航层移除 `/growth*`** → **否**，六页已全部改为消费管理员侧端点出真实数据；
+   占位说明组件 `BizIdentityNotice.vue` 已删除。
 
 ### 顺带修好的两处（非 BLOCKER）
 

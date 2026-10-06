@@ -214,6 +214,8 @@ MATRIX_PERMISSIONS: Final[dict[str, str]] = {
 # unknown code, and every one of them is recorded in ``BLOCKERS.md`` as an
 # implementation/matrix divergence. No new code may be added here silently.
 RUNTIME_EXTRA_PERMISSIONS: Final[dict[str, str]] = {
+    "ACHIEVEMENT_CONFIG_VIEW": "查看成就配置（矩阵外）",
+    "BIZ_USER_VIEW": "查看平台业务用户（矩阵外）",
     "BLOG_CATEGORY_MANAGE": "管理博客分类（矩阵外）",
     "BLOG_COMMENT_REVIEW": "审核评论（矩阵外）",
     "EXPORT_MANAGE": "管理导出（矩阵外）",
@@ -221,6 +223,8 @@ RUNTIME_EXTRA_PERMISSIONS: Final[dict[str, str]] = {
     "NOTIFICATION_MANAGE": "管理通知（矩阵外）",
     "SYSTEM_FILE_MANAGE": "管理文件（矩阵外）",
     "SYSTEM_JOB_MANAGE": "管理系统作业（矩阵外）",
+    "TASK_CONFIG_EDIT": "编辑任务配置（矩阵外）",
+    "TASK_CONFIG_VIEW": "查看任务配置（矩阵外）",
     "TOOL_ACCESS_MANAGE": "管理工具访问策略（矩阵外）",
     "TOOL_MANAGE": "管理工具（矩阵外）",
 }
@@ -519,28 +523,38 @@ FEATURE_FLAGS: Final[tuple[tuple[str, str, bool, str], ...]] = (
 # ---------------------------------------------------------------------------
 LEVELS: Final[tuple[tuple[str, str, int, int], ...]] = (
     ("LV1", "Lv.1 新手", 1, 0),
+    ("LV2", "Lv.2 进阶", 2, 100),
+    ("LV3", "Lv.3 熟练", 3, 300),
+    ("LV4", "Lv.4 高手", 4, 1000),
+    ("LV5", "Lv.5 大师", 5, 3000),
 )
 
 # ---------------------------------------------------------------------------
-# Growth rules  (reward values are unfrozen - seeded inert with 0 points)
+# Growth rules  (rule_code, rule_name, event_code, growth_points, daily_limit,
+#                cooldown_seconds)
+#
+# The frozen DDL defines the columns but leaves the numbers to product. These
+# defaults make the ladder reachable: daily login alone reaches LV2 in twenty
+# days, while tool use is capped per day so it cannot be farmed in bulk.
 # ---------------------------------------------------------------------------
-GROWTH_RULES: Final[tuple[tuple[str, str, str], ...]] = (
-    ("GROWTH_DAILY_LOGIN", "每日登录", "DAILY_LOGIN"),
-    ("GROWTH_TOOL_EXECUTION_SUCCESS", "工具执行成功", "TOOL_EXECUTION_SUCCESS"),
-    ("GROWTH_BLOG_ARTICLE_PUBLISHED", "发布文章", "BLOG_ARTICLE_PUBLISHED"),
-    ("GROWTH_BLOG_COMMENT_CREATED", "发表评论", "BLOG_COMMENT_CREATED"),
-    ("GROWTH_BLOG_LIKE_RECEIVED", "获得点赞", "BLOG_LIKE_RECEIVED"),
+GROWTH_RULES: Final[tuple[tuple[str, str, str, int, int | None, int | None], ...]] = (
+    ("GROWTH_DAILY_LOGIN", "每日登录", "DAILY_LOGIN", 5, 1, None),
+    ("GROWTH_TOOL_EXECUTION_SUCCESS", "工具执行成功", "TOOL_EXECUTION_SUCCESS", 2, 20, None),
+    ("GROWTH_BLOG_ARTICLE_PUBLISHED", "发布文章", "BLOG_ARTICLE_PUBLISHED", 20, 5, None),
+    ("GROWTH_BLOG_COMMENT_CREATED", "发表评论", "BLOG_COMMENT_CREATED", 3, 10, 30),
+    ("GROWTH_BLOG_LIKE_RECEIVED", "获得点赞", "BLOG_LIKE_RECEIVED", 1, 50, None),
 )
 
 # ---------------------------------------------------------------------------
-# Point rules  (values are unfrozen - seeded inert with 0 points)
+# Point rules  (rule_code, rule_name, event_code, points, daily_limit,
+#               cooldown_seconds)
 # ---------------------------------------------------------------------------
-POINT_RULES: Final[tuple[tuple[str, str, str], ...]] = (
-    ("POINT_USER_REGISTER", "注册奖励", "USER_REGISTER"),
-    ("POINT_TOOL_EXECUTION_SUCCESS", "工具执行成功", "TOOL_EXECUTION_SUCCESS"),
-    ("POINT_BLOG_ARTICLE_PUBLISHED", "发布文章", "BLOG_ARTICLE_PUBLISHED"),
-    ("POINT_BLOG_COMMENT_CREATED", "发表评论", "BLOG_COMMENT_CREATED"),
-    ("POINT_BLOG_LIKE_RECEIVED", "获得点赞", "BLOG_LIKE_RECEIVED"),
+POINT_RULES: Final[tuple[tuple[str, str, str, int, int | None, int | None], ...]] = (
+    ("POINT_USER_REGISTER", "注册奖励", "USER_REGISTER", 100, None, None),
+    ("POINT_TOOL_EXECUTION_SUCCESS", "工具执行成功", "TOOL_EXECUTION_SUCCESS", 1, 20, None),
+    ("POINT_BLOG_ARTICLE_PUBLISHED", "发布文章", "BLOG_ARTICLE_PUBLISHED", 50, 5, None),
+    ("POINT_BLOG_COMMENT_CREATED", "发表评论", "BLOG_COMMENT_CREATED", 5, 10, 30),
+    ("POINT_BLOG_LIKE_RECEIVED", "获得点赞", "BLOG_LIKE_RECEIVED", 2, 50, None),
 )
 
 # ---------------------------------------------------------------------------
@@ -556,28 +570,64 @@ COSMETICS: Final[tuple[tuple[str, str, str, int], ...]] = (
 )
 
 # ---------------------------------------------------------------------------
-# Tasks / achievements  (reward values are unfrozen - seeded DISABLED)
+# Tasks / achievements
+#
+# (task_code, task_name, task_type, conditions, reward, repeatable)
+#
+# ``conditions`` must carry ``event_code`` (how progress is counted) and
+# ``target_count`` (when the task completes). ``reward`` feeds PointService and
+# GrowthService on claim, so both numeric families are named explicitly.
 # ---------------------------------------------------------------------------
-TASKS: Final[tuple[tuple[str, str, str, dict[str, Any]], ...]] = (
-    ("TASK_DAILY_LOGIN", "每日登录", "DAILY", {"event_code": "DAILY_LOGIN"}),
+TASKS: Final[tuple[tuple[str, str, str, dict[str, Any], dict[str, Any], bool], ...]] = (
+    (
+        "TASK_DAILY_LOGIN",
+        "每日登录",
+        "DAILY",
+        {"event_code": "DAILY_LOGIN", "target_count": 1},
+        {"points": 5, "growth_points": 5},
+        True,
+    ),
     (
         "TASK_FIRST_TOOL_USE",
         "首次使用工具",
         "ONE_TIME",
-        {"event_code": "TOOL_EXECUTION_SUCCESS"},
+        {"event_code": "TOOL_EXECUTION_SUCCESS", "target_count": 1},
+        {"points": 20, "growth_points": 10},
+        False,
     ),
     (
         "TASK_FIRST_ARTICLE_PUBLISHED",
         "首次发布文章",
         "ONE_TIME",
-        {"event_code": "BLOG_ARTICLE_PUBLISHED"},
+        {"event_code": "BLOG_ARTICLE_PUBLISHED", "target_count": 1},
+        {"points": 50, "growth_points": 30},
+        False,
     ),
 )
 
-ACHIEVEMENTS: Final[tuple[tuple[str, str, dict[str, Any]], ...]] = (
-    ("ACH_FIRST_LOGIN", "初次登录", {"event_code": "DAILY_LOGIN"}),
-    ("ACH_FIRST_TOOL_EXECUTION", "初次使用工具", {"event_code": "TOOL_EXECUTION_SUCCESS"}),
-    ("ACH_FIRST_ARTICLE", "初次发布文章", {"event_code": "BLOG_ARTICLE_PUBLISHED"}),
+# (achievement_code, achievement_name, conditions, reward)
+#
+# ``conditions.count`` is the number of growth events of ``event_code`` that
+# unlocks it - see ``AchievementService._condition_met``.
+ACHIEVEMENTS: Final[tuple[tuple[str, str, dict[str, Any], dict[str, Any]], ...]] = (
+    (
+        "ACH_FIRST_LOGIN",
+        "初次登录",
+        {"event_code": "DAILY_LOGIN", "count": 1},
+        {"points": 50},
+    ),
+    (
+        "ACH_FIRST_TOOL_EXECUTION",
+        "初次使用工具",
+        {"event_code": "TOOL_EXECUTION_SUCCESS", "count": 1},
+        {"points": 30},
+    ),
+    (
+        "ACH_FIRST_ARTICLE",
+        "初次发布文章",
+        {"event_code": "BLOG_ARTICLE_PUBLISHED", "count": 1},
+        {"points": 100},
+    ),
 )
 
 # ---------------------------------------------------------------------------

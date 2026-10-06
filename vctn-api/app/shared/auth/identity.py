@@ -96,7 +96,10 @@ async def _resolve_platform(
     ip: str | None,
     user_agent: str | None,
 ) -> Principal:
-    from app.platform.auth.model import BizUserSession
+    # Deferred on purpose: importing the session model at module scope would
+    # pull more of the ORM graph into every admin request. It lives beside
+    # `BizUser` in `users.model`, not in `auth.model`.
+    from app.platform.users.model import BizUserSession
 
     row = (
         await session.execute(

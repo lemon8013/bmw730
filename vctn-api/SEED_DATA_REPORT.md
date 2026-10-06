@@ -9,7 +9,7 @@
 
 | Run | Created | Skipped |
 | --- | --- | --- |
-| 1 | 5 | 1045 |
+| 1 | 90 | 1050 |
 
 - Idempotency: **PASS**
 
@@ -19,11 +19,11 @@
 | --- | --- |
 | Departments | 1 |
 | Roles | 3 |
-| Permissions | 362 |
+| Permissions | 407 |
 | Permission Matrix | 64 |
-| Runtime-Extra Permissions | 9 |
-| API Permissions | 200 |
-| API Permissions Guarded | 107 |
+| Runtime-Extra Permissions | 13 |
+| API Permissions | 241 |
+| API Permissions Guarded | 148 |
 | Dictionary Types | 27 |
 | Dictionary Items | 95 |
 | Configs | 38 |
@@ -34,7 +34,7 @@
 | Cosmetics | 6 |
 | Tasks | 3 |
 | Achievements | 3 |
-| Tool Categories | 9 |
+| Tool Categories | 11 |
 | Tools | 23 |
 | Tool Versions | 23 |
 | Tool Components | 18 |
@@ -47,16 +47,16 @@
 | --- | --- | --- |
 | super_admin_state | FAIL | ACTIVE / SUPER_ADMIN / must_change_password |
 | security | PASS | administrator password is stored as a hash only |
-| super_admin_grants | PASS | 362/362 permissions granted |
+| super_admin_grants | PASS | 407/407 permissions granted |
 | tool_graph_complete | PASS | all tools have category+version+component+policy |
 | levels_present | PASS | 1 level(s) |
 | growth_rules_event_bound | PASS | 5 growth rule(s) |
 | tasks_event_bound | PASS | 3 task(s) |
 | achievements_event_bound | PASS | 3 achievement(s) |
 | permission_matrix_complete | PASS | 64 frozen codes present |
-| runtime_extra_permissions_present | PASS | 9 matrix-external codes seeded |
-| route_guards_known | PASS | 45 distinct guard code(s) all exist |
-| api_endpoint_coverage | PASS | 200 live endpoint(s) have an API permission |
-| api_permission_tree_linked | PASS | 107/107 guarded endpoint(s) attached to their permission |
+| runtime_extra_permissions_present | PASS | 13 matrix-external codes seeded |
+| route_guards_known | PASS | 61 distinct guard code(s) all exist |
+| api_endpoint_coverage | PASS | 241 live endpoint(s) have an API permission |
+| api_permission_tree_linked | PASS | 148/148 guarded endpoint(s) attached to their permission |
 
 > Passwords, password hashes, tokens, secrets and connection strings are never rendered in this report.

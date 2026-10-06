@@ -33,6 +33,7 @@ EXPECTED_BUSINESS_TAGS = {
     "admin:departments",
     "admin:dictionaries",
     "admin:export",
+    "admin:growth",
     "admin:logs",
     "admin:notifications",
     "admin:permissions",

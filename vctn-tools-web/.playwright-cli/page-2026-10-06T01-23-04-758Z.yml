@@ -1,0 +1,23 @@
+- generic [ref=e4]:
+  - generic [ref=e6]:
+    - generic [ref=e7]: VCTN Tools
+    - generic [ref=e8]: 登录后可同步最近使用与用量记录；不登录也能使用全部工具
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - tablist [ref=e14]:
+        - tab "登录" [selected] [ref=e16]
+        - tab "注册" [ref=e17]
+      - generic [ref=e18]:
+        - tabpanel "登录" [ref=e19]:
+          - generic [ref=e20]:
+            - generic [ref=e21]:
+              - generic [ref=e22]: "*用户名 / 邮箱 / 手机号"
+              - textbox "*用户名 / 邮箱 / 手机号" [ref=e26]:
+                - /placeholder: testuser
+            - generic [ref=e27]:
+              - generic [ref=e28]: "*密码"
+              - textbox "*密码" [ref=e32]
+            - button "登录" [ref=e33] [cursor=pointer]
+        - text: "* *"
+    - link "← 先随便逛逛" [ref=e36] [cursor=pointer]:
+      - /url: /

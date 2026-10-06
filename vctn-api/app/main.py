@@ -27,6 +27,7 @@ from app.admin.config.router import router as admin_config_router
 from app.admin.departments.router import router as admin_departments_router
 from app.admin.dictionaries.router import router as admin_dictionaries_router
 from app.admin.export.router import router as admin_export_router
+from app.admin.growth.router import router as admin_growth_router
 from app.admin.logs.router import router as admin_logs_router
 from app.admin.notifications.router import router as admin_notifications_router
 from app.admin.permissions.router import router as admin_permissions_router
@@ -82,6 +83,7 @@ _BUSINESS_ROUTERS: Final[tuple[tuple[str, str, APIRouter], ...]] = (
     ("/admin", "admin:config", admin_config_router),
     ("/admin", "admin:tools", admin_tools_router),
     ("/admin", "admin:analytics", admin_analytics_router),
+    ("/admin", "admin:growth", admin_growth_router),
     ("/admin", "admin:export", admin_export_router),
     ("/admin", "admin:logs", admin_logs_router),
     ("/admin", "admin:notifications", admin_notifications_router),

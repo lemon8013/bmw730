@@ -594,7 +594,7 @@ async def seed_levels(session: AsyncSession, counter: SeedCounter) -> None:
                 "min_growth_points": min_growth,
                 "status": ACTIVE,
                 "sort_order": level_no,
-                "description": "等级阈值未冻结（DD-16），仅初始化基础等级",
+                "description": "等级阈值未冻结（DD-16），当前为初始默认配置",
             },
             counter=counter,
             collection="levels",
@@ -602,7 +602,9 @@ async def seed_levels(session: AsyncSession, counter: SeedCounter) -> None:
 
 
 async def seed_growth_rules(session: AsyncSession, counter: SeedCounter) -> None:
-    for rule_code, rule_name, event_code in catalog.GROWTH_RULES:
+    for rule_code, rule_name, event_code, points, daily_limit, cooldown in (
+        catalog.GROWTH_RULES
+    ):
         await ensure_row(
             session,
             BizGrowthRule,
@@ -610,9 +612,11 @@ async def seed_growth_rules(session: AsyncSession, counter: SeedCounter) -> None
             values={
                 "rule_name": rule_name,
                 "event_code": event_code,
-                "growth_points": 0,
-                "enabled": False,
-                "description": "成长值未冻结（DD-16），默认不启用",
+                "growth_points": points,
+                "daily_limit": daily_limit,
+                "cooldown_seconds": cooldown,
+                "enabled": True,
+                "description": "成长值阈值未冻结（DD-16），当前为初始默认配置",
             },
             counter=counter,
             collection="growth_rules",
@@ -620,7 +624,7 @@ async def seed_growth_rules(session: AsyncSession, counter: SeedCounter) -> None
 
 
 async def seed_point_rules(session: AsyncSession, counter: SeedCounter) -> None:
-    for rule_code, rule_name, event_code in catalog.POINT_RULES:
+    for rule_code, rule_name, event_code, points, daily_limit, cooldown in catalog.POINT_RULES:
         await ensure_row(
             session,
             BizPointRule,
@@ -628,9 +632,11 @@ async def seed_point_rules(session: AsyncSession, counter: SeedCounter) -> None:
             values={
                 "rule_name": rule_name,
                 "event_code": event_code,
-                "points": 0,
-                "enabled": False,
-                "description": "积分值未冻结（DD-16），默认不启用",
+                "points": points,
+                "daily_limit": daily_limit,
+                "cooldown_seconds": cooldown,
+                "enabled": True,
+                "description": "积分阈值未冻结（DD-16），当前为初始默认配置",
             },
             counter=counter,
             collection="point_rules",
@@ -655,7 +661,7 @@ async def seed_cosmetics(session: AsyncSession, counter: SeedCounter) -> None:
 
 
 async def seed_tasks(session: AsyncSession, counter: SeedCounter) -> None:
-    for task_code, task_name, task_type, conditions in catalog.TASKS:
+    for task_code, task_name, task_type, conditions, reward, repeatable in catalog.TASKS:
         await ensure_row(
             session,
             BizTask,
@@ -664,9 +670,9 @@ async def seed_tasks(session: AsyncSession, counter: SeedCounter) -> None:
                 "task_name": task_name,
                 "task_type": task_type,
                 "conditions": conditions,
-                "reward": None,
-                "repeatable": False,
-                "status": "DISABLED",
+                "reward": reward,
+                "repeatable": repeatable,
+                "status": "ACTIVE",
             },
             counter=counter,
             collection="tasks",
@@ -674,16 +680,16 @@ async def seed_tasks(session: AsyncSession, counter: SeedCounter) -> None:
 
 
 async def seed_achievements(session: AsyncSession, counter: SeedCounter) -> None:
-    for achievement_code, achievement_name, conditions in catalog.ACHIEVEMENTS:
+    for code, name, conditions, reward in catalog.ACHIEVEMENTS:
         await ensure_row(
             session,
             BizAchievement,
-            keys={"achievement_code": achievement_code},
+            keys={"achievement_code": code},
             values={
-                "achievement_name": achievement_name,
+                "achievement_name": name,
                 "conditions": conditions,
-                "reward": None,
-                "status": "DISABLED",
+                "reward": reward,
+                "status": "ACTIVE",
             },
             counter=counter,
             collection="achievements",

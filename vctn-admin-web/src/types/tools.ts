@@ -19,6 +19,25 @@ export interface ToolCategory {
   status: string
 }
 
+/** `ToolCategoryCreateRequest`. */
+export interface ToolCategoryCreateRequest {
+  category_code: string
+  category_name: string
+  description?: string | null
+  icon_url?: string | null
+  sort_order?: number
+  status?: string
+}
+
+/** `ToolCategoryUpdateRequest` — `category_code` is immutable after creation. */
+export interface ToolCategoryUpdateRequest {
+  category_name?: string | null
+  description?: string | null
+  icon_url?: string | null
+  sort_order?: number | null
+  status?: string | null
+}
+
 /** `ToolResponse`. */
 export interface Tool {
   id: EntityId

@@ -1,0 +1,43 @@
+- generic [ref=e4]:
+  - generic [ref=e6]:
+    - generic [ref=e7]: VCTN Tools
+    - generic [ref=e8]: 登录后可同步最近使用与用量记录；不登录也能使用全部工具
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - tablist [ref=e14]:
+        - tab "登录" [ref=e16]
+        - tab "注册" [selected] [ref=e17]
+      - generic [ref=e18]:
+        - text: "* *"
+        - tabpanel "注册" [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]:
+              - generic [ref=e40]: "*用户名"
+              - textbox "*用户名" [ref=e44]:
+                - /placeholder: 3–64 位，字母数字下划线
+                - text: tools_tester02
+            - generic [ref=e45]:
+              - generic [ref=e46]: 昵称
+              - textbox "昵称" [ref=e50]:
+                - /placeholder: 选填
+                - text: 注册测试
+            - generic [ref=e51]:
+              - generic [ref=e52]: 邮箱
+              - textbox "邮箱" [ref=e56]:
+                - /placeholder: 邮箱 / 手机号至少填一个
+                - text: tools02@example.com
+            - generic [ref=e57]:
+              - generic [ref=e58]: 手机号
+              - textbox "手机号" [ref=e62]:
+                - /placeholder: 选填
+            - generic [ref=e63]:
+              - generic [ref=e64]: "*密码"
+              - textbox "*密码" [ref=e68]:
+                - /placeholder: 至少 12 位，含大小写字母、数字和特殊字符
+                - text: Tools-Pass-456
+            - generic [ref=e69]:
+              - generic [ref=e70]: 确认密码
+              - textbox "确认密码" [ref=e74]: Tools-Pass-456
+            - button "注册并登录" [disabled]
+    - link "← 先随便逛逛" [ref=e36] [cursor=pointer]:
+      - /url: /

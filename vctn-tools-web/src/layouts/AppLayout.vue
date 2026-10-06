@@ -4,6 +4,7 @@ import { computed, ref, watch } from 'vue'
 import { HomeFilled } from '@element-plus/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import UserMenu from '@/components/UserMenu.vue'
 import { useAppStore } from '@/stores/app'
 
 const store = useAppStore()
@@ -86,6 +87,8 @@ function goHome(): void {
             <ElButton @click="submitSearch">搜索</ElButton>
           </template>
         </ElInput>
+
+        <UserMenu class="app-layout__user" />
       </div>
     </header>
 
@@ -167,6 +170,10 @@ function goHome(): void {
 .app-layout__search {
   width: 280px;
   margin-left: auto;
+}
+
+.app-layout__user {
+  flex: none;
 }
 
 .app-layout__main {

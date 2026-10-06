@@ -1,10 +1,16 @@
 <script setup lang="ts">
-/** 成就：只读查看成就目录与当前身份已获得的成就。 */
+/**
+ * 成就：成就目录 + 按业务用户查看已解锁情况。
+ *
+ * 平台侧的 `/achievements/me` 按登录的业务用户取数，管理员调用一律 401。本页
+ * 改走 `/admin/users/{id}/achievements`，后端把「全部成就」与「该用户是否已解
+ * 锁」合并返回，因此一次请求就能渲染出完整的达成矩阵。
+ */
 import { computed, ref } from 'vue'
-import { ElAlert, ElButton, ElCard, ElTableColumn } from 'element-plus'
+import { ElButton, ElCard, ElTableColumn } from 'element-plus'
 
-import { listAchievements } from '@/api/achievements'
-import BizIdentityNotice from '@/components/common/BizIdentityNotice.vue'
+import { getUserAchievements } from '@/api/growth'
+import BizUserPicker from '@/components/growth/BizUserPicker.vue'
 import JsonViewer from '@/components/common/JsonViewer.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
@@ -12,40 +18,35 @@ import BaseDialog from '@/components/dialog/BaseDialog.vue'
 import BaseTable from '@/components/table/BaseTable.vue'
 import { useAsyncData } from '@/composables/useAsyncData'
 import { useFieldPolicy } from '@/composables/useFieldPolicy'
-import { PAGE_PERMISSION } from '@/constants/permissions'
+import { PERMISSION } from '@/constants/permissions'
 
-/** 字段级权限：控制每个字段的可见 / 只读 / 可编辑。 */
-const fields = useFieldPolicy(PAGE_PERMISSION.achievement)
+const fields = useFieldPolicy(PERMISSION.achievementConfigView)
 
-/** BaseTable 接收结构化行；接口 DTO 在此边界转换为行记录。 */
-function asRows(items: readonly unknown[]): Record<string, unknown>[] {
-  return items as unknown as Record<string, unknown>[]
-}
+const MAX_PAGE_SIZE = 200
 
-// ---------------------------------------------------------------------------
-// 成就目录
-// ---------------------------------------------------------------------------
+const selectedUserId = ref('')
 
 const {
-  data: achievementData,
-  loading: achievementsLoading,
-  failed: achievementsFailed,
-  error: achievementsError,
-  reload: reloadAchievements,
-} = useAsyncData(() => listAchievements())
+  data: achievements,
+  loading,
+  failed,
+  error,
+  reload,
+} = useAsyncData(() => getUserAchievements(selectedUserId.value), { immediate: false })
 
-const achievementRows = computed(() => asRows(achievementData.value ?? []))
+const rows = computed(() => (achievements.value ?? []) as unknown as Record<string, unknown>[])
 
-// ---------------------------------------------------------------------------
-// 我的成就
-//
-// `/achievements/me` resolves identity from the signed-in business user, which
-// an operator session does not have, so the section renders a notice instead.
-// ---------------------------------------------------------------------------
-
-function refreshAll(): void {
-  void reloadAchievements()
+async function onUserChange(user: { user_id: string } | null): Promise<void> {
+  const userId = user?.user_id ?? ''
+  selectedUserId.value = userId
+  if (userId) {
+    await reload()
+  }
 }
+
+const unlockedCount = computed(
+  () => rows.value.filter((row) => row.unlocked === true).length,
+)
 
 // ---------------------------------------------------------------------------
 // JSON 查看
@@ -64,48 +65,55 @@ function openJson(title: string, value: unknown): void {
 
 <template>
   <div class="achievement-page">
-    <PageHeader title="成就" description="查看成就目录（只读）。">
+    <PageHeader title="成就" description="成就目录，以及按业务用户查看的解锁情况。">
       <template #actions>
-        <ElButton @click="refreshAll">刷新</ElButton>
+        <ElButton v-if="selectedUserId" @click="reload">刷新</ElButton>
       </template>
     </PageHeader>
 
-    <ElAlert
-      type="info"
-      :closable="false"
-      show-icon
-      class="achievement-page__notice"
-      title="成就配置为只读"
-      description="后端尚未实现成就的增删改接口，因此本页不提供任何成就维护入口。"
-    />
-
     <ElCard shadow="never" class="achievement-page__section">
-      <template #header>成就目录</template>
+      <template #header>
+        <div class="achievement-page__header">
+          <span>
+            成就达成情况
+            <template v-if="selectedUserId">
+              （已解锁 {{ unlockedCount }} / {{ rows.length }}）
+            </template>
+          </span>
+          <BizUserPicker :model-value="selectedUserId" width="320px" @change="onUserChange" />
+        </div>
+      </template>
       <BaseTable
-        :rows="achievementRows"
-        :loading="achievementsLoading"
-        :failed="achievementsFailed"
-        :error="achievementsError"
+        :rows="rows"
+        :loading="loading"
+        :failed="failed"
+        :error="error"
         :total="0"
         :page="1"
-        :page-size="1"
+        :page-size="MAX_PAGE_SIZE"
         :paginated="false"
-        row-key="id"
-        empty-text="暂无成就"
-        @retry="reloadAchievements"
+        row-key="achievement_code"
+        :empty-text="selectedUserId ? '暂无成就' : '请选择业务用户'"
+        @retry="reload"
       >
         <ElTableColumn
           v-if="!fields.isHidden('achievement_code')"
           prop="achievement_code"
           label="成就编码"
-          min-width="160"
+          min-width="180"
         />
         <ElTableColumn
           v-if="!fields.isHidden('achievement_name')"
           prop="achievement_name"
           label="成就名称"
-          min-width="160"
+          min-width="150"
         />
+        <ElTableColumn label="解锁状态" width="120">
+          <template #default="{ row }">
+            <StatusTag :value="row.unlocked" :boolean-labels="['未解锁', '已解锁']" />
+          </template>
+        </ElTableColumn>
+        <ElTableColumn prop="achieved_at" label="解锁时间" min-width="180" />
         <ElTableColumn v-if="!fields.isHidden('status')" prop="status" label="状态" width="110">
           <template #default="{ row }">
             <StatusTag :value="row.status" />
@@ -140,11 +148,6 @@ function openJson(title: string, value: unknown): void {
       </BaseTable>
     </ElCard>
 
-    <ElCard shadow="never">
-      <template #header>我的成就</template>
-      <BizIdentityNotice subject="已获得的成就" />
-    </ElCard>
-
     <BaseDialog v-model="jsonVisible" :title="jsonTitle" width="560px" hide-footer>
       <JsonViewer :value="jsonValue" />
     </BaseDialog>
@@ -152,11 +155,14 @@ function openJson(title: string, value: unknown): void {
 </template>
 
 <style scoped>
-.achievement-page__notice {
+.achievement-page__section {
   margin-bottom: 16px;
 }
 
-.achievement-page__section {
-  margin-bottom: 16px;
+.achievement-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 </style>

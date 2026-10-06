@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import datetime
 
+from pydantic import Field
+
 from app.shared.response.dto import ApiModel, OptionalStringId, StringId
 from app.tools.access.schema import AccessPolicyRequest
 
@@ -106,6 +108,36 @@ class ToolUsageOverviewAdminResponse(ApiModel):
     last_used_at: datetime.datetime | None = None
 
 
+class ToolCategoryCreateRequest(ApiModel):
+    """Create a tool category (administrative).
+
+    ``category_code`` is unique among live rows (case insensitive, see
+    ``uq_tool_category_code``), so a duplicate code is rejected with a conflict
+    rather than silently shadowing the existing category.
+    """
+
+    category_code: str = Field(min_length=1, max_length=64)
+    category_name: str = Field(min_length=1, max_length=128)
+    description: str | None = Field(default=None, max_length=500)
+    icon_url: str | None = None
+    sort_order: int = 0
+    status: str = "ACTIVE"
+
+
+class ToolCategoryUpdateRequest(ApiModel):
+    """Update a tool category (administrative).
+
+    ``category_code`` is deliberately absent: it identifies the category across
+    seed data and tooling, so renaming it here would break both.
+    """
+
+    category_name: str | None = Field(default=None, min_length=1, max_length=128)
+    description: str | None = Field(default=None, max_length=500)
+    icon_url: str | None = None
+    sort_order: int | None = None
+    status: str | None = None
+
+
 class ToolVisibilityResponse(ApiModel):
     """Who may use one tool.
 
@@ -154,6 +186,8 @@ __all__ = [
     "ToolUsagePointAdminResponse",
     "ToolUsageTrendPointAdminResponse",
     "ToolUsageOverviewAdminResponse",
+    "ToolCategoryCreateRequest",
+    "ToolCategoryUpdateRequest",
     "ToolVisibilityResponse",
     "ToolVisibilityRequest",
     "AccessPolicyAdminResponse",

@@ -110,6 +110,12 @@ class ToolCatalogService:
         today = datetime.datetime.now(datetime.UTC).date()
         rows = await self._usage.popularity(stat_date=today, window_days=window_days, limit=limit)
         result: list[dict] = []
+        if not rows:
+            # The rollup is empty (nothing schedules its refresh), so rank the
+            # raw events instead of showing no ranking at all.
+            return await self._popular_from_events(
+                window_days=window_days, limit=limit, is_guest=is_guest
+            )
         for row in rows:
             tool = await self._repository.get_tool(int(row.tool_id))
             if not await self._visible(tool, is_guest=is_guest):
@@ -124,6 +130,34 @@ class ToolCatalogService:
                     "unique_user_count": int(row.unique_user_count or 0),
                     "rank_no": row.rank_no,
                     "score": None if row.score is None else float(row.score),
+                }
+            )
+        return result
+
+    async def _popular_from_events(
+        self, *, window_days: int, limit: int, is_guest: bool
+    ) -> list[dict]:
+        """Rank tools from raw events, filling ``rank_no`` by position."""
+        end = datetime.datetime.now(datetime.UTC)
+        start = (end - datetime.timedelta(days=window_days - 1)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        rows = await self._usage.popularity_from_events(start=start, end=end, limit=limit)
+        result: list[dict] = []
+        for index, (tool_id, usage_count, unique_user_count) in enumerate(rows, start=1):
+            tool = await self._repository.get_tool(tool_id)
+            if not await self._visible(tool, is_guest=is_guest):
+                continue
+            assert tool is not None
+            result.append(
+                {
+                    "tool_id": str(tool_id),
+                    "tool_name": None if tool is None else str(tool.name),
+                    "tool_slug": None if tool is None else str(tool.slug),
+                    "usage_count": usage_count,
+                    "unique_user_count": unique_user_count,
+                    "rank_no": index,
+                    "score": None,
                 }
             )
         return result

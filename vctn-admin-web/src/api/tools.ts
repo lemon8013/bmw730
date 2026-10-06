@@ -1,11 +1,14 @@
 /** Tool administration (`app/admin/tools`). */
 
-import { get, post, put } from '@/api/client'
+import { del, get, post, put } from '@/api/client'
 import type { Page } from '@/types/api'
 import type {
   AccessPolicyRequest,
   AdminAccessPolicy,
   Tool,
+  ToolCategory,
+  ToolCategoryCreateRequest,
+  ToolCategoryUpdateRequest,
   ToolCreateRequest,
   ToolStatusRequest,
   ToolUpdateRequest,
@@ -70,6 +73,33 @@ export function getToolUsageOverview(days = 30): Promise<ToolUsageOverviewAdmin>
 /** `GET /admin/tools/usage/trend` — platform wide usage per day. */
 export function getToolUsageTrend(days = 30): Promise<ToolUsageTrendPointAdmin[]> {
   return get<ToolUsageTrendPointAdmin[]>('/admin/tools/usage/trend', { params: { days } })
+}
+
+/** `GET /admin/tools/categories` — includes DISABLED rows by default. */
+export function listAdminCategories(includeDisabled = true): Promise<ToolCategory[]> {
+  return get<ToolCategory[]>('/admin/tools/categories', {
+    params: { include_disabled: includeDisabled },
+  })
+}
+
+/** `POST /admin/tools/categories` */
+export function createToolCategory(
+  payload: ToolCategoryCreateRequest,
+): Promise<ToolCategory> {
+  return post<ToolCategory>('/admin/tools/categories', payload)
+}
+
+/** `PUT /admin/tools/categories/{category_id}` */
+export function updateToolCategory(
+  categoryId: string,
+  payload: ToolCategoryUpdateRequest,
+): Promise<ToolCategory> {
+  return put<ToolCategory>(`/admin/tools/categories/${categoryId}`, payload)
+}
+
+/** `DELETE /admin/tools/categories/{category_id}` */
+export function deleteToolCategory(categoryId: string): Promise<null> {
+  return del<null>(`/admin/tools/categories/${categoryId}`)
 }
 
 /** `GET /admin/tools/visibility` */

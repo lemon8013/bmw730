@@ -16,8 +16,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.shared.ids import new_id
 from app.tools.access.model import ToolAccessPolicy
 from app.tools.access.service import SUBJECT_GUEST, SUBJECT_USER
-from app.tools.catalog.model import Tool
+from app.tools.catalog.model import Tool, ToolCategory
 from app.tools.usage.model import ToolUsageEvent
+
+ACTIVE_CATEGORY_STATUS: str = "ACTIVE"
 
 
 class AdminToolRepository:
@@ -330,6 +332,64 @@ class AdminToolRepository:
             )
             for row in rows
         ]
+
+    # ------------------------------------------------------------------
+    # Tool categories
+    # ------------------------------------------------------------------
+
+    async def list_categories(self, *, include_disabled: bool) -> list[ToolCategory]:
+        statement = select(ToolCategory).where(ToolCategory.deleted_at.is_(None))
+        if not include_disabled:
+            statement = statement.where(ToolCategory.status == ACTIVE_CATEGORY_STATUS)
+        result = await self._session.execute(
+            statement.order_by(ToolCategory.sort_order, ToolCategory.id)
+        )
+        return list(result.scalars())
+
+    async def get_category(self, category_id: int) -> ToolCategory | None:
+        result = await self._session.execute(
+            select(ToolCategory).where(
+                ToolCategory.id == category_id, ToolCategory.deleted_at.is_(None)
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def code_taken(self, category_code: str, *, except_id: int | None = None) -> bool:
+        """Whether a live category already uses this code (case insensitive)."""
+        statement = select(func.count(ToolCategory.id)).where(
+            func.lower(ToolCategory.category_code) == category_code.lower(),
+            ToolCategory.deleted_at.is_(None),
+        )
+        if except_id is not None:
+            statement = statement.where(ToolCategory.id != except_id)
+        value = await self._session.execute(statement)
+        return int(value.scalar_one() or 0) > 0
+
+    async def category_tool_count(self, category_id: int) -> int:
+        value = await self._session.execute(
+            select(func.count(Tool.id)).where(
+                Tool.category_id == category_id, Tool.deleted_at.is_(None)
+            )
+        )
+        return int(value.scalar_one() or 0)
+
+    async def create_category(self, **fields: object) -> ToolCategory:
+        row = ToolCategory(id=new_id(), **fields)  # type: ignore[arg-type]
+        self._session.add(row)
+        await self._session.flush()
+        return row
+
+    async def update_category(self, row: ToolCategory, **fields: object) -> ToolCategory:
+        for key, value in fields.items():
+            setattr(row, key, value)
+        self._session.add(row)
+        await self._session.flush()
+        return row
+
+    async def soft_delete_category(self, row: ToolCategory) -> None:
+        row.deleted_at = datetime.datetime.now(datetime.UTC)
+        self._session.add(row)
+        await self._session.flush()
 
     async def flush(self) -> None:
         await self._session.flush()

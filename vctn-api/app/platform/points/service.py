@@ -39,11 +39,17 @@ class PointService:
         self._audit = AuditService(self._settings)
 
     async def ensure_account(self, user_id: int) -> BizUserPointAccount:
-        """Return the point account, creating it on first use."""
+        """Return the point account, creating it on first use.
+
+        The growth account is created first because every point-bearing user is
+        also a growth-bearing one. It is done through the repository primitives
+        rather than ``GrowthService`` so no accounting round trip is involved.
+        """
         row = await self._repository.account_for_update(user_id)
         if row is not None:
             return row
-        await self._growth.ensure_account(user_id)
+        if await self._growth.account_for_update(user_id) is None:
+            await self._growth.create_account(user_id)
         return await self._repository.create_account(user_id)
 
     async def account(self, user_id: int) -> PointAccountResponse:

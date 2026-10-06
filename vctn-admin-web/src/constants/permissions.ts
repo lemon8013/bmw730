@@ -81,6 +81,11 @@ export const PERMISSION = {
   cosmeticEdit: 'COSMETIC_EDIT',
   userGrowthAdjust: 'USER_GROWTH_ADJUST',
   userPointAdjust: 'USER_POINT_ADJUST',
+  // growth: codes the operator-facing gamification surface added (matrix-extra)
+  bizUserView: 'BIZ_USER_VIEW',
+  taskConfigView: 'TASK_CONFIG_VIEW',
+  taskConfigEdit: 'TASK_CONFIG_EDIT',
+  achievementConfigView: 'ACHIEVEMENT_CONFIG_VIEW',
   // operations
   exportView: 'EXPORT_VIEW',
   exportCancel: 'EXPORT_CANCEL',

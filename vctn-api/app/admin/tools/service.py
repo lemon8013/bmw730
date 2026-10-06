@@ -15,6 +15,7 @@ from app.admin.tools.repository import AdminToolRepository
 from app.admin.tools.schema import (
     AccessPolicyAdminResponse,
     AccessPolicyRequest,
+    ToolCategoryCreateRequest,
     ToolCreateRequest,
     ToolStatusRequest,
     ToolUpdateRequest,
@@ -26,7 +27,7 @@ from app.admin.tools.schema import (
     ToolVisibilityResponse,
 )
 from app.core.config import Settings, get_settings
-from app.core.exceptions import NotFoundError, ValidationError
+from app.core.exceptions import ConflictError, NotFoundError, ValidationError
 from app.shared.audit.service import AuditService
 from app.shared.logging.writers import RESULT_SUCCESS, write_operation_log
 from app.shared.pagination.params import Page, PageParams
@@ -38,7 +39,7 @@ from app.tools.access.service import (
     visibility_of,
     visibility_subjects,
 )
-from app.tools.catalog.schema import ToolResponse
+from app.tools.catalog.schema import ToolCategoryResponse, ToolResponse
 
 
 def _window(days: int) -> tuple[datetime.datetime, datetime.datetime]:
@@ -206,6 +207,121 @@ class AdminToolService:
         )
         await self._session.commit()
         return ToolResponse.model_validate(row)
+
+    async def list_categories(
+        self, *, include_disabled: bool = True
+    ) -> list[ToolCategoryResponse]:
+        """Every tool category, including disabled ones by default.
+
+        The public catalogue endpoint hides DISABLED rows; the management list
+        must be able to reach them to turn the status back on.
+        """
+        rows = await self._repository.list_categories(include_disabled=include_disabled)
+        return [ToolCategoryResponse.model_validate(row) for row in rows]
+
+    async def create_category(
+        self, *, actor_id: int, actor_username: str, payload: ToolCategoryCreateRequest
+    ) -> ToolCategoryResponse:
+        if await self._repository.code_taken(payload.category_code):
+            raise ConflictError("category code already exists")
+        row = await self._repository.create_category(
+            category_code=payload.category_code,
+            category_name=payload.category_name,
+            description=payload.description,
+            icon_url=payload.icon_url,
+            sort_order=payload.sort_order,
+            status=payload.status,
+        )
+        await self._audit.record(
+            self._session,
+            action="TOOL_CATEGORY_CREATE",
+            operator_id=int(actor_id),
+            operator_username=actor_username,
+            resource_type="tool_category",
+            resource_id=row.id,
+            after_data={
+                "category_code": payload.category_code,
+                "category_name": payload.category_name,
+                "status": payload.status,
+            },
+        )
+        await write_operation_log(
+            self._session,
+            operation="TOOL_CATEGORY_CREATE",
+            result=RESULT_SUCCESS,
+            operator_id=int(actor_id),
+            resource_type="tool_category",
+            resource_id=str(int(row.id)),
+        )
+        await self._session.commit()
+        return ToolCategoryResponse.model_validate(row)
+
+    async def update_category(
+        self, *, category_id: int, actor_id: int, actor_username: str, payload
+    ) -> ToolCategoryResponse:
+        row = await self._repository.get_category(category_id)
+        if row is None:
+            raise NotFoundError("tool category not found")
+        fields = payload.model_dump(exclude_unset=True)
+        before = {
+            "category_name": str(row.category_name),
+            "description": row.description,
+            "icon_url": row.icon_url,
+            "sort_order": int(row.sort_order),
+            "status": str(row.status),
+        }
+        if fields:
+            await self._repository.update_category(row, **fields)
+        await self._audit.record(
+            self._session,
+            action="TOOL_CATEGORY_UPDATE",
+            operator_id=int(actor_id),
+            operator_username=actor_username,
+            resource_type="tool_category",
+            resource_id=row.id,
+            before_data=before,
+            after_data={**before, **fields},
+        )
+        await write_operation_log(
+            self._session,
+            operation="TOOL_CATEGORY_UPDATE",
+            result=RESULT_SUCCESS,
+            operator_id=int(actor_id),
+            resource_type="tool_category",
+            resource_id=str(int(row.id)),
+        )
+        await self._session.commit()
+        return ToolCategoryResponse.model_validate(row)
+
+    async def delete_category(
+        self, *, category_id: int, actor_id: int, actor_username: str
+    ) -> None:
+        """Soft delete a category that no tool still points at."""
+        row = await self._repository.get_category(category_id)
+        if row is None:
+            raise NotFoundError("tool category not found")
+        used = await self._repository.category_tool_count(category_id)
+        if used > 0:
+            raise ConflictError(f"{used} tool(s) still belong to this category")
+        await self._repository.soft_delete_category(row)
+        await self._audit.record(
+            self._session,
+            action="TOOL_CATEGORY_DELETE",
+            operator_id=int(actor_id),
+            operator_username=actor_username,
+            resource_type="tool_category",
+            resource_id=row.id,
+            before_data={"category_code": str(row.category_code)},
+        )
+        await write_operation_log(
+            self._session,
+            operation="TOOL_CATEGORY_DELETE",
+            result=RESULT_SUCCESS,
+            operator_id=int(actor_id),
+            resource_type="tool_category",
+            resource_id=str(int(row.id)),
+        )
+        await self._session.commit()
 
     async def tool_usage(self, *, days: int) -> list[ToolUsageAdminResponse]:
         """Usage counts per tool over the last ``days`` days.

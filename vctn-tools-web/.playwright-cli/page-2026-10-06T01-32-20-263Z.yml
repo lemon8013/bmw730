@@ -1,0 +1,33 @@
+- generic [ref=f3e3]:
+  - banner [ref=f3e4]:
+    - generic [ref=f3e5]:
+      - link "VCTN Tools" [ref=f3e6] [cursor=pointer]:
+        - /url: /
+      - button "返回首页" [ref=f3e11] [cursor=pointer]
+      - navigation [ref=f3e13]:
+        - link "首页" [ref=f3e14] [cursor=pointer]:
+          - /url: /
+        - link "热门" [ref=f3e15] [cursor=pointer]:
+          - /url: /popular
+        - link "最近使用" [ref=f3e16] [cursor=pointer]:
+          - /url: /recent
+      - generic [ref=f3e17]:
+        - textbox "搜索工具…" [ref=f3e19]
+        - button "搜索" [ref=f3e22] [cursor=pointer]
+      - link "登录 / 注册" [ref=f3e25] [cursor=pointer]:
+        - /url: /login?redirect=/popular
+  - main [ref=f3e26]:
+    - generic [ref=f3e27]:
+      - navigation "面包屑" [ref=f3e28]:
+        - link "首页" [ref=f3e29] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f3e30]: /
+        - generic [ref=f3e31]: 热门工具
+      - generic [ref=f3e34]:
+        - heading "热门工具" [level=1] [ref=f3e35]
+        - generic [ref=f3e37] [cursor=pointer]:
+          - generic:
+            - combobox [ref=f3e39]
+            - generic [ref=f3e40]: 最近 7 天
+      - generic [ref=f3e45]: 加载中…
+  - contentinfo [ref=f3e52]: VCTN Tools · 输入内容默认只在浏览器内处理，不会因埋点自动上传

@@ -64,6 +64,36 @@ class ToolUsageRepository:
         )
         return list(result.scalars())
 
+    async def popularity_from_events(
+        self, *, start: datetime.datetime, end: datetime.datetime, limit: int
+    ) -> list[tuple[int, int, int]]:
+        """Rank tools by usage straight from the raw events.
+
+        Used when ``tool_popularity_daily`` holds no row for the window: the
+        rollup is only produced by an explicit refresh, and nothing schedules
+        one, so a freshly seeded instance would otherwise rank nothing even
+        though real usage exists.
+        """
+        total = func.count(ToolUsageEvent.id)
+        rows = (
+            await self._session.execute(
+                select(
+                    ToolUsageEvent.tool_id,
+                    total,
+                    func.count(func.distinct(ToolUsageEvent.user_id)),
+                )
+                .where(
+                    ToolUsageEvent.tool_id.isnot(None),
+                    ToolUsageEvent.created_at >= start,
+                    ToolUsageEvent.created_at < end,
+                )
+                .group_by(ToolUsageEvent.tool_id)
+                .order_by(total.desc(), ToolUsageEvent.tool_id)
+                .limit(limit)
+            )
+        ).all()
+        return [(int(row[0]), int(row[1] or 0), int(row[2] or 0)) for row in rows]
+
     async def usage_daily(
         self, *, tool_id: int, start: datetime.date, end: datetime.date
     ) -> list[ToolUsageDaily]:

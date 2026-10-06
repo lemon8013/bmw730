@@ -64,11 +64,25 @@ VCTN：**双前端 + 单 FastAPI 模块化单体**。
   （首级恒为首页），5 个二级页面都已接入。
 - 工作区表单由 ToolFieldDescriptor 驱动；FRONTEND 本地算 result 再 POST；
   ASYNC 拿 job_id 轮询 `/tools/jobs/{id}`（终态 SUCCESS/FAILED/CANCELLED）。
-- 最近使用走 localStorage；服务端 `/tools/recent` 需业务用户登录，tools-web 登录未实现。
+- 最近使用走 localStorage；服务端 `/tools/recent` 需业务用户登录（**2026-10-06 已可用**）。
 - 工具目录/分类/搜索/热门/执行匿名即可用；无需 token。
 - tools-web 浏览器验证脚本：`vctn-tools-web/scripts/browser-verify.sh`（无需 token）。
 - 后端曾有 bug：usage record 与 repository 重复传 `id` 导致执行 500，已修（勿回退：
   id 由 `ToolUsageRepository.add_event` 统一生成）。
+
+## tools-web 登录 / 注册（2026-10-06 补齐，勿回退）
+- tools-web 是**匿名优先**门户：不登录也能用全部工具，登录只解锁 `/tools/recent`、
+  `/tools/usage/*` 这类需要业务身份的端点。不要加全局路由守卫把游客挡在外面。
+- 会话：`src/api/credentials.ts`（sessionStorage，key 前缀 **`vctn.tools.`**，与 admin-web 的
+  `vctn.admin.` 分开）、`src/api/session.ts`（单飞刷新 + `onSessionExpired` 回调）、
+  `src/stores/auth.ts`、`src/pages/LoginPage.vue`、`src/components/UserMenu.vue`。
+- `apiBaseUrl` 在 `src/api/endpoint.ts`（不是 client.ts），为了断开 client ↔ session 循环依赖。
+- `/login` 路由在 `AppLayout` **之外**（不带目录导航），支持 `?redirect=` 同站回跳；
+  注册接口不签发会话，所以注册成功后要**再调一次登录**。
+- 后端注册**必须**填 email 或 phone 至少一个；密码策略是 **≥12 位 + 大小写 + 数字 + 特殊字符**
+  （违反返回 422001，`data` 是具体问题列表，`ApiEnvelopeError.details` 已保留它）。
+- 后端两个既有坑已修（见 2026-10-06 日志）：`RateLimitService` 遇 Redis 故障要 fail-open；
+  `BizUserSession` 在 `app.platform.users.model` **不在** `auth.model`。
 
 ## 环境坑
 - **启动服务（2026-10-03 验证）**
@@ -96,13 +110,26 @@ VCTN：**双前端 + 单 FastAPI 模块化单体**。
   已登记 `vctn-api/BLOCKERS.md`，属待决策差异。
 - 端点级 API 权限由「实际路由 + 控制器真实 `require_permission` 依赖」生成，不维护手写映射表。
 
-## 成长体系的管理端可见性（2026-10-03 确立）
-- 管理平台以 Operator（`sys_user`）登录；成长/积分/任务/装扮的端点**全是 `/me` 形式**，
-  按平台业务用户取数，Operator 调用返回 401 `401001 a business user identity is required`。
-- OpenAPI 中**没有任何** `/admin/growth|points|tasks` 按用户查询端点（已登记 BLOCKERS §七 / B-33）。
-- 目录型端点 Operator 可读：`/levels`、`/achievements`、`/cosmetics`、`/point-rules/public`。
-- 前端结论：管理员身份下不要调任何 `/me` 成长端点；相关区块统一渲染
-  `components/common/BizIdentityNotice.vue` 说明，而不是抛加载失败。
+## 成长体系的管理端（2026-10-05 全部打通，B-33 已关闭，勿回退到说明页）
+- 平台侧 `/growth/me`、`/points/me`、`/tasks/me` 等**仍是 `/me` 形式**，Operator 调用照样
+  401 `401001`。**管理员一律走 `/api/v1/admin/...`**，不要再调任何 `/me` 端点。
+- 管理员侧端点在 `vctn-api/app/admin/growth/`（router 挂 `("/admin", "admin:growth", ...)`）：
+  `/admin/growth/overview`、`/admin/biz-users`、成长规则与积分规则 CRUD、`/admin/levels` CRUD、
+  `/admin/tasks` CRUD，以及 `/admin/users/{id}/` 下的 summary / growth / growth.transactions /
+  `POST growth.adjust` / points / points.transactions / `POST points.adjust` / levels /
+  levels.history / tasks / achievements / cosmetics / cosmetics.equipment。
+- **写操作必须委托** `GrowthService.apply_event` / `PointService.adjust`，禁止自己写账
+  （否则丢幂等、行锁、version、等级重算、审计）。调整事件码 `ADMIN_ADJUST` 故意不播种规则。
+- **等级与任务只能软删**（外键 `current_level_id` / `task_id` 会拦物理删），删前引用计数
+  → 有引用返回 409001。不要再设计 `force=true`。
+- `biz_user_growth_account` / `biz_user_point_account` **主键是 `user_id` 不是 `id`**，
+  通用计数要传 `column` 覆盖。
+- 矩阵外权限码 4 个（已登记 `seed/catalog.py::RUNTIME_EXTRA_PERMISSIONS`）：
+  `BIZ_USER_VIEW`、`TASK_CONFIG_VIEW`、`TASK_CONFIG_EDIT`、`ACHIEVEMENT_CONFIG_VIEW`。
+- 前端：`src/api/growth.ts` + `src/components/growth/BizUserPicker.vue` + `src/types/growth.ts`；
+  六页（growth/points/levels/tasks/achievements/cosmetics）全部消费管理端接口。
+  `BizIdentityNotice.vue` 已删除，不要再引用。
+- 装扮页只读（没做「发放装扮」端点），别误以为坏了。
 
 ## Seed 初始数据（2026-10-01 落地）
 - 代码：`vctn-api/app/scripts/seed/`；命令：`python -m app.scripts.seed [--mode=system|test] [--runs=N]`。

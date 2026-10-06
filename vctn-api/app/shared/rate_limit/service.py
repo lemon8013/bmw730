@@ -6,10 +6,17 @@ in between and leave a key that blocks the caller forever. The script performs
 both steps atomically.
 
 The exact limits are not frozen by the Spec; every limit is configuration.
+
+Fail-open by contract: this service is reached through ``OptionalRedisDep``,
+whose documented promise is that an endpoint must still serve its business
+purpose when Redis is unavailable. A broken Redis therefore degrades to "no
+limit" — a warning is logged — instead of turning every guarded endpoint,
+including registration and login, into a 500.
 """
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 import redis.asyncio as aioredis
@@ -17,6 +24,8 @@ import redis.asyncio as aioredis
 from app.core.config import Settings, get_settings
 from app.core.exceptions import QuotaExceededError, RateLimitError
 from app.shared.redis.keys import quota_key, rate_limit_key
+
+logger = logging.getLogger(__name__)
 
 _CONSUME_SCRIPT = """
 local current = redis.call('INCR', KEYS[1])
@@ -48,6 +57,31 @@ class RateLimitService:
     def enabled(self) -> bool:
         return self._settings.RATE_LIMIT_ENABLED
 
+    async def _consume(self, key: str, ttl_ms: int) -> int | None:
+        """Run the consume script, returning ``None`` when Redis is unusable.
+
+        Only the bucket name is logged — never the key, which embeds the
+        subject (an IP or a user id).
+        """
+        try:
+            return int(await self._client.eval(_CONSUME_SCRIPT, 1, key, str(ttl_ms)))
+        except (aioredis.RedisError, OSError) as failure:
+            logger.warning(
+                "rate limit backend unavailable, failing open: %s", type(failure).__name__
+            )
+            return None
+
+    async def _read(self, key: str) -> int | None:
+        """Read a counter, returning ``None`` when Redis is unusable."""
+        try:
+            raw = await self._client.get(key)
+        except (aioredis.RedisError, OSError) as failure:
+            logger.warning(
+                "rate limit backend unavailable, failing open: %s", type(failure).__name__
+            )
+            return None
+        return int(raw) if raw else 0
+
     async def check(
         self,
         *,
@@ -63,7 +97,11 @@ class RateLimitService:
             return RateLimitDecision(True, 0, resolved_limit, resolved_limit)
 
         key = rate_limit_key(bucket=bucket, subject=subject)
-        current = int(await self._client.eval(_CONSUME_SCRIPT, 1, key, str(int(window * 1000))))
+        current = await self._consume(key, int(window * 1000))
+        if current is None:
+            # Redis is down: allow, and report a full window rather than a
+            # fabricated count the caller could mistake for real usage.
+            return RateLimitDecision(True, 0, resolved_limit, resolved_limit)
         allowed = current <= resolved_limit
         return RateLimitDecision(
             allowed=allowed,
@@ -109,10 +147,15 @@ class RateLimitService:
             QuotaExceededError: when the daily quota is exhausted.
         """
         key = quota_key(subject=subject, tool_id=tool_id, stat_date=stat_date)
-        used = int(await self._client.eval(_CONSUME_SCRIPT, 1, key, str(int(ttl_seconds * 1000))))
+        used = await self._consume(key, int(ttl_seconds * 1000))
+        if used is None:
+            return 0
         if used > limit:
             # Give the unit back so a rejected caller does not burn quota.
-            await self._client.decr(key)
+            try:
+                await self._client.decr(key)
+            except (aioredis.RedisError, OSError):
+                logger.warning("could not return the rejected quota unit")
             raise QuotaExceededError(f"daily quota of {limit} executions is exhausted")
         return used
 
@@ -121,6 +164,7 @@ class RateLimitService:
     ) -> int:
         """Return how many units of the daily quota are left."""
         key = quota_key(subject=subject, tool_id=tool_id, stat_date=stat_date)
-        raw = await self._client.get(key)
-        used = int(raw) if raw else 0
+        used = await self._read(key)
+        if used is None:
+            return max(0, limit)
         return max(0, limit - used)

@@ -7,6 +7,8 @@ from fastapi import APIRouter, Depends, Query
 from app.admin.tools.schema import (
     AccessPolicyAdminResponse,
     AccessPolicyRequest,
+    ToolCategoryCreateRequest,
+    ToolCategoryUpdateRequest,
     ToolCreateRequest,
     ToolStatusRequest,
     ToolUpdateRequest,
@@ -24,9 +26,68 @@ from app.shared.authorization.dependencies import require_permission
 from app.shared.pagination.params import Page, PageParams
 from app.shared.response.helper import success
 from app.shared.response.schema import ApiResponse
-from app.tools.catalog.schema import ToolResponse
+from app.tools.catalog.schema import ToolCategoryResponse, ToolResponse
 
 router = APIRouter()
+
+
+@router.get("/tools/categories", response_model=ApiResponse[list[ToolCategoryResponse]])
+async def list_tool_categories(
+    session: DbSessionDep,
+    include_disabled: bool = Query(default=True),
+    principal: Principal = Depends(require_permission("TOOL_CATEGORY_VIEW")),
+) -> ApiResponse[list[ToolCategoryResponse]]:
+    return success(
+        await AdminToolService(session).list_categories(include_disabled=include_disabled)
+    )
+
+
+@router.post("/tools/categories", response_model=ApiResponse[ToolCategoryResponse])
+async def create_tool_category(
+    payload: ToolCategoryCreateRequest,
+    session: DbSessionDep,
+    principal: Principal = Depends(require_permission("TOOL_CATEGORY_EDIT")),
+) -> ApiResponse[ToolCategoryResponse]:
+    return success(
+        await AdminToolService(session).create_category(
+            actor_id=principal.subject_id,
+            actor_username=principal.username,
+            payload=payload,
+        )
+    )
+
+
+@router.put(
+    "/tools/categories/{category_id}", response_model=ApiResponse[ToolCategoryResponse]
+)
+async def update_tool_category(
+    category_id: str,
+    payload: ToolCategoryUpdateRequest,
+    session: DbSessionDep,
+    principal: Principal = Depends(require_permission("TOOL_CATEGORY_EDIT")),
+) -> ApiResponse[ToolCategoryResponse]:
+    return success(
+        await AdminToolService(session).update_category(
+            category_id=int(category_id),
+            actor_id=principal.subject_id,
+            actor_username=principal.username,
+            payload=payload,
+        )
+    )
+
+
+@router.delete("/tools/categories/{category_id}", response_model=ApiResponse[None])
+async def delete_tool_category(
+    category_id: str,
+    session: DbSessionDep,
+    principal: Principal = Depends(require_permission("TOOL_CATEGORY_EDIT")),
+) -> ApiResponse[None]:
+    await AdminToolService(session).delete_category(
+        category_id=int(category_id),
+        actor_id=principal.subject_id,
+        actor_username=principal.username,
+    )
+    return success(None)
 
 
 @router.get("/tools", response_model=ApiResponse[Page[ToolResponse]])

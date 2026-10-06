@@ -1,0 +1,284 @@
+- generic [ref=e1]:
+  - generic [ref=e42]:
+    - banner [ref=e43]:
+      - generic [ref=e44]:
+        - link "VCTN Tools" [ref=e45] [cursor=pointer]:
+          - /url: /
+        - navigation [ref=e50]:
+          - link "首页" [ref=e51] [cursor=pointer]:
+            - /url: /
+          - link "热门" [ref=e52] [cursor=pointer]:
+            - /url: /popular
+          - link "最近使用" [ref=e53] [cursor=pointer]:
+            - /url: /recent
+        - generic [ref=e54]:
+          - textbox "搜索工具…" [ref=e56]
+          - button "搜索" [ref=e59] [cursor=pointer]
+        - button "门 门户测试" [expanded] [ref=e63] [cursor=pointer]:
+          - generic [ref=e64]: 门
+          - generic [ref=e65]: 门户测试
+    - main [ref=e66]:
+      - generic [ref=e67]:
+        - generic [ref=e69]:
+          - heading "VCTN Tools" [level=1] [ref=e70]
+          - paragraph [ref=e71]: 在线工具集：数据格式化、编码转换、哈希、正则、ID 生成等 23 个工具。
+        - generic [ref=e72]:
+          - generic [ref=e73]: 热门工具
+          - generic [ref=e185]:
+            - 'link "随机密码生成 #1 在线执行 暂无简介 近 7 天使用 7 次" [ref=e186] [cursor=pointer]':
+              - /url: /tool/password-generate
+              - generic [ref=e187]:
+                - generic [ref=e188]: 随机密码生成
+                - generic [ref=e189]: "#1"
+                - generic [ref=e191]: 在线执行
+              - paragraph [ref=e193]: 暂无简介
+              - generic [ref=e194]: 近 7 天使用 7 次
+            - 'link "JSON 格式化 #2 在线执行 暂无简介 近 7 天使用 5 次" [ref=e195] [cursor=pointer]':
+              - /url: /tool/json-format
+              - generic [ref=e196]:
+                - generic [ref=e197]: JSON 格式化
+                - generic [ref=e198]: "#2"
+                - generic [ref=e200]: 在线执行
+              - paragraph [ref=e202]: 暂无简介
+              - generic [ref=e203]: 近 7 天使用 5 次
+            - 'link "ULID 生成 #3 在线执行 暂无简介 近 7 天使用 2 次" [ref=e204] [cursor=pointer]':
+              - /url: /tool/ulid-generate
+              - generic [ref=e205]:
+                - generic [ref=e206]: ULID 生成
+                - generic [ref=e207]: "#3"
+                - generic [ref=e209]: 在线执行
+              - paragraph [ref=e211]: 暂无简介
+              - generic [ref=e212]: 近 7 天使用 2 次
+            - 'link "随机字符串 #4 在线执行 暂无简介 近 7 天使用 2 次" [ref=e213] [cursor=pointer]':
+              - /url: /tool/random-string
+              - generic [ref=e214]:
+                - generic [ref=e215]: 随机字符串
+                - generic [ref=e216]: "#4"
+                - generic [ref=e218]: 在线执行
+              - paragraph [ref=e220]: 暂无简介
+              - generic [ref=e221]: 近 7 天使用 2 次
+            - 'link "Unicode 查询 #5 在线执行 暂无简介 近 7 天使用 2 次" [ref=e222] [cursor=pointer]':
+              - /url: /tool/unicode-inspect
+              - generic [ref=e223]:
+                - generic [ref=e224]: Unicode 查询
+                - generic [ref=e225]: "#5"
+                - generic [ref=e227]: 在线执行
+              - paragraph [ref=e229]: 暂无简介
+              - generic [ref=e230]: 近 7 天使用 2 次
+            - 'link "XML 格式化 #6 在线执行 暂无简介 近 7 天使用 1 次" [ref=e231] [cursor=pointer]':
+              - /url: /tool/xml-format
+              - generic [ref=e232]:
+                - generic [ref=e233]: XML 格式化
+                - generic [ref=e234]: "#6"
+                - generic [ref=e236]: 在线执行
+              - paragraph [ref=e238]: 暂无简介
+              - generic [ref=e239]: 近 7 天使用 1 次
+            - 'link "TOML 解析 #7 在线执行 暂无简介 近 7 天使用 1 次" [ref=e240] [cursor=pointer]':
+              - /url: /tool/toml-parse
+              - generic [ref=e241]:
+                - generic [ref=e242]: TOML 解析
+                - generic [ref=e243]: "#7"
+                - generic [ref=e245]: 在线执行
+              - paragraph [ref=e247]: 暂无简介
+              - generic [ref=e248]: 近 7 天使用 1 次
+            - 'link "Markdown 渲染 #8 在线执行 暂无简介 近 7 天使用 1 次" [ref=e249] [cursor=pointer]':
+              - /url: /tool/markdown-render
+              - generic [ref=e250]:
+                - generic [ref=e251]: Markdown 渲染
+                - generic [ref=e252]: "#8"
+                - generic [ref=e254]: 在线执行
+              - paragraph [ref=e256]: 暂无简介
+              - generic [ref=e257]: 近 7 天使用 1 次
+        - generic [ref=e80]:
+          - generic [ref=e82]:
+            - generic [ref=e83]: 数据格式化
+            - link "查看全部 →" [ref=e84] [cursor=pointer]:
+              - /url: /category/DATA_FORMAT
+          - generic [ref=e258]:
+            - link "JSON 格式化 在线执行 格式化并缩进 JSON 文本" [ref=e259] [cursor=pointer]:
+              - /url: /tool/json-format
+              - generic [ref=e260]:
+                - generic [ref=e261]: JSON 格式化
+                - generic [ref=e262]: 在线执行
+              - paragraph [ref=e264]: 格式化并缩进 JSON 文本
+            - link "JSON 压缩 在线执行 压缩 JSON 去掉多余空白" [ref=e265] [cursor=pointer]:
+              - /url: /tool/json-minify
+              - generic [ref=e266]:
+                - generic [ref=e267]: JSON 压缩
+                - generic [ref=e268]: 在线执行
+              - paragraph [ref=e270]: 压缩 JSON 去掉多余空白
+            - link "JSON 校验 在线执行 校验 JSON 语法是否合法" [ref=e271] [cursor=pointer]:
+              - /url: /tool/json-validate
+              - generic [ref=e272]:
+                - generic [ref=e273]: JSON 校验
+                - generic [ref=e274]: 在线执行
+              - paragraph [ref=e276]: 校验 JSON 语法是否合法
+            - link "JSON 美化 在线执行 美化 JSON 便于阅读" [ref=e277] [cursor=pointer]:
+              - /url: /tool/json-beautify
+              - generic [ref=e278]:
+                - generic [ref=e279]: JSON 美化
+                - generic [ref=e280]: 在线执行
+              - paragraph [ref=e282]: 美化 JSON 便于阅读
+            - link "XML 格式化 在线执行 格式化 XML 文档" [ref=e283] [cursor=pointer]:
+              - /url: /tool/xml-format
+              - generic [ref=e284]:
+                - generic [ref=e285]: XML 格式化
+                - generic [ref=e286]: 在线执行
+              - paragraph [ref=e288]: 格式化 XML 文档
+            - link "TOML 解析 在线执行 解析 TOML 配置文本" [ref=e289] [cursor=pointer]:
+              - /url: /tool/toml-parse
+              - generic [ref=e290]:
+                - generic [ref=e291]: TOML 解析
+                - generic [ref=e292]: 在线执行
+              - paragraph [ref=e294]: 解析 TOML 配置文本
+            - link "Markdown 渲染 在线执行 将 Markdown 渲染为安全 HTML" [ref=e295] [cursor=pointer]:
+              - /url: /tool/markdown-render
+              - generic [ref=e296]:
+                - generic [ref=e297]: Markdown 渲染
+                - generic [ref=e298]: 在线执行
+              - paragraph [ref=e300]: 将 Markdown 渲染为安全 HTML
+        - generic [ref=e91]:
+          - generic [ref=e93]:
+            - generic [ref=e94]: Base64/编码
+            - link "查看全部 →" [ref=e95] [cursor=pointer]:
+              - /url: /category/ENCODING
+          - generic [ref=e301]:
+            - link "Base64 编码 在线执行 将文本编码为 Base64" [ref=e302] [cursor=pointer]:
+              - /url: /tool/base64-encode
+              - generic [ref=e303]:
+                - generic [ref=e304]: Base64 编码
+                - generic [ref=e305]: 在线执行
+              - paragraph [ref=e307]: 将文本编码为 Base64
+            - link "Base64 解码 在线执行 将 Base64 解码为文本" [ref=e308] [cursor=pointer]:
+              - /url: /tool/base64-decode
+              - generic [ref=e309]:
+                - generic [ref=e310]: Base64 解码
+                - generic [ref=e311]: 在线执行
+              - paragraph [ref=e313]: 将 Base64 解码为文本
+            - link "URL 编码 在线执行 对文本进行百分号编码" [ref=e314] [cursor=pointer]:
+              - /url: /tool/url-encode
+              - generic [ref=e315]:
+                - generic [ref=e316]: URL 编码
+                - generic [ref=e317]: 在线执行
+              - paragraph [ref=e319]: 对文本进行百分号编码
+            - link "URL 解码 在线执行 还原百分号编码文本" [ref=e320] [cursor=pointer]:
+              - /url: /tool/url-decode
+              - generic [ref=e321]:
+                - generic [ref=e322]: URL 解码
+                - generic [ref=e323]: 在线执行
+              - paragraph [ref=e325]: 还原百分号编码文本
+        - generic [ref=e102]:
+          - generic [ref=e104]:
+            - generic [ref=e105]: ID/随机
+            - link "查看全部 →" [ref=e106] [cursor=pointer]:
+              - /url: /category/ID_RANDOM
+          - generic [ref=e326]:
+            - link "UUID 生成 在线执行 批量生成 UUID v4" [ref=e327] [cursor=pointer]:
+              - /url: /tool/uuid-generate
+              - generic [ref=e328]:
+                - generic [ref=e329]: UUID 生成
+                - generic [ref=e330]: 在线执行
+              - paragraph [ref=e332]: 批量生成 UUID v4
+            - link "ULID 生成 在线执行 生成字典序可排序的 ULID" [ref=e333] [cursor=pointer]:
+              - /url: /tool/ulid-generate
+              - generic [ref=e334]:
+                - generic [ref=e335]: ULID 生成
+                - generic [ref=e336]: 在线执行
+              - paragraph [ref=e338]: 生成字典序可排序的 ULID
+            - link "随机字符串 在线执行 按长度生成随机字符串" [ref=e339] [cursor=pointer]:
+              - /url: /tool/random-string
+              - generic [ref=e340]:
+                - generic [ref=e341]: 随机字符串
+                - generic [ref=e342]: 在线执行
+              - paragraph [ref=e344]: 按长度生成随机字符串
+        - generic [ref=e113]:
+          - generic [ref=e115]:
+            - generic [ref=e116]: 时间日期
+            - link "查看全部 →" [ref=e117] [cursor=pointer]:
+              - /url: /category/DATETIME
+          - link "时间戳转换 在线执行 时间戳与 ISO 8601 互转" [ref=e346] [cursor=pointer]:
+            - /url: /tool/datetime-convert
+            - generic [ref=e347]:
+              - generic [ref=e348]: 时间戳转换
+              - generic [ref=e349]: 在线执行
+            - paragraph [ref=e351]: 时间戳与 ISO 8601 互转
+        - generic [ref=e124]:
+          - generic [ref=e126]:
+            - generic [ref=e127]: 文本
+            - link "查看全部 →" [ref=e128] [cursor=pointer]:
+              - /url: /category/TEXT
+          - link "文本统计 在线执行 统计字符、词数与行数" [ref=e353] [cursor=pointer]:
+            - /url: /tool/text-stats
+            - generic [ref=e354]:
+              - generic [ref=e355]: 文本统计
+              - generic [ref=e356]: 在线执行
+            - paragraph [ref=e358]: 统计字符、词数与行数
+        - generic [ref=e135]:
+          - generic [ref=e137]:
+            - generic [ref=e138]: 安全/加密
+            - link "查看全部 →" [ref=e139] [cursor=pointer]:
+              - /url: /category/SECURITY
+          - generic [ref=e359]:
+            - link "哈希摘要 在线执行 计算文本的哈希摘要" [ref=e360] [cursor=pointer]:
+              - /url: /tool/hash-digest
+              - generic [ref=e361]:
+                - generic [ref=e362]: 哈希摘要
+                - generic [ref=e363]: 在线执行
+              - paragraph [ref=e365]: 计算文本的哈希摘要
+            - link "JWT 解析 在线执行 解析 JWT 的头部与载荷" [ref=e366] [cursor=pointer]:
+              - /url: /tool/jwt-parse
+              - generic [ref=e367]:
+                - generic [ref=e368]: JWT 解析
+                - generic [ref=e369]: 在线执行
+              - paragraph [ref=e371]: 解析 JWT 的头部与载荷
+            - link "随机密码生成 在线执行 按字符类别与排除规则生成高强度随机密码" [ref=e372] [cursor=pointer]:
+              - /url: /tool/password-generate
+              - generic [ref=e373]:
+                - generic [ref=e374]: 随机密码生成
+                - generic [ref=e375]: 在线执行
+              - paragraph [ref=e377]: 按字符类别与排除规则生成高强度随机密码
+        - generic [ref=e146]:
+          - generic [ref=e148]:
+            - generic [ref=e149]: 开发调试
+            - link "查看全部 →" [ref=e150] [cursor=pointer]:
+              - /url: /category/DEVELOPER
+          - generic [ref=e378]:
+            - link "正则测试 在线执行 测试正则表达式匹配结果" [ref=e379] [cursor=pointer]:
+              - /url: /tool/regex-test
+              - generic [ref=e380]:
+                - generic [ref=e381]: 正则测试
+                - generic [ref=e382]: 在线执行
+              - paragraph [ref=e384]: 测试正则表达式匹配结果
+            - link "前端回显 本地处理 回显由前端计算的结果" [ref=e385] [cursor=pointer]:
+              - /url: /tool/frontend-echo
+              - generic [ref=e386]:
+                - generic [ref=e387]: 前端回显
+                - generic [ref=e388]: 本地处理
+              - paragraph [ref=e390]: 回显由前端计算的结果
+        - generic [ref=e157]:
+          - generic [ref=e159]:
+            - generic [ref=e160]: Unicode/字符编码
+            - link "查看全部 →" [ref=e161] [cursor=pointer]:
+              - /url: /category/UNICODE
+          - link "Unicode 查询 在线执行 查看字符的码点信息" [ref=e392] [cursor=pointer]:
+            - /url: /tool/unicode-inspect
+            - generic [ref=e393]:
+              - generic [ref=e394]: Unicode 查询
+              - generic [ref=e395]: 在线执行
+            - paragraph [ref=e397]: 查看字符的码点信息
+        - generic [ref=e168]:
+          - generic [ref=e170]:
+            - generic [ref=e171]: 异步任务
+            - link "查看全部 →" [ref=e172] [cursor=pointer]:
+              - /url: /category/ASYNC
+          - link "异步任务示例 异步任务 演示异步执行模式的任务" [ref=e399] [cursor=pointer]:
+            - /url: /tool/async-job
+            - generic [ref=e400]:
+              - generic [ref=e401]: 异步任务示例
+              - generic [ref=e402]: 异步任务
+            - paragraph [ref=e404]: 演示异步执行模式的任务
+    - contentinfo [ref=e179]: VCTN Tools · 输入内容默认只在浏览器内处理，不会因埋点自动上传
+  - menu "门 门户测试" [active] [ref=e409]:
+    - menuitem "@tools_tester01" [disabled] [ref=e410]
+    - separator [ref=e412]
+    - menuitem "退出登录" [ref=e413] [cursor=pointer]

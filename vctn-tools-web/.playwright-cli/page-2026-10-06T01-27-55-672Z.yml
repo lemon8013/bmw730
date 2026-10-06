@@ -1,0 +1,45 @@
+- generic [ref=e42]:
+  - banner [ref=e43]:
+    - generic [ref=e44]:
+      - link "VCTN Tools" [ref=e45] [cursor=pointer]:
+        - /url: /
+      - button "返回首页" [ref=e415] [cursor=pointer]
+      - navigation [ref=e50]:
+        - link "首页" [ref=e51] [cursor=pointer]:
+          - /url: /
+        - link "热门" [ref=e52] [cursor=pointer]:
+          - /url: /popular
+        - link "最近使用" [ref=e53] [cursor=pointer]:
+          - /url: /recent
+      - generic [ref=e54]:
+        - textbox "搜索工具…" [ref=e56]
+        - button "搜索" [ref=e59] [cursor=pointer]
+      - button "门 门户测试" [ref=e63] [cursor=pointer]:
+        - generic [ref=e64]: 门
+        - generic [ref=e65]: 门户测试
+  - main [ref=e66]:
+    - generic [ref=e417]:
+      - navigation "面包屑" [ref=e418]:
+        - link "首页" [ref=e419] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e420]: /
+        - generic [ref=e421]: JWT 解析
+      - generic [ref=e424]:
+        - generic [ref=e425]:
+          - heading "JWT 解析" [level=1] [ref=e426]
+          - paragraph [ref=e427]: 解析 JWT 的头部与载荷
+        - generic [ref=e428]:
+          - generic [ref=e429]: BACKEND
+          - button "返回首页" [ref=e431] [cursor=pointer]
+      - generic [ref=e433]:
+        - generic [ref=e434]: 输入
+        - generic [ref=e435]:
+          - generic [ref=e436]:
+            - generic [ref=e437]: JWT（不校验签名） *
+            - textbox "eyJhbGciOi..." [ref=e439]
+            - generic [ref=e440]: 仅解码 header 与 payload；签名不会被回显也不会进入日志。
+          - generic [ref=e441]:
+            - button "执行" [ref=e442] [cursor=pointer]
+            - button "清空" [ref=e444] [cursor=pointer]
+      - paragraph [ref=e446]: 当前以匿名身份执行（BACKEND），受匿名额度与频率限制约束。
+  - contentinfo [ref=e179]: VCTN Tools · 输入内容默认只在浏览器内处理，不会因埋点自动上传
