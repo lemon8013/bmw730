@@ -81,7 +81,7 @@ class CommentService:
             self._session,
             operation="BLOG_COMMENT_CREATE",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_comment",
             resource_id=int(row.id),
         )
@@ -102,7 +102,7 @@ class CommentService:
             self._session,
             operation="BLOG_COMMENT_DELETE",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_comment",
             resource_id=int(row.id),
         )
@@ -124,7 +124,7 @@ class CommentService:
         await self._audit.record(
             self._session,
             action="BLOG_COMMENT_REVIEW",
-            operator_id=actor.subject_id,
+            actor=actor,
             operator_username=actor.username,
             resource_type="blog_comment",
             resource_id=int(row.id),
@@ -139,7 +139,7 @@ class CommentService:
             self._session,
             operation="BLOG_COMMENT_REVIEW",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_comment",
             resource_id=int(row.id),
         )

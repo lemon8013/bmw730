@@ -113,32 +113,41 @@ function goHome(): void {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: #fff;
-  border-bottom: 1px solid var(--el-border-color-light);
+  background-color: color-mix(in srgb, var(--vctn-bg-surface) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(10px);
+  border-bottom: 1px solid var(--vctn-border-subtle);
 }
 
 .app-layout__header-inner {
   display: flex;
   align-items: center;
-  gap: 24px;
-  max-width: 1080px;
+  gap: var(--vctn-space-4);
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 12px 20px;
+  padding: 10px var(--vctn-space-5);
 }
 
 .app-layout__brand {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--el-color-primary);
+  gap: var(--vctn-space-2);
+  color: var(--vctn-text-strong);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.app-layout__brand:hover {
-  opacity: 0.85;
+.app-layout__brand-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--vctn-radius-sm);
+  background-color: var(--vctn-brand-soft);
+  color: var(--vctn-brand);
 }
 
 .app-layout__home-button {
@@ -147,28 +156,34 @@ function goHome(): void {
 
 .app-layout__nav {
   display: flex;
-  gap: 4px;
+  gap: var(--vctn-space-1);
 }
 
 .app-layout__nav-link {
-  padding: 6px 12px;
-  border-radius: 6px;
-  color: var(--el-text-color-regular);
+  padding: 6px var(--vctn-space-3);
+  border-radius: var(--vctn-radius-pill);
+  color: var(--vctn-text-secondary);
+  font-size: var(--vctn-text-sm);
+  font-weight: 500;
   text-decoration: none;
+  transition:
+    background-color var(--vctn-duration-fast) var(--vctn-ease),
+    color var(--vctn-duration-fast) var(--vctn-ease);
 }
 
 .app-layout__nav-link:hover {
-  background: var(--el-fill-color-light);
+  background-color: var(--vctn-bg-hover);
+  color: var(--vctn-text-strong);
 }
 
 .app-layout__nav-link--active {
-  background: var(--el-color-primary-light-9);
-  color: var(--el-color-primary);
-  font-weight: 600;
+  background-color: var(--vctn-brand-soft);
+  color: var(--vctn-brand);
+  font-weight: 500;
 }
 
 .app-layout__search {
-  width: 280px;
+  width: 300px;
   margin-left: auto;
 }
 
@@ -179,15 +194,16 @@ function goHome(): void {
 .app-layout__main {
   flex: 1;
   width: 100%;
-  max-width: 1080px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--vctn-space-6) var(--vctn-space-5) 56px;
 }
 
 .app-layout__footer {
-  padding: 16px 20px;
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
+  padding: var(--vctn-space-5);
+  border-top: 1px solid var(--vctn-border-subtle);
+  color: var(--vctn-text-muted);
+  font-size: var(--vctn-text-xs);
   text-align: center;
 }
 </style>

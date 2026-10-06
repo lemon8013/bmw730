@@ -26,6 +26,7 @@ class ArticleRepository:
         *,
         keyword: str | None = None,
         category_id: int | None = None,
+        author_id: int | None = None,
         status: str | None = None,
         limit: int,
         offset: int,
@@ -41,10 +42,12 @@ class ArticleRepository:
             )
         if category_id is not None:
             base = base.where(BlogArticle.category_id == category_id)
+        if author_id is not None:
+            base = base.where(BlogArticle.author_id == author_id)
         total = int(
             (
                 await self._session.execute(
-                    select(func.count(BlogArticle.id)).select_from(base.subquery())
+                    select(func.count()).select_from(base.subquery())
                 )
             ).scalar_one()
         )
@@ -71,7 +74,7 @@ class ArticleRepository:
         total = int(
             (
                 await self._session.execute(
-                    select(func.count(BlogArticle.id)).select_from(base.subquery())
+                    select(func.count()).select_from(base.subquery())
                 )
             ).scalar_one()
         )

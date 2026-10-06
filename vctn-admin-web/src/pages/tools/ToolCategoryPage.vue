@@ -321,7 +321,7 @@ async function onDelete(row: Record<string, unknown>): Promise<void> {
 <style scoped>
 .tool-category-page__error {
   margin: 8px 0 0;
-  color: var(--el-color-danger);
+  color: var(--vctn-danger);
   font-size: 13px;
 }
 </style>

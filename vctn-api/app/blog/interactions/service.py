@@ -120,7 +120,7 @@ class InteractionService:
             self._session,
             operation="BLOG_USER_FOLLOW",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_user_follow",
             resource_id=followed_user_id,
         )
@@ -136,7 +136,7 @@ class InteractionService:
                 self._session,
                 operation="BLOG_USER_UNFOLLOW",
                 result=RESULT_SUCCESS,
-                operator_id=actor.subject_id,
+                actor=actor,
                 resource_type="blog_user_follow",
                 resource_id=followed_user_id,
             )

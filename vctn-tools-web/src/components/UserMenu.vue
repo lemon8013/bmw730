@@ -65,44 +65,51 @@ async function signOut(): Promise<void> {
 .user-menu__trigger {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  border-radius: 16px;
+  gap: var(--vctn-space-2);
+  height: 32px;
+  padding: 0 var(--vctn-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--vctn-radius-pill);
   cursor: pointer;
   outline: none;
+  transition:
+    background-color var(--vctn-duration-fast) var(--vctn-ease),
+    border-color var(--vctn-duration-fast) var(--vctn-ease);
 }
 
 .user-menu__trigger:hover {
-  background: var(--el-fill-color-light);
+  border-color: var(--vctn-border);
+  background-color: var(--vctn-bg-hover);
 }
 
 .user-menu__avatar {
-  background: var(--el-color-primary);
+  background: var(--vctn-brand);
   font-size: 13px;
 }
 
 .user-menu__name {
   max-width: 120px;
   overflow: hidden;
-  font-size: 13px;
-  color: var(--el-text-color-regular);
+  font-size: var(--vctn-text-sm);
+  font-weight: 500;
+  color: var(--vctn-text-regular);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .user-menu__identity {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
+  font-size: var(--vctn-text-xs);
+  color: var(--vctn-text-muted);
 }
 
 .user-menu__link {
   font-size: 13px;
-  color: var(--el-text-color-regular);
+  color: var(--vctn-text-regular);
   text-decoration: none;
   white-space: nowrap;
 }
 
 .user-menu__link:hover {
-  color: var(--el-color-primary);
+  color: var(--vctn-brand);
 }
 </style>

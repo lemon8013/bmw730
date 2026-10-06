@@ -298,7 +298,7 @@ async function submitEdit(): Promise<void> {
 
 .tool-access-page__hint {
   margin: 4px 0 0;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-size: 12px;
   line-height: 1.5;
 }

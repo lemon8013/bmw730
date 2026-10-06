@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -36,6 +36,9 @@ from app.core.config import Settings, get_settings
 from app.shared.ids import new_id
 from app.shared.security.masking import mask_mapping
 from app.shared.tracing.context import get_request_id, get_trace_id
+
+if TYPE_CHECKING:  # pragma: no cover - typing only, avoids an import cycle
+    from app.shared.auth.context import Principal
 
 _LOGGER: Final = logging.getLogger("vctn.logging")
 
@@ -84,22 +87,39 @@ async def write_operation_log(
     operation: str,
     result: str,
     operator_id: int | None = None,
+    actor: Principal | None = None,
     resource_type: str | None = None,
     resource_id: str | None = None,
     metadata: dict[str, Any] | None = None,
 ) -> None:
-    """Append an operation record to the current transaction."""
+    """Append an operation record to the current transaction.
+
+    ``sys_operation_log.operator_id`` is a foreign key to ``sys_user(id)``, so
+    only an operator may be stored in the column. Pass ``actor`` whenever the
+    caller can be either an operator or a platform business user: the actor id
+    is written for operators and, for platform users, is recorded in
+    ``metadata`` instead of the restricted column.
+    """
+    resolved_operator_id = operator_id
+    payload = dict(metadata) if metadata else {}
+    if actor is not None:
+        if actor.is_admin:
+            resolved_operator_id = actor.subject_id
+        else:
+            resolved_operator_id = None
+            payload["subject_id"] = str(actor.subject_id)
+            payload["subject_type"] = actor.subject_type
     session.add(
         SysOperationLog(
             id=new_id(),
             trace_id=get_trace_id(),
             request_id=get_request_id(),
-            operator_id=operator_id,
+            operator_id=resolved_operator_id,
             operation=operation,
             resource_type=resource_type,
             resource_id=None if resource_id is None else str(resource_id),
             result=result,
-            metadata_payload=_safe_metadata(metadata),
+            metadata_payload=_safe_metadata(payload),
         )
     )
     await session.flush()

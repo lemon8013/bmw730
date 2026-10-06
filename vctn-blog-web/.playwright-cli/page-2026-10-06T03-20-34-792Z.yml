@@ -1,0 +1,66 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e42]:
+    - banner [ref=e43]:
+      - generic [ref=e44]:
+        - link "VCTN Blog" [ref=e45] [cursor=pointer]:
+          - /url: /
+        - navigation [ref=e46]:
+          - link "首页" [ref=e47] [cursor=pointer]:
+            - /url: /
+          - link "技术分享" [ref=e77] [cursor=pointer]:
+            - /url: /category/BLOG_TECH
+          - link "教程指南" [ref=e78] [cursor=pointer]:
+            - /url: /category/BLOG_TUTORIAL
+          - link "平台公告" [ref=e79] [cursor=pointer]:
+            - /url: /category/BLOG_ANNOUNCEMENT
+          - link "行业资讯" [ref=e80] [cursor=pointer]:
+            - /url: /category/BLOG_NEWS
+          - link "作者" [ref=e48] [cursor=pointer]:
+            - /url: /authors
+        - generic [ref=e49]:
+          - textbox "搜索文章…" [ref=e51]
+          - button "搜索" [ref=e54] [cursor=pointer]
+        - button "博 博客作者" [ref=e58] [cursor=pointer]:
+          - generic [ref=e59]: 博
+          - generic [ref=e60]: 博客作者
+    - main [ref=e61]:
+      - generic [ref=e62]:
+        - generic [ref=e63]:
+          - heading "作者中心" [level=1] [ref=e64]
+          - button "写文章" [ref=e81] [cursor=pointer]
+        - table [ref=e85]:
+          - rowgroup [ref=e86]:
+            - row [ref=e87]:
+              - cell "作者名" [ref=e88]
+              - cell "博客作者" [ref=e89]
+              - cell "状态" [ref=e90]
+              - cell "ACTIVE" [ref=e91]
+        - generic [ref=e92]:
+          - tablist [ref=e96]:
+            - tab "草稿" [selected] [ref=e98]
+            - tab "已发布" [ref=e99]
+          - generic:
+            - tabpanel "草稿"
+        - generic [ref=e178]:
+          - table [ref=e180]:
+            - rowgroup [ref=e186]:
+              - row [ref=e187]:
+                - columnheader "标题" [ref=e188]
+                - columnheader "审核" [ref=e190]
+                - columnheader "阅读" [ref=e192]
+                - columnheader "操作" [ref=e194]
+          - table [ref=e200]:
+            - rowgroup [ref=e206]:
+              - row [ref=e207]:
+                - cell "browser draft three" [ref=e208]
+                - cell "无需审核" [ref=e210]
+                - cell "0" [ref=e212]
+                - cell [ref=e214]:
+                  - generic [ref=e215]:
+                    - button "编辑" [ref=e216] [cursor=pointer]
+                    - button "发布" [ref=e218] [cursor=pointer]
+                    - button "删除" [ref=e220] [cursor=pointer]
+        - text: "* *"
+    - contentinfo [ref=e71]: VCTN Blog · 由 VCTN 统一后端提供服务
+  - alert [ref=e223]:
+    - paragraph [ref=e227]: 草稿已创建

@@ -295,7 +295,7 @@ function openDetail(row: Record<string, unknown>): void {
 }
 
 .log-filters__label {
-  color: var(--el-text-color-regular);
+  color: var(--vctn-text-regular);
   font-size: 14px;
   white-space: nowrap;
 }

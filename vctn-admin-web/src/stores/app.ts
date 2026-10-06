@@ -14,6 +14,10 @@ export interface PageTab {
 
 const SIDEBAR_KEY = 'vctn.admin.sidebar_collapsed'
 const TABS_KEY = 'vctn.admin.page_tabs'
+const THEME_KEY = 'vctn.admin.theme'
+
+/** The console supports a light and a dark palette. */
+export type ThemeMode = 'light' | 'dark'
 
 function readPreference(key: string): string | null {
   try {
@@ -31,13 +35,38 @@ function writePreference(key: string, value: string): void {
   }
 }
 
+/**
+ * Reflect the palette on <html>.
+ *
+ * Guarded because the store is also imported outside the browser, and kept in
+ * one place so no component has to know how theming is implemented.
+ */
+function applyTheme(mode: ThemeMode): void {
+  if (typeof document === 'undefined') {
+    return
+  }
+  document.documentElement.classList.toggle('dark', mode === 'dark')
+  document.documentElement.style.colorScheme = mode
+}
+
 export const useAppStore = defineStore('app', () => {
   const applicationName = ref('VCTN 管理平台')
   const sidebarCollapsed = ref(readPreference(SIDEBAR_KEY) === '1')
   const tabs = ref<PageTab[]>([])
+  const theme = ref<ThemeMode>(readPreference(THEME_KEY) === 'dark' ? 'dark' : 'light')
 
   const apiPrefix = computed(() => apiBaseUrl)
   const version = computed(() => appVersion)
+
+  // Paint the stored palette before anything mounts, so a reload never flashes.
+  applyTheme(theme.value)
+
+  /** Switch between the light and the dark palette and remember the choice. */
+  function toggleTheme(): void {
+    theme.value = theme.value === 'dark' ? 'light' : 'dark'
+    writePreference(THEME_KEY, theme.value)
+    applyTheme(theme.value)
+  }
 
   /** Collapse or expand the sidebar and remember the choice. */
   function toggleSidebar(): void {
@@ -129,8 +158,10 @@ export const useAppStore = defineStore('app', () => {
     applicationName,
     sidebarCollapsed,
     tabs,
+    theme,
     apiPrefix,
     version,
+    toggleTheme,
     toggleSidebar,
     setSidebarCollapsed,
     openTab,

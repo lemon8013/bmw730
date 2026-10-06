@@ -74,7 +74,7 @@ const tools = computed<ToolCatalogItem[]>(() => {
 
 .category-page__desc {
   margin: 0;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
 }
 
 .category-page__grid {

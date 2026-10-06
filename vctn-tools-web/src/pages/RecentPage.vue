@@ -86,7 +86,7 @@ function clearAll(): void {
 
 .recent-page__desc {
   margin: 0;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-size: 13px;
 }
 

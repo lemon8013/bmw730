@@ -31,7 +31,7 @@ class CommentRepository:
         total = int(
             (
                 await self._session.execute(
-                    select(func.count(BlogComment.id)).select_from(base.subquery())
+                    select(func.count()).select_from(base.subquery())
                 )
             ).scalar_one()
         )
@@ -56,7 +56,7 @@ class CommentRepository:
         total = int(
             (
                 await self._session.execute(
-                    select(func.count(BlogComment.id)).select_from(base.subquery())
+                    select(func.count()).select_from(base.subquery())
                 )
             ).scalar_one()
         )

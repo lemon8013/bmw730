@@ -1126,7 +1126,7 @@ watch(detailVisible, (visible) => {
 
 .user-page__trace {
   margin: 8px 0 0;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-family: monospace;
   font-size: 12px;
   word-break: break-all;
@@ -1146,9 +1146,9 @@ watch(detailVisible, (visible) => {
 .user-page__password-value {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid var(--el-border-color-lighter);
+  border: 1px solid var(--vctn-border-subtle);
   border-radius: 4px;
-  background-color: var(--el-fill-color-light);
+  background-color: var(--vctn-bg-hover);
   font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
   font-size: 14px;
   word-break: break-all;
@@ -1161,6 +1161,6 @@ watch(detailVisible, (visible) => {
 .user-page__section-title {
   margin: 0 0 8px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 </style>

@@ -854,7 +854,7 @@ async function onSetStatus(row: Record<string, unknown>, status: string): Promis
 
 .tool-list-page__hint {
   margin: 4px 0 0;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-size: 12px;
   line-height: 1.5;
 }

@@ -406,7 +406,7 @@ async function submit(): Promise<void> {
 }
 
 .config-page__readonly {
-  color: var(--el-text-color-regular);
+  color: var(--vctn-text-regular);
   font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
   word-break: break-all;
 }

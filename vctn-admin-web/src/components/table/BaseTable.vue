@@ -211,19 +211,19 @@ function resolveRowKey(row: Record<string, unknown>): string {
 
 <style scoped>
 .base-table__alert {
-  margin-bottom: 12px;
+  margin-bottom: var(--vctn-space-3);
 }
 
 .base-table__retry {
   display: flex;
-  gap: 12px;
+  gap: var(--vctn-space-3);
   align-items: center;
 }
 
 .base-table__trace {
-  color: var(--el-text-color-secondary);
-  font-family: monospace;
-  font-size: 12px;
+  color: var(--vctn-text-muted);
+  font-family: var(--vctn-font-mono);
+  font-size: var(--vctn-text-xs);
   word-break: break-all;
 }
 
@@ -232,24 +232,24 @@ function resolveRowKey(row: Record<string, unknown>): string {
   align-items: center;
   justify-content: space-between;
   min-height: 32px;
-  margin-bottom: 8px;
+  margin-bottom: var(--vctn-space-3);
 }
 
 .base-table__toolbar-slot {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--vctn-space-2);
   align-items: center;
   min-width: 0;
 }
 
 .base-table__settings-label {
-  margin-left: 4px;
+  margin-left: var(--vctn-space-1);
 }
 
 .base-table__footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: 12px;
+  margin-top: var(--vctn-space-4);
 }
 </style>

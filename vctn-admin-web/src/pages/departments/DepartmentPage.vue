@@ -581,6 +581,6 @@ async function onDelete(): Promise<void> {
 .department-page__users-title {
   margin: 0 0 8px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 </style>

@@ -339,7 +339,7 @@ async function onDelete(row: Record<string, unknown>): Promise<void> {
 
 .comment-review-page__hint {
   margin: 8px 0 0;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-size: 12px;
 }
 
@@ -348,9 +348,9 @@ async function onDelete(row: Record<string, unknown>): Promise<void> {
   margin: 0;
   padding: 12px;
   overflow: auto;
-  border: 1px solid var(--el-border-color-lighter);
+  border: 1px solid var(--vctn-border-subtle);
   border-radius: 4px;
-  background-color: var(--el-fill-color-light);
+  background-color: var(--vctn-bg-hover);
   font-size: 13px;
   line-height: 1.6;
   white-space: pre-wrap;

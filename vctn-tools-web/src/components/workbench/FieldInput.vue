@@ -71,23 +71,25 @@ const visible = computed(() => {
 
 <style scoped>
 .field-input {
-  margin-bottom: 16px;
+  margin-bottom: var(--vctn-space-4);
 }
 
 .field-input__label {
-  margin-bottom: 6px;
-  color: var(--el-text-color-primary);
+  margin-bottom: var(--vctn-space-2);
+  color: var(--vctn-text-strong);
+  font-size: var(--vctn-text-sm);
   font-weight: 500;
 }
 
 .field-input__required {
-  color: var(--el-color-danger);
   margin-left: 2px;
+  color: var(--vctn-danger);
 }
 
 .field-input__help {
-  margin-top: 6px;
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
+  margin-top: var(--vctn-space-2);
+  color: var(--vctn-text-muted);
+  font-size: var(--vctn-text-xs);
+  line-height: 1.6;
 }
 </style>

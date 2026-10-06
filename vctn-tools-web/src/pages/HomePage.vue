@@ -136,38 +136,50 @@ function toolsOf(categoryId: string): ToolCatalogItem[] {
 
 <style scoped>
 .home-page__hero {
-  margin-bottom: 16px;
+  padding-bottom: var(--vctn-space-4);
+  margin-bottom: var(--vctn-space-5);
+  border-bottom: 1px solid var(--vctn-border-subtle);
 }
 
 .home-page__title {
-  margin: 0 0 6px;
-  font-size: 24px;
+  margin: 0 0 var(--vctn-space-2);
+  color: var(--vctn-text-strong);
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
 }
 
 .home-page__subtitle {
   margin: 0;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
+  font-size: var(--vctn-text-sm);
 }
 
 .home-page__section {
-  margin-bottom: 16px;
+  margin-bottom: var(--vctn-space-6);
 }
 
 .home-page__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
+  gap: var(--vctn-space-3);
 }
 
 .home-page__category-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: var(--vctn-space-3);
 }
 
 .home-page__more {
-  font-size: 13px;
-  color: var(--el-color-primary);
+  font-size: var(--vctn-text-sm);
+  font-weight: 500;
+  color: var(--vctn-brand);
   text-decoration: none;
+}
+
+.home-page__more:hover {
+  text-decoration: underline;
 }
 </style>

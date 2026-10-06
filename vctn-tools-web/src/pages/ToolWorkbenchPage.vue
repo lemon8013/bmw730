@@ -314,7 +314,9 @@ function goHome(): void {
 
 <style scoped>
 .workbench__head {
-  margin-bottom: 16px;
+  padding-bottom: var(--vctn-space-4);
+  margin-bottom: var(--vctn-space-4);
+  border-bottom: 1px solid var(--vctn-border-subtle);
 }
 
 .workbench__head-inner {
@@ -325,13 +327,17 @@ function goHome(): void {
 }
 
 .workbench__title {
-  margin: 0 0 6px;
-  font-size: 20px;
+  margin: 0 0 var(--vctn-space-2);
+  color: var(--vctn-text-strong);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 .workbench__desc {
   margin: 0;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
+  font-size: var(--vctn-text-sm);
 }
 
 .workbench__notice {
@@ -349,8 +355,9 @@ function goHome(): void {
 }
 
 .workbench__privacy {
-  color: var(--el-color-success);
-  font-size: 12px;
+  color: var(--vctn-success);
+  font-size: var(--vctn-text-xs);
+  font-weight: 500;
 }
 
 .workbench__output-head {
@@ -361,13 +368,14 @@ function goHome(): void {
 
 .workbench__duration {
   margin-right: auto;
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
+  color: var(--vctn-text-muted);
+  font-size: var(--vctn-text-xs);
+  font-variant-numeric: tabular-nums;
 }
 
 .workbench__quota {
   margin: 0;
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
+  color: var(--vctn-text-muted);
+  font-size: var(--vctn-text-xs);
 }
 </style>

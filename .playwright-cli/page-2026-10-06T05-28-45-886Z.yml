@@ -1,0 +1,17 @@
+- generic [ref=f1e5]:
+  - generic [ref=f1e6]:
+    - generic [ref=f1e7]: V
+    - generic [ref=f1e8]:
+      - heading "VCTN 管理平台" [level=1] [ref=f1e9]
+      - paragraph [ref=f1e10]: v0.1.0
+  - generic [ref=f1e11]:
+    - generic [ref=f1e12]:
+      - generic [ref=f1e13]: "*用户名"
+      - textbox "*用户名" [ref=f1e17]:
+        - /placeholder: 请输入管理员用户名
+    - generic [ref=f1e19]:
+      - generic [ref=f1e20]: "*密码"
+      - textbox "*密码" [ref=f1e24]:
+        - /placeholder: 请输入密码
+    - button "登录" [ref=f1e25] [cursor=pointer]
+  - paragraph [ref=f1e27]: 登录请求会携带 X-Trace-ID 与 X-Request-ID，失败时可在上方获取 Trace ID 以便排查。

@@ -38,10 +38,12 @@ withDefaults(defineProps<Props>(), {
 .page-header {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--vctn-space-3);
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 16px;
+  padding-bottom: var(--vctn-space-4);
+  margin-bottom: var(--vctn-space-4);
+  border-bottom: 1px solid var(--vctn-border-subtle);
 }
 
 .page-header__text {
@@ -50,26 +52,28 @@ withDefaults(defineProps<Props>(), {
 
 .page-header__title {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+  color: var(--vctn-text-strong);
+  font-size: 20px;
+  font-weight: 500;
   line-height: 1.4;
+  letter-spacing: -0.01em;
 }
 
 .page-header__tag {
-  margin-left: 8px;
+  margin-left: var(--vctn-space-2);
   vertical-align: middle;
 }
 
 .page-header__description {
-  margin: 4px 0 0;
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
+  margin: var(--vctn-space-1) 0 0;
+  color: var(--vctn-text-secondary);
+  font-size: var(--vctn-text-sm);
 }
 
 .page-header__actions {
   display: flex;
   flex-shrink: 0;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--vctn-space-2);
 }
 </style>

@@ -34,17 +34,20 @@ async def list_articles(
     session: DbSessionDep,
     keyword: str | None = Query(default=None),
     category_id: str | None = Query(default=None),
+    author_id: str | None = Query(default=None),
     status: str | None = Query(default=None),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=200),
-    _: OptionalPrincipal = None,
+    principal: OptionalPrincipal = None,
 ) -> ApiResponse[Page[ArticleResponse]]:
     return success(
         await _service(session).list_articles(
             keyword=keyword,
             category_id=int(category_id) if category_id else None,
+            author_id=int(author_id) if author_id else None,
             status=status,
             page=PageParams(page=page, page_size=page_size),
+            actor=principal,
         )
     )
 

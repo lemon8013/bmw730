@@ -11,7 +11,7 @@ first.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,6 +21,9 @@ from app.shared.ids import new_id
 from app.shared.logging.writers import RESULT_FAILURE, RESULT_SUCCESS
 from app.shared.security.masking import mask_mapping
 from app.shared.tracing.context import get_request_id, get_trace_id
+
+if TYPE_CHECKING:  # pragma: no cover - typing only, avoids an import cycle
+    from app.shared.auth.context import Principal
 
 
 class AuditService:
@@ -44,21 +47,39 @@ class AuditService:
         error_code: str | None = None,
         ip: str | None = None,
         user_agent: str | None = None,
+        actor: Principal | None = None,
     ) -> SysAuditLog:
-        """Append one audit record to the current transaction."""
+        """Append one audit record to the current transaction.
+
+        ``sys_audit_log.operator_id`` is a foreign key to ``sys_user(id)``, so a
+        platform business user must never be written to the column. Pass
+        ``actor`` and the id is stored for operators only; for a platform user
+        the subject is kept in ``after_data`` instead.
+        """
         if not self._settings.AUDIT_ENABLED:
             return SysAuditLog()  # never persisted; callers only use the return value loosely
+        resolved_operator_id = operator_id
+        resolved_username = operator_username
+        payload = dict(after_data) if after_data else {}
+        if actor is not None:
+            resolved_username = actor.username
+            if actor.is_admin:
+                resolved_operator_id = actor.subject_id
+            else:
+                resolved_operator_id = None
+                payload["subject_id"] = str(actor.subject_id)
+                payload["subject_type"] = actor.subject_type
         row = SysAuditLog(
             id=new_id(),
             trace_id=get_trace_id(),
             request_id=get_request_id(),
-            operator_id=operator_id,
-            operator_username=operator_username,
+            operator_id=resolved_operator_id,
+            operator_username=resolved_username,
             action=action,
             resource_type=resource_type,
             resource_id=None if resource_id is None else str(resource_id),
             before_data=mask_mapping(before_data) if before_data else None,
-            after_data=mask_mapping(after_data) if after_data else None,
+            after_data=mask_mapping(payload) if payload else None,
             result=result,
             error_code=error_code,
             ip=ip,

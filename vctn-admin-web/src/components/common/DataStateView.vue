@@ -68,20 +68,20 @@ const emit = defineEmits<{ retry: [] }>()
 
 <style scoped>
 .data-state__skeleton {
-  margin-bottom: 12px;
+  margin-bottom: var(--vctn-space-3);
 }
 
 .data-state__actions {
   display: flex;
-  gap: 12px;
+  gap: var(--vctn-space-3);
   align-items: center;
-  margin-top: 12px;
+  margin-top: var(--vctn-space-3);
 }
 
 .data-state__trace {
-  color: var(--el-text-color-secondary);
-  font-family: monospace;
-  font-size: 12px;
+  color: var(--vctn-text-muted);
+  font-family: var(--vctn-font-mono);
+  font-size: var(--vctn-text-xs);
   word-break: break-all;
 }
 </style>

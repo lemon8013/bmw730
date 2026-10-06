@@ -97,6 +97,29 @@ VCTN：**双前端 + 单 FastAPI 模块化单体**。
 - 本机**已有可用 PostgreSQL 18 + Redis**（配置在 `vctn-api/.env`，账号 `bmw730` **无 CREATEDB 权限**，无法建临时库）。
 - 本机 pip / npm 网络很慢（pip 装 25 个包约 23 分钟），长任务务必后台跑。
 
+## 四个前端工程（2026-10-06 新增 blog-web）
+- `vctn-api`:8000（唯一后端）/ `vctn-admin-web`:5173 / `vctn-tools-web`:5174 / **`vctn-blog-web`:5175**。
+- **blog 是独立域名 + 独立前端工程，但后端仍走唯一的 `vctn-api`**，禁止新建 blog-api。
+- 三个前端互不 import，各自会话 storage 前缀分开：`vctn.admin.` / `vctn.tools.` / `vctn.blog.`。
+- blog 前台匿名可读（首页/分类/搜索/作者/详情）；登录后才可点赞收藏评论关注；
+  申请作者（需管理员审核）后可投稿。正文直接用后端 `content_html`（markdown-it + bleach），
+  前端不引入 Markdown 运行时。
+
+## 审计日志的两张表只认 sys_user（2026-10-06，勿写平台用户 id 进去）
+- `sys_operation_log.operator_id` 与 `sys_audit_log.operator_id` 都是
+  `REFERENCES sys_user(id)`。平台业务用户（blog 投稿 / 评论 / 点赞）写入必然
+  `ForeignKeyViolationError`（`POST /blog/authors/apply` 曾稳定 500）。
+- 统一解法：`write_operation_log(...)` 与 `AuditService.record(...)` 都新增 `actor` 参数
+  —— operator 写 id 列，平台用户写 `NULL` 并把 `subject_id` / `subject_type` 记进
+  `metadata` / `after_data`。**调用方一律传 `actor=actor`，不要传 `operator_id=actor.subject_id`。**
+- `sys_security_log.user_id` 无外键，可放任意主体，但语义上是安全事件流。
+- 平台侧业务动作的审计落点本身没有规格依据，已登记 **B-38**。
+
+## SQLAlchemy 计数查询陷阱（2026-10-06）
+- `select(func.count(Model.id)).select_from(base.subquery())` 会让外层隐式 FROM 主表，
+  与子查询**交叉连接**，`total` 变成「行数 × 行数」。必须写 `select(func.count())`（无参）。
+- 同理 `Principal` 的属性是 `is_admin` / **`is_platform_user`**（不是 `is_platform`）。
+
 ## 路由装配约定（2026-10-01 修正，勿回退）
 - **挂载前缀只写到模块基址**，业务段由 router 内部路径声明：
   `admin/*` → `/admin`（`admin/auth` 例外用 `/admin/auth`）；`platform/blog/tools/analytics/system` 各自
@@ -136,3 +159,15 @@ VCTN：**双前端 + 单 FastAPI 模块化单体**。
 - 管理员初始密码只从 `VCTN_SEED_ADMIN_PASSWORD` 读（缺失即失败）；测试账号密码走 `VCTN_SEED_TEST_PASSWORD`。
 - 幂等：只按稳定业务键 insert-if-not-exists，绝不 UPDATE 已有行；一次 run 一个事务。
 - 文档：`SEED_DATA_DESIGN.md` / `SEED_DATA_REPORT.md` / `BLOCKERS.md`（均在 `vctn-api/`）。
+
+## 三站统一设计系统「石墨蓝」（2026-10-06，勿回退）
+- 三站共用同一套 token 结构（各自 `src/styles/tokens.css`），仅强调色不同：
+  **admin `#2563EB` / tools `#0284C7` / blog `#1D4ED8`**；语义色 success `#16A34A`、
+  warning `#D97706`、danger `#DC2626`（含 EP 全套 light-3/5/7/8/9 + dark-2）。
+- `--vctn-*` 是自有 token，`--el-*` 在 tokens.css 里整体皮肤化；`.vue` 里**禁止再写 `var(--el-*)` 或
+  `font-weight: 600/700`**（已全量收口为 vctn token + 500）。
+- **暗色模式只存在于 admin**：`html.dark` + tokens.css 暗色段；开关在 HeaderBar（日月按钮），
+  状态在 appStore（`theme`/`toggleTheme`），localStorage key `vctn.admin.theme`，
+  index.html 有防闪白内联脚本。tools/blog 的 tokens.css 没有 dark 段，不要给它们加。
+- main.ts 引入顺序：`element-plus/dist/index.css` → `tokens.css` → `index.css`。
+- blog 正文排版在 blog `src/styles/index.css` 的 `.article-body`（标题、引用、代码块全部 token 化）。

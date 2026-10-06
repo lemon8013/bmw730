@@ -1,0 +1,77 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e42]:
+    - banner [ref=e43]:
+      - generic [ref=e44]:
+        - link "VCTN Blog" [ref=e45] [cursor=pointer]:
+          - /url: /
+        - navigation [ref=e46]:
+          - link "首页" [ref=e47] [cursor=pointer]:
+            - /url: /
+          - link "技术分享" [ref=e75] [cursor=pointer]:
+            - /url: /category/BLOG_TECH
+          - link "教程指南" [ref=e76] [cursor=pointer]:
+            - /url: /category/BLOG_TUTORIAL
+          - link "平台公告" [ref=e77] [cursor=pointer]:
+            - /url: /category/BLOG_ANNOUNCEMENT
+          - link "行业资讯" [ref=e78] [cursor=pointer]:
+            - /url: /category/BLOG_NEWS
+          - link "作者" [ref=e48] [cursor=pointer]:
+            - /url: /authors
+        - generic [ref=e49]:
+          - textbox "搜索文章…" [ref=e51]
+          - button "搜索" [ref=e54] [cursor=pointer]
+        - button "博 博客作者" [ref=e58] [cursor=pointer]:
+          - generic [ref=e59]: 博
+          - generic [ref=e60]: 博客作者
+    - main [ref=e61]:
+      - generic [ref=e63]:
+        - generic [ref=e80]:
+          - heading "你好，VCTN 博客" [level=1] [ref=e81]
+          - generic [ref=e82]:
+            - generic [ref=e83]: 博客作者
+            - generic [ref=e84]: 2026/10/6 10:31:17
+            - link "平台公告" [ref=e85] [cursor=pointer]:
+              - /url: /category/BLOG_ANNOUNCEMENT
+            - generic [ref=e86]: 7 阅读
+          - paragraph [ref=e87]: 博客站正式上线：独立域名、独立前端，后端仍由 vctn-api 统一提供。
+          - generic [ref=e88]:
+            - heading "这是一个全新的开始" [level=2] [ref=e89]
+            - paragraph [ref=e90]:
+              - text: VCTN 博客现在有了
+              - strong [ref=e91]: 独立的前端工程
+              - text: （
+              - code [ref=e92]: vctn-blog-web
+              - text: ）与独立域名， 但后端依旧是唯一的
+              - code [ref=e93]: vctn-api
+              - text: —— 不新建 blog-api，不拆微服务。
+            - heading "我们能做什么" [level=3] [ref=e94]
+            - list [ref=e95]:
+              - listitem [ref=e96]: 匿名浏览全部已发布文章
+              - listitem [ref=e97]: 登录后点赞、收藏、评论、关注作者
+              - listitem [ref=e98]: 申请成为作者后投稿、发布、管理自己的文章
+            - heading "正文是怎么渲染的" [level=3] [ref=e99]
+            - paragraph [ref=e100]:
+              - text: 编辑器提交 Markdown，服务端用
+              - code [ref=e101]: markdown-it
+              - text: 渲染后再经
+              - code [ref=e102]: bleach.clean
+              - text: 消毒，落库的是安全的
+              - code [ref=e103]: content_html
+              - text: 。前端直接展示它，不需要再引入 Markdown 运行时。
+            - blockquote [ref=e104]:
+              - paragraph [ref=e105]: 这是引用块，用来验证渲染管线是否完整。
+          - generic [ref=e106]:
+            - button "点赞 1" [ref=e107] [cursor=pointer]
+            - button "收藏 0" [ref=e109] [cursor=pointer]
+        - generic [ref=e111]:
+          - generic [ref=e112]: 评论 · 0
+          - generic [ref=e113]:
+            - generic [ref=e114]:
+              - generic [ref=e115]:
+                - textbox "写下你的看法…" [ref=e116]
+                - status "0 / 500 characters" [ref=e143]: 0 / 500
+              - button "发表评论" [ref=e119] [cursor=pointer]
+            - paragraph [ref=e163]: 还没有评论
+    - contentinfo [ref=e69]: VCTN Blog · 由 VCTN 统一后端提供服务
+  - alert [ref=e164]:
+    - paragraph [ref=e168]: 评论已提交，审核通过后可见

@@ -41,7 +41,8 @@ function newIdentifier(): string {
 
 export const httpClient: AxiosInstance = axios.create({
   baseURL: apiBaseUrl,
-  timeout: 15000,
+  // Login verifies an argon2 hash (~3s); keep headroom for a cold backend.
+  timeout: 45000,
   headers: { 'Content-Type': 'application/json' },
 })
 

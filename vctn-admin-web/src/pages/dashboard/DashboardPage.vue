@@ -171,21 +171,28 @@ function refreshAll(): void {
 </template>
 
 <style scoped>
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vctn-space-4);
+}
+
 .dashboard__notice {
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .dashboard__stats {
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .dashboard__card {
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .dashboard__facts {
   margin: 0;
   padding-left: 18px;
+  color: var(--vctn-text-regular);
   line-height: 2;
 }
 </style>

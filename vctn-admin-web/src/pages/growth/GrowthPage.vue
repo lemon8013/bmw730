@@ -574,10 +574,10 @@ function refreshAll(): void {
 }
 
 .growth-page__plus {
-  color: var(--el-color-success);
+  color: var(--vctn-success);
 }
 
 .growth-page__minus {
-  color: var(--el-color-danger);
+  color: var(--vctn-danger);
 }
 </style>

@@ -225,7 +225,7 @@ function reloadAll(): void {
 
 .tool-version-page__trace {
   margin: 0 0 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-family: monospace;
   font-size: 12px;
   word-break: break-all;
@@ -238,7 +238,7 @@ function reloadAll(): void {
 .tool-version-page__section-title {
   margin: 0 0 12px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .tool-version-page__stats {

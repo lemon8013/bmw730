@@ -125,7 +125,7 @@ defineExpose({ validate, clearValidation })
 
 .base-form__trace {
   margin: 0 0 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-family: monospace;
   font-size: 12px;
   word-break: break-all;

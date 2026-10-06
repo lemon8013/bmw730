@@ -12,7 +12,7 @@ import {
   ElIcon,
   ElTooltip,
 } from 'element-plus'
-import { Expand, Fold, SwitchButton, User } from '@element-plus/icons-vue'
+import { Expand, Fold, Moon, Sunny, SwitchButton, User } from '@element-plus/icons-vue'
 
 import ChangePasswordDialog from '@/layouts/components/ChangePasswordDialog.vue'
 import { useAppStore } from '@/stores/app'
@@ -80,6 +80,20 @@ function onCommand(command: string | number | object): void {
         <span class="header-bar__api">{{ appStore.apiPrefix }}</span>
       </ElTooltip>
 
+      <ElTooltip :content="appStore.theme === 'dark' ? '切换为浅色' : '切换为深色'" placement="bottom">
+        <button
+          type="button"
+          class="header-bar__icon-button"
+          :aria-label="appStore.theme === 'dark' ? '切换为浅色' : '切换为深色'"
+          @click="appStore.toggleTheme()"
+        >
+          <ElIcon :size="17">
+            <Sunny v-if="appStore.theme === 'dark'" />
+            <Moon v-else />
+          </ElIcon>
+        </button>
+      </ElTooltip>
+
       <ElDropdown trigger="click" @command="onCommand">
         <button type="button" class="header-bar__user">
           <ElIcon><User /></ElIcon>
@@ -105,25 +119,26 @@ function onCommand(command: string | number | object): void {
 <style scoped>
 .header-bar {
   display: flex;
-  gap: 12px;
+  gap: var(--vctn-space-3);
   align-items: center;
   justify-content: space-between;
-  height: 56px;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  background-color: var(--el-bg-color);
+  height: var(--vctn-header-height);
+  padding: 0 var(--vctn-space-4);
+  border-bottom: 1px solid var(--vctn-border-subtle);
+  background-color: var(--vctn-bg-surface);
 }
 
 .header-bar__left,
 .header-bar__right {
   display: flex;
-  gap: 12px;
+  gap: var(--vctn-space-2);
   align-items: center;
   min-width: 0;
 }
 
 .header-bar__toggle {
-  padding: 4px;
+  padding: var(--vctn-space-1);
+  border-radius: var(--vctn-radius-sm);
 }
 
 .header-bar__breadcrumb {
@@ -132,26 +147,58 @@ function onCommand(command: string | number | object): void {
 }
 
 .header-bar__api {
-  color: var(--el-text-color-secondary);
-  font-family: monospace;
-  font-size: 12px;
+  padding: 3px 8px;
+  border: 1px solid var(--vctn-border-subtle);
+  border-radius: var(--vctn-radius-pill);
+  background-color: var(--vctn-bg-inset);
+  color: var(--vctn-text-secondary);
+  font-family: var(--vctn-font-mono);
+  font-size: var(--vctn-text-xs);
+}
+
+.header-bar__icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: var(--vctn-radius-md);
+  background: transparent;
+  color: var(--vctn-text-secondary);
+  cursor: pointer;
+  transition:
+    background-color var(--vctn-duration-fast) var(--vctn-ease),
+    color var(--vctn-duration-fast) var(--vctn-ease),
+    border-color var(--vctn-duration-fast) var(--vctn-ease);
+}
+
+.header-bar__icon-button:hover {
+  border-color: var(--vctn-border);
+  background-color: var(--vctn-bg-hover);
+  color: var(--vctn-text-strong);
 }
 
 .header-bar__user {
   display: flex;
-  gap: 6px;
+  gap: var(--vctn-space-2);
   align-items: center;
-  padding: 6px 10px;
-  border: none;
-  border-radius: 4px;
+  height: 32px;
+  padding: 0 var(--vctn-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--vctn-radius-md);
   background: transparent;
-  color: var(--el-text-color-primary);
+  color: var(--vctn-text-regular);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--vctn-text-sm);
+  transition:
+    background-color var(--vctn-duration-fast) var(--vctn-ease),
+    border-color var(--vctn-duration-fast) var(--vctn-ease);
 }
 
 .header-bar__user:hover {
-  background-color: var(--el-fill-color-light);
+  border-color: var(--vctn-border);
+  background-color: var(--vctn-bg-hover);
 }
 
 .header-bar__username {

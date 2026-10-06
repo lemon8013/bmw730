@@ -65,7 +65,7 @@ function widthOf(value: number): string {
 .bar-chart__empty {
   margin: 0;
   padding: 24px 0;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   text-align: center;
 }
 
@@ -94,14 +94,14 @@ function widthOf(value: number): string {
   height: 10px;
   overflow: hidden;
   border-radius: 5px;
-  background-color: var(--el-fill-color);
+  background-color: var(--vctn-bg-hover);
 }
 
 .bar-chart__fill {
   display: block;
   height: 100%;
   border-radius: 5px;
-  background: linear-gradient(90deg, var(--el-color-primary), var(--el-color-primary-light-3));
+  background: linear-gradient(90deg, var(--vctn-brand), var(--vctn-brand-hover));
 }
 
 .bar-chart__value {
@@ -111,6 +111,6 @@ function widthOf(value: number): string {
 }
 
 .bar-chart__secondary {
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
 }
 </style>

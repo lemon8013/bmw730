@@ -44,17 +44,20 @@ const emit = defineEmits<{ retry: [] }>()
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 40px 0;
-  color: var(--el-text-color-secondary);
+  gap: var(--vctn-space-2);
+  padding: var(--vctn-space-8) var(--vctn-space-4);
+  border: 1px dashed var(--vctn-border);
+  border-radius: var(--vctn-radius-lg);
+  background-color: var(--vctn-bg-surface);
+  color: var(--vctn-text-secondary);
 }
 
 .async-section__spinner {
   font-size: 22px;
-  color: var(--el-color-primary);
+  color: var(--vctn-brand);
 }
 
 .async-section__error {
-  color: var(--el-color-danger);
+  color: var(--vctn-danger);
 }
 </style>

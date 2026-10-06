@@ -53,8 +53,8 @@ const geometry = computed(() => {
         role="img"
         :aria-label="seriesName"
       >
-        <line x1="0" y1="100" x2="100" y2="100" stroke="var(--el-border-color)" stroke-width="0.4" />
-        <line x1="0" y1="50" x2="100" y2="50" stroke="var(--el-border-color-lighter)" stroke-width="0.3" />
+        <line x1="0" y1="100" x2="100" y2="100" stroke="var(--vctn-border)" stroke-width="0.4" />
+        <line x1="0" y1="50" x2="100" y2="50" stroke="var(--vctn-border-subtle)" stroke-width="0.3" />
         <path
           :d="geometry.path"
           fill="none"
@@ -85,7 +85,7 @@ const geometry = computed(() => {
 .line-chart__empty {
   margin: 0;
   padding: 24px 0;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   text-align: center;
 }
 
@@ -98,7 +98,7 @@ const geometry = computed(() => {
   display: flex;
   justify-content: space-between;
   margin-top: 4px;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-size: 12px;
 }
 </style>

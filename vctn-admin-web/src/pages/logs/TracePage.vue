@@ -203,14 +203,14 @@ function reloadTrace(): void {
 
 .trace-page__entry-stream {
   margin: 0;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-size: 12px;
 }
 
 .trace-page__entry-action {
   margin: 4px 0 0;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   word-break: break-all;
 }
 

@@ -358,7 +358,7 @@ function openTrace(traceId: string): void {
 }
 
 .log-filters__label {
-  color: var(--el-text-color-regular);
+  color: var(--vctn-text-regular);
   font-size: 14px;
   white-space: nowrap;
 }
@@ -379,7 +379,7 @@ function openTrace(traceId: string): void {
 .audit-log-page__section-title {
   margin: 0 0 8px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .audit-log-page__trace-action {

@@ -700,7 +700,7 @@ async function saveInheritance(): Promise<void> {
 <style scoped>
 .role-page__hint {
   margin: 0 0 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-size: 13px;
 }
 

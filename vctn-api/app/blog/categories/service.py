@@ -75,7 +75,7 @@ class CategoryService:
         await self._audit.record(
             self._session,
             action="BLOG_CATEGORY_CREATE",
-            operator_id=actor.subject_id,
+            actor=actor,
             operator_username=actor.username,
             resource_type="blog_category",
             resource_id=int(row.id),
@@ -90,7 +90,7 @@ class CategoryService:
             self._session,
             operation="BLOG_CATEGORY_CREATE",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_category",
             resource_id=int(row.id),
         )
@@ -112,7 +112,7 @@ class CategoryService:
         await self._audit.record(
             self._session,
             action="BLOG_CATEGORY_UPDATE",
-            operator_id=actor.subject_id,
+            actor=actor,
             operator_username=actor.username,
             resource_type="blog_category",
             resource_id=int(row.id),
@@ -124,7 +124,7 @@ class CategoryService:
             self._session,
             operation="BLOG_CATEGORY_UPDATE",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_category",
             resource_id=int(row.id),
         )
@@ -139,7 +139,7 @@ class CategoryService:
         await self._audit.record(
             self._session,
             action="BLOG_CATEGORY_DELETE",
-            operator_id=actor.subject_id,
+            actor=actor,
             operator_username=actor.username,
             resource_type="blog_category",
             resource_id=int(row.id),
@@ -151,7 +151,7 @@ class CategoryService:
             self._session,
             operation="BLOG_CATEGORY_DELETE",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_category",
             resource_id=int(row.id),
         )

@@ -98,13 +98,13 @@ async function onSubmit(): Promise<void> {
 <style scoped>
 .change-password__error {
   margin: 0;
-  color: var(--el-color-danger);
+  color: var(--vctn-danger);
   font-size: 13px;
 }
 
 .change-password__trace {
   margin: 4px 0 0;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-family: monospace;
   font-size: 12px;
 }

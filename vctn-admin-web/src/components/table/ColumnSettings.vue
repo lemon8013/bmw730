@@ -185,15 +185,15 @@ function reset(): void {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  border-bottom: 1px solid var(--vctn-border-subtle);
 }
 
 .column-settings__title {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .column-settings__count {
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-size: 12px;
 }
 
@@ -214,7 +214,7 @@ function reset(): void {
 }
 
 .column-settings__item:hover {
-  background-color: var(--el-fill-color-light);
+  background-color: var(--vctn-bg-hover);
 }
 
 .column-settings__item--dragging {
@@ -222,7 +222,7 @@ function reset(): void {
 }
 
 .column-settings__handle {
-  color: var(--el-text-color-placeholder);
+  color: var(--vctn-text-muted);
   cursor: grab;
 }
 
@@ -242,7 +242,7 @@ function reset(): void {
   display: flex;
   justify-content: space-between;
   padding-top: 8px;
-  border-top: 1px solid var(--el-border-color-lighter);
+  border-top: 1px solid var(--vctn-border-subtle);
 }
 
 .column-settings__reset {

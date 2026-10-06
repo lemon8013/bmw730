@@ -277,6 +277,7 @@ PUT    /api/v1/tools/access/policies/{id}
 | **B-34** | ~~工具用量统计没有管理员可读的数据源~~ **已关闭（2026-10-05）** | 已新增 `GET /admin/tools/usage`（每工具使用次数）与 `GET /admin/tools/usage/daily`（按日序列），权限复用矩阵内已有的 `TOOL_STAT_VIEW`，均直接聚合 `tool_usage_event`，不依赖汇总表；`ToolStatisticsPage.vue` 已改为只消费管理端接口 + 公开热门榜，Operator 打开不再 401。详见下方 §八 |
 | **B-35** | **工具访问策略粒度不足以支撑「指定用户 / 角色可见」** | `tool_access_policy` 唯一约束为 `(tool_id, subject_type)`，**无 `subject_id` 列**，且 `subject_type` 后端限定 `^(GUEST\|USER)$`（`app/tools/access/service.py`）。因此可见性只能分「游客 / 登录用户」两档，无法针对具体用户或角色。这是冻结 DDL 的结构限制，属规格决策，未改表。当前可用的两档控制见下方 §八 |
 | **B-36** | **热门榜汇总表从未生成（已部分解决 2026-10-05）** | `tool_popularity_daily` 仍为 0 行，没有任何定时任务刷新它，`tool_popularity_daily` 的生成入口（`POST /tools/statistics/refresh` 等）也要求业务用户身份。**已做的兜底**：`ToolCatalogService.popular()` 在汇总表为空时回退到直接聚合 `tool_usage_event`（新 `ToolUsageRepository.popularity_from_events`），所以 `/tools/popular` 与 tools-web 热门页现在有数据。**仍未决**：汇总表的刷新频率与责任人依旧空缺，回退只是绕过它，不是替代它 |
+| **B-38** | **平台侧业务动作在冻结 DDL 里没有审计落点（2026-10-06 发现并降级处理）** | `sys_operation_log.operator_id` 与 `sys_audit_log.operator_id` 均为 `REFERENCES sys_user(id)`，而博客投稿 / 评论 / 点赞等动作的发起者是**平台业务用户**（`biz_user`），直接写入必然 `ForeignKeyViolationError`（`POST /blog/authors/apply` 曾稳定 500）。**已做的降级**：`write_operation_log` 与 `AuditService.record` 新增 `actor` 参数——operator 写 id 列，平台用户写 `operator_id = NULL` 并把 `subject_id` / `subject_type` 记入 `metadata` / `after_data`（21 处 blog 调用 + 全部 `actor=actor` 审计调用已切换）。**仍未决**：平台侧动作到底该进哪张表没有规格依据；`sys_security_log.user_id` 无外键但语义上是安全事件流，不适合承载业务操作审计。详见下方 §九 |
 | **B-37** | **行为分析全链路没有任何数据，`/analytics` 八个页签恒为空** | 实测行数：`behavior_event` / `behavior_event_daily` / `behavior_user_daily` / `behavior_page_daily` / `behavior_tool_daily` / `behavior_search_daily` / `behavior_funnel` **全部 0 行**；`POST /admin/analytics/recompute` 返回 `recomputed_rows: 0`。根因是**没有任何埋点上报方**：tools-web 调 `/tools/runtime/execute` 只写 `tool_usage_event`，admin-web 也不上报页面事件，规格未定义谁负责埋点。工具侧数据走的是另一条链路（`tool_usage_event` 31 行），因此「工具统计」有数而「行为分析」为空。属埋点范围与责任人的产品口径空缺，未自行发明埋点 |
 
 ---
@@ -589,3 +590,43 @@ OpenAPI 全部 162 条路径中，**不存在**任何 `/admin/growth`、`/admin/
 3. 是否需要真正的「指定用户 / 角色」可见性？若需要，须先解冻 DDL 并新增
    `subject_id` 相关设计（B-35）。当前只支持「所有人可用 / 注册用户可用」两档。
 
+
+---
+
+## 九、独立博客前端 `vctn-blog-web` 与随之暴露的后端缺陷（2026-10-06）
+
+### 背景
+
+博客是独立域名、独立前端工程 `vctn-blog-web`（端口 5175），后端仍是唯一的
+`vctn-api`，**不新建 blog-api**。前台匿名可读，登录后才可点赞 / 收藏 / 评论 /
+关注，申请成为作者后可投稿与发布。
+
+### 本轮新增
+
+* 工程 `vctn-blog-web/`：`types/{api,blog,auth}.ts`、`api/{client,credentials,
+  session,auth,blog}.ts`、`stores/auth.ts`、`composables/use-async-data.ts`、
+  `layouts/AppLayout.vue`、`components/{UserMenu,ArticleCard,FeedState}.vue`、
+  `pages/{Home,Search,Category,Article,Authors,Author,Mine,Login}Page.vue`、
+  `scripts/browser-verify.sh`。
+* 后端新增 `GET /blog/articles` 的 `author_id` 过滤参数（作者主页需要）。
+
+### 修掉的四个后端既有缺陷
+
+| # | 现象 | 根因 | 处理 |
+| --- | --- | --- | --- |
+| 1 | `POST /blog/authors/apply` 稳定 500 | `sys_operation_log.operator_id REFERENCES sys_user(id)`，平台业务用户写入违反外键 | `write_operation_log` 新增 `actor` 参数，operator 写 id、平台用户写 `NULL` + `metadata`；blog 21 处调用改为传 `actor`。`AuditService.record` 同步处理（原本传 `actor=` 直接 `TypeError`）。规格缺口登记为 **B-38** |
+| 2 | `GET /blog/authors/applications` 返回 500 `invalid literal for int(): 'applications'` | 路由注册顺序：`/authors/{author_id}` 在 `/authors/applications` 之前，字面量段被当 id 解析 | 把 `apply` / `applications` 全部移到 `{author_id}` 之前；新增契约测试 `tests/contract/test_blog_access_contract.py` 锁住顺序 |
+| 3 | 文章列表 `total` 恒为「行数 × 行数」（5 篇报 25） | `select(func.count(BlogArticle.id)).select_from(base.subquery())` —— `func.count(实体列)` 让外层隐式 FROM 主表，与子查询交叉连接 | 改为 `select(func.count()).select_from(...)`，blog 四个模块共 7 处 |
+| 4 | `GET /blog/articles?status=DRAFT` 匿名即可列出**所有作者**的草稿 | 列表端点用 `OptionalPrincipal`，`status` 直接透传且不过滤作者 | 非 `PUBLISHED` 状态强制要求平台身份，并把结果收敛到调用者自己的作者行；新增单元测试 `tests/unit/test_blog_article_list_scope.py`（4 例） |
+
+### 已知行为（不是缺陷）
+
+* 评论提交后为 `PENDING`，`GET /comments` 只返回 `APPROVED`，需管理员在
+  `/blog/comments/pending` 审核通过后才可见。前端已提示「审核通过后可见」。
+* 文章列表分页参数是 `page` / `page_size`，**不是** `limit`。
+
+### 本次新增测试
+
+* `tests/contract/test_blog_access_contract.py` —— 字面量路由必须先于参数化路由。
+* `tests/unit/test_blog_article_list_scope.py` —— 草稿可见性规则（4 例）。
+* 后端全量：`ruff check app tests` 通过，`pytest -q` **143 passed**。

@@ -104,6 +104,12 @@ export function registerGuards(router: Router): void {
       return { name: 'change-password', replace: true }
     }
 
+    // The bare shell path renders no page of its own; land on the first page
+    // the caller may actually visit instead of an empty workspace.
+    if (to.path === '/') {
+      return { path: permission.landingPath, replace: true }
+    }
+
     const required = to.meta.permission
     if (typeof required === 'string' && !permission.has(required)) {
       return { name: 'error-403', replace: true }

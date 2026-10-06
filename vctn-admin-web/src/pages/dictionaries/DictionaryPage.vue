@@ -801,7 +801,7 @@ async function onDeleteItem(row: Record<string, unknown>): Promise<void> {
 
 <style scoped>
 .dictionary-page__code {
-  font-weight: 600;
+  font-weight: 500;
   padding: 0;
 }
 
@@ -814,7 +814,7 @@ async function onDeleteItem(row: Record<string, unknown>): Promise<void> {
 }
 
 .dictionary-page__items-meta {
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-size: 13px;
 }
 
@@ -826,7 +826,7 @@ async function onDeleteItem(row: Record<string, unknown>): Promise<void> {
 }
 
 .dictionary-page__trace {
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-family: monospace;
   font-size: 12px;
   word-break: break-all;

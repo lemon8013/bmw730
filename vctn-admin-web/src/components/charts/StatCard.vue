@@ -19,29 +19,39 @@ withDefaults(defineProps<Props>(), { hint: undefined })
 
 <style scoped>
 .stat-card {
-  padding: 16px;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 6px;
-  background-color: var(--el-bg-color);
+  padding: var(--vctn-space-4);
+  border: 1px solid var(--vctn-border);
+  border-radius: var(--vctn-radius-lg);
+  background-color: var(--vctn-bg-surface);
+  box-shadow: var(--vctn-shadow-xs);
+  transition:
+    border-color var(--vctn-duration-base) var(--vctn-ease),
+    box-shadow var(--vctn-duration-base) var(--vctn-ease);
+}
+
+.stat-card:hover {
+  border-color: var(--vctn-border-brand);
+  box-shadow: var(--vctn-shadow-sm);
 }
 
 .stat-card__label {
   margin: 0;
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
+  color: var(--vctn-text-secondary);
+  font-size: var(--vctn-text-xs);
 }
 
 .stat-card__value {
-  margin: 8px 0 0;
-  font-size: 24px;
-  font-weight: 600;
+  margin: var(--vctn-space-2) 0 0;
+  color: var(--vctn-text-strong);
+  font-size: 28px;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
 
 .stat-card__hint {
-  margin: 4px 0 0;
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
+  margin: var(--vctn-space-1) 0 0;
+  color: var(--vctn-text-muted);
+  font-size: var(--vctn-text-xs);
 }
 </style>

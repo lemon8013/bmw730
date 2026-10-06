@@ -25,7 +25,13 @@ from app.blog.articles.schema import (
 )
 from app.blog.authors.repository import AuthorRepository
 from app.core.config import Settings, get_settings
-from app.core.exceptions import BusinessRuleError, ConflictError, NotFoundError, ValidationError
+from app.core.exceptions import (
+    AuthenticationError,
+    BusinessRuleError,
+    ConflictError,
+    NotFoundError,
+    ValidationError,
+)
 from app.shared.audit.service import AuditService
 from app.shared.auth.context import Principal
 from app.shared.ids import new_id
@@ -68,13 +74,32 @@ class ArticleService:
         *,
         keyword: str | None = None,
         category_id: int | None = None,
+        author_id: int | None = None,
         status: str | None = None,
         page: PageParams,
+        actor: Principal | None = None,
     ) -> Page[ArticleResponse]:
+        """List articles.
+
+        Anything other than ``PUBLISHED`` is private to its author: the caller
+        must be a signed-in platform user and the result is narrowed to their
+        own author row. Without that guard ``?status=DRAFT`` would hand every
+        author's unpublished work to an anonymous caller.
+        """
+        resolved_author_id = author_id
+        resolved_status = status or "PUBLISHED"
+        if resolved_status != "PUBLISHED":
+            if actor is None or not actor.is_platform_user:
+                raise AuthenticationError("sign in to list unpublished articles")
+            own = await self._authors.get_by_user_id(actor.subject_id)
+            if own is None:
+                return Page.build(items=[], total=0, params=page)
+            resolved_author_id = int(own.id)
         rows, total = await self._repository.list_published(
             keyword=keyword,
             category_id=category_id,
-            status=status,
+            author_id=resolved_author_id,
+            status=resolved_status,
             limit=page.limit,
             offset=page.offset,
         )
@@ -152,7 +177,7 @@ class ArticleService:
             self._session,
             operation="BLOG_ARTICLE_CREATE",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_article",
             resource_id=int(row.id),
         )
@@ -195,7 +220,7 @@ class ArticleService:
             self._session,
             operation="BLOG_ARTICLE_UPDATE",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_article",
             resource_id=int(row.id),
         )
@@ -213,7 +238,7 @@ class ArticleService:
             self._session,
             operation="BLOG_ARTICLE_DELETE",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_article",
             resource_id=int(row.id),
         )
@@ -236,7 +261,7 @@ class ArticleService:
             self._session,
             operation="BLOG_ARTICLE_PUBLISH",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_article",
             resource_id=int(row.id),
         )
@@ -262,7 +287,7 @@ class ArticleService:
         await self._audit.record(
             self._session,
             action="BLOG_ARTICLE_REVIEW",
-            operator_id=actor.subject_id,
+            actor=actor,
             operator_username=actor.username,
             resource_type="blog_article",
             resource_id=int(row.id),
@@ -277,7 +302,7 @@ class ArticleService:
             self._session,
             operation="BLOG_ARTICLE_REVIEW",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_article",
             resource_id=int(row.id),
         )

@@ -48,15 +48,9 @@ async def list_authors(
     )
 
 
-@router.get("/authors/{author_id}", response_model=ApiResponse[AuthorResponse])
-async def get_author(
-    author_id: str,
-    session: DbSessionDep,
-    _: OptionalPrincipal = None,
-) -> ApiResponse[AuthorResponse]:
-    return success(await _service(session).get_author(int(author_id)))
-
-
+# Route order matters: every literal segment must be declared before the
+# parameterised ``/authors/{author_id}`` or FastAPI matches it as an id and
+# ``int("applications")`` raises.
 @router.post(
     "/authors/apply",
     response_model=ApiResponse[AuthorApplicationResponse],
@@ -86,6 +80,15 @@ async def list_applications(
             status=status, page=PageParams(page=page, page_size=page_size)
         )
     )
+
+
+@router.get("/authors/{author_id}", response_model=ApiResponse[AuthorResponse])
+async def get_author(
+    author_id: str,
+    session: DbSessionDep,
+    _: OptionalPrincipal = None,
+) -> ApiResponse[AuthorResponse]:
+    return success(await _service(session).get_author(int(author_id)))
 
 
 @router.post(

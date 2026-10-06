@@ -5,6 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VCTN Admin</title>
+    <script>
+      // Paint the stored palette before the first frame, otherwise a reload
+      // shows the light theme for a moment.
+      try {
+        var mode = localStorage.getItem('vctn.admin.theme')
+        if (mode === 'dark') {
+          document.documentElement.classList.add('dark')
+          document.documentElement.style.colorScheme = 'dark'
+        }
+      } catch (error) {
+        /* Private mode: fall back to the light palette. */
+      }
+    </script>
   </head>
   <body>
     <div id="app"></div>

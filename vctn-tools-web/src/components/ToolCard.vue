@@ -51,44 +51,51 @@ const modeTagType = computed(() => {
 <style scoped>
 .tool-card {
   display: block;
-  padding: 14px 16px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 8px;
-  background: #fff;
+  padding: var(--vctn-space-4);
+  border: 1px solid var(--vctn-border);
+  border-radius: var(--vctn-radius-lg);
+  background-color: var(--vctn-bg-surface);
+  color: var(--vctn-text);
   text-decoration: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color var(--vctn-duration-base) var(--vctn-ease),
+    box-shadow var(--vctn-duration-base) var(--vctn-ease),
+    transform var(--vctn-duration-base) var(--vctn-ease);
 }
 
 .tool-card:hover {
-  border-color: var(--el-color-primary-light-5);
-  box-shadow: var(--el-box-shadow-light);
+  border-color: var(--vctn-border-brand);
+  box-shadow: var(--vctn-shadow-md);
+  transform: translateY(-2px);
 }
 
 .tool-card__head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--vctn-space-2);
 }
 
 .tool-card__name {
-  font-weight: 600;
-  color: var(--el-text-color-primary);
   margin-right: auto;
+  color: var(--vctn-text-strong);
+  font-weight: 500;
+  font-size: var(--vctn-text-base);
 }
 
 .tool-card__summary {
-  margin: 8px 0 0;
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
   display: -webkit-box;
+  margin: var(--vctn-space-2) 0 0;
+  color: var(--vctn-text-secondary);
+  font-size: var(--vctn-text-sm);
+  line-height: 1.6;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .tool-card__meta {
-  margin-top: 10px;
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
+  margin-top: var(--vctn-space-3);
+  color: var(--vctn-text-muted);
+  font-size: var(--vctn-text-xs);
 }
 </style>

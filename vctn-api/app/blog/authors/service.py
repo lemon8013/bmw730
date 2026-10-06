@@ -87,7 +87,7 @@ class AuthorService:
             self._session,
             operation="BLOG_AUTHOR_APPLY",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_author_application",
             resource_id=int(row.id),
         )
@@ -126,7 +126,7 @@ class AuthorService:
         await self._audit.record(
             self._session,
             action="BLOG_AUTHOR_REVIEW",
-            operator_id=actor.subject_id,
+            actor=actor,
             operator_username=actor.username,
             resource_type="blog_author_application",
             resource_id=int(row.id),
@@ -141,7 +141,7 @@ class AuthorService:
             self._session,
             operation="BLOG_AUTHOR_REVIEW",
             result=RESULT_SUCCESS,
-            operator_id=actor.subject_id,
+            actor=actor,
             resource_type="blog_author_application",
             resource_id=int(row.id),
         )

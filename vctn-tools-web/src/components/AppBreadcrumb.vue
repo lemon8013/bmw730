@@ -37,26 +37,28 @@ defineProps<{
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
+  gap: var(--vctn-space-2);
+  margin-bottom: var(--vctn-space-4);
+  color: var(--vctn-text-secondary);
+  font-size: var(--vctn-text-sm);
 }
 
 .app-breadcrumb__link {
-  color: var(--el-color-primary);
+  color: var(--vctn-text-secondary);
   text-decoration: none;
+  transition: color var(--vctn-duration-fast) var(--vctn-ease);
 }
 
 .app-breadcrumb__link:hover {
-  text-decoration: underline;
+  color: var(--vctn-brand);
 }
 
 .app-breadcrumb__current {
-  color: var(--el-text-color-regular);
+  color: var(--vctn-text-strong);
+  font-weight: 500;
 }
 
 .app-breadcrumb__sep {
-  color: var(--el-border-color);
+  color: var(--vctn-text-muted);
 }
 </style>

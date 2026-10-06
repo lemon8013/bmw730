@@ -112,7 +112,7 @@ defineExpose({ search })
 <style scoped>
 .biz-user-picker__meta {
   margin-left: 8px;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-size: 12px;
 }
 </style>

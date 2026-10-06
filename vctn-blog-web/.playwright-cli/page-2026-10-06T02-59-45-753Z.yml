@@ -1,0 +1,76 @@
+- generic [ref=e42]:
+  - banner [ref=e43]:
+    - generic [ref=e44]:
+      - link "VCTN Blog" [ref=e45] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e46]:
+        - link "首页" [ref=e47] [cursor=pointer]:
+          - /url: /
+        - link "技术分享" [ref=e77] [cursor=pointer]:
+          - /url: /category/BLOG_TECH
+        - link "教程指南" [ref=e78] [cursor=pointer]:
+          - /url: /category/BLOG_TUTORIAL
+        - link "平台公告" [ref=e79] [cursor=pointer]:
+          - /url: /category/BLOG_ANNOUNCEMENT
+        - link "行业资讯" [ref=e80] [cursor=pointer]:
+          - /url: /category/BLOG_NEWS
+        - link "作者" [ref=e48] [cursor=pointer]:
+          - /url: /authors
+      - generic [ref=e49]:
+        - textbox "搜索文章…" [ref=e51]
+        - button "搜索" [ref=e54] [cursor=pointer]
+      - button "博 博客作者" [ref=e58] [cursor=pointer]:
+        - generic [ref=e59]: 博
+        - generic [ref=e60]: 博客作者
+  - main [ref=e61]:
+    - generic [ref=e62]:
+      - generic [ref=e63]:
+        - heading "作者中心" [level=1] [ref=e64]
+        - button "写文章" [ref=e81] [cursor=pointer]
+      - table [ref=e85]:
+        - rowgroup [ref=e86]:
+          - row [ref=e87]:
+            - cell "作者名" [ref=e88]
+            - cell "博客作者" [ref=e89]
+            - cell "状态" [ref=e90]
+            - cell "ACTIVE" [ref=e91]
+      - generic [ref=e92]:
+        - tablist [ref=e96]:
+          - tab "草稿" [selected] [ref=e98]
+          - tab "已发布" [ref=e99]
+        - generic:
+          - tabpanel "草稿"
+      - paragraph [ref=e120]: 还没有文章
+      - dialog "写文章" [ref=e122]:
+        - generic [active] [ref=e123]:
+          - generic [ref=e124]:
+            - heading "写文章" [level=2] [ref=e125]
+            - button "Close this dialog" [ref=e126] [cursor=pointer]
+          - generic [ref=e131]:
+            - generic [ref=e132]:
+              - generic [ref=e133]: "*标题"
+              - textbox "*标题" [ref=e137]
+            - generic [ref=e138]:
+              - generic [ref=e139]: "*slug"
+              - textbox "*slug" [ref=e143]:
+                - /placeholder: url 中的短名，如 hello-world
+            - generic [ref=e144]:
+              - generic [ref=e145]: 分类
+              - generic [ref=e148] [cursor=pointer]:
+                - generic:
+                  - combobox "分类" [ref=e150]
+                  - generic [ref=e151]: 不选则无分类
+            - generic [ref=e156]:
+              - generic [ref=e157]: 摘要
+              - textbox "摘要" [ref=e160]
+            - generic [ref=e161]:
+              - generic [ref=e162]: 标签
+              - textbox "标签" [ref=e166]:
+                - /placeholder: 用逗号分隔，如：实践,工具
+            - generic [ref=e167]:
+              - generic [ref=e168]: 正文（Markdown）
+              - textbox "正文（Markdown）" [ref=e171]
+          - generic [ref=e172]:
+            - button "取消" [ref=e173] [cursor=pointer]
+            - button "保存" [ref=e175] [cursor=pointer]
+  - contentinfo [ref=e71]: VCTN Blog · 由 VCTN 统一后端提供服务

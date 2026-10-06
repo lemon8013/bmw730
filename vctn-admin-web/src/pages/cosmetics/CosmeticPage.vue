@@ -200,13 +200,13 @@ function resetFilters(): void {
 
 .cosmetic-page__slot {
   padding: 6px 12px;
-  border: 1px solid var(--el-border-color-lighter);
+  border: 1px solid var(--vctn-border-subtle);
   border-radius: 4px;
   font-size: 13px;
 }
 
 .cosmetic-page__slot-label {
   margin-right: 8px;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
 }
 </style>

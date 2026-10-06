@@ -178,12 +178,13 @@ const jwtPayload = computed(() => JSON.stringify(record.value.payload ?? {}, nul
 <style scoped>
 .tool-output__code {
   margin: 0;
-  padding: 12px 14px;
-  border-radius: 6px;
-  background: var(--el-fill-color-light);
-  color: var(--el-text-color-primary);
-  font-family: Consolas, Monaco, 'Courier New', monospace;
-  font-size: 13px;
+  padding: var(--vctn-space-3) var(--vctn-space-4);
+  border: 1px solid var(--vctn-border-subtle);
+  border-radius: var(--vctn-radius-md);
+  background: var(--vctn-bg-inset);
+  color: var(--vctn-text-strong);
+  font-family: var(--vctn-font-mono);
+  font-size: var(--vctn-text-sm);
   white-space: pre-wrap;
   word-break: break-all;
   max-height: 420px;
@@ -199,14 +200,14 @@ const jwtPayload = computed(() => JSON.stringify(record.value.payload ?? {}, nul
 .tool-output__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
+  gap: var(--vctn-space-4);
+  color: var(--vctn-text-muted);
+  font-size: var(--vctn-text-xs);
 }
 
 .tool-output__meta-item strong {
-  color: var(--el-text-color-primary);
-  font-weight: 600;
+  color: var(--vctn-text-strong);
+  font-weight: 500;
 }
 
 .tool-output__values {
@@ -216,11 +217,12 @@ const jwtPayload = computed(() => JSON.stringify(record.value.payload ?? {}, nul
 }
 
 .tool-output__chip {
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: var(--el-fill-color-light);
-  font-family: Consolas, Monaco, monospace;
-  font-size: 13px;
+  padding: 4px var(--vctn-space-3);
+  border: 1px solid var(--vctn-border-subtle);
+  border-radius: var(--vctn-radius-sm);
+  background: var(--vctn-bg-subtle);
+  font-family: var(--vctn-font-mono);
+  font-size: var(--vctn-text-sm);
   word-break: break-all;
 }
 
@@ -235,25 +237,27 @@ const jwtPayload = computed(() => JSON.stringify(record.value.payload ?? {}, nul
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-size: 13px;
 }
 
 .tool-output__subtitle {
-  margin: 12px 0 8px;
-  font-size: 14px;
+  margin: var(--vctn-space-3) 0 var(--vctn-space-2);
+  color: var(--vctn-text-strong);
+  font-size: var(--vctn-text-sm);
+  font-weight: 500;
 }
 
 .tool-output__markdown {
-  padding: 12px 14px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 6px;
-  background: #fff;
+  padding: var(--vctn-space-3) var(--vctn-space-4);
+  border: 1px solid var(--vctn-border-subtle);
+  border-radius: var(--vctn-radius-md);
+  background: var(--vctn-bg-inset);
   overflow: auto;
 }
 
 .tool-output__markdown :deep(pre) {
-  background: var(--el-fill-color-light);
+  background: var(--vctn-bg-hover);
   padding: 10px;
   border-radius: 6px;
   overflow: auto;
@@ -269,7 +273,7 @@ const jwtPayload = computed(() => JSON.stringify(record.value.payload ?? {}, nul
 
 .tool-output__markdown :deep(th),
 .tool-output__markdown :deep(td) {
-  border: 1px solid var(--el-border-color);
+  border: 1px solid var(--vctn-border);
   padding: 6px 10px;
 }
 </style>

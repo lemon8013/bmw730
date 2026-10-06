@@ -294,48 +294,52 @@ async function submitRegister(): Promise<void> {
 .login-page {
   display: flex;
   justify-content: center;
-  padding: 32px 0 48px;
+  padding: var(--vctn-space-8) 0 var(--vctn-space-8);
 }
 
 .login-page__card {
   width: 100%;
   max-width: 420px;
+  border-radius: var(--vctn-radius-xl);
+  box-shadow: var(--vctn-shadow-md);
 }
 
 .login-page__header {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--vctn-space-1);
 }
 
 .login-page__title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--el-color-primary);
+  color: var(--vctn-text-strong);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 .login-page__subtitle {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-muted);
+  font-size: var(--vctn-text-xs);
   line-height: 1.6;
 }
 
 .login-page__submit {
   width: 100%;
+  height: 40px;
 }
 
 .login-page__footer {
-  margin-top: 12px;
-  font-size: 13px;
+  margin-top: var(--vctn-space-4);
+  font-size: var(--vctn-text-sm);
   text-align: center;
 }
 
 .login-page__footer a {
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   text-decoration: none;
 }
 
 .login-page__footer a:hover {
-  color: var(--el-color-primary);
+  color: var(--vctn-brand);
 }
 </style>

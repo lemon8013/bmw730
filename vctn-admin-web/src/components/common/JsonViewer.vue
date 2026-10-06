@@ -58,9 +58,9 @@ const rendered = computed<string>(() => {
   margin: 0;
   padding: 12px;
   overflow: auto;
-  border: 1px solid var(--el-border-color-lighter);
+  border: 1px solid var(--vctn-border-subtle);
   border-radius: 4px;
-  background-color: var(--el-fill-color-light);
+  background-color: var(--vctn-bg-hover);
   font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
   font-size: 12px;
   line-height: 1.6;

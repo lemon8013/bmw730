@@ -108,65 +108,73 @@ async function onSubmit(): Promise<void> {
   justify-content: center;
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8eef7 100%);
+  padding: var(--vctn-space-6);
+  background: linear-gradient(135deg, var(--vctn-brand-softer) 0%, var(--vctn-bg-page) 55%);
+  transition: background var(--vctn-duration-base) var(--vctn-ease);
 }
 
 .login__card {
   width: min(420px, 100%);
+  border-radius: var(--vctn-radius-xl);
+  box-shadow: var(--vctn-shadow-lg);
 }
 
 .login__brand {
   display: flex;
-  gap: 12px;
+  gap: var(--vctn-space-3);
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--vctn-space-5);
 }
 
 .login__mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background-color: var(--el-color-primary);
-  color: #fff;
-  font-size: 20px;
-  font-weight: 700;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--vctn-radius-md);
+  background-color: var(--vctn-brand);
+  color: var(--vctn-text-inverse);
+  font-size: var(--vctn-text-xl);
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 .login__title {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+  color: var(--vctn-text-strong);
+  font-size: var(--vctn-text-xl);
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 .login__subtitle {
   margin: 2px 0 0;
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
+  color: var(--vctn-text-muted);
+  font-size: var(--vctn-text-xs);
 }
 
 .login__alert {
-  margin-bottom: 12px;
+  margin-bottom: var(--vctn-space-3);
 }
 
 .login__trace {
-  margin: 0 0 12px;
-  color: var(--el-text-color-secondary);
-  font-family: monospace;
-  font-size: 12px;
+  margin: 0 0 var(--vctn-space-3);
+  color: var(--vctn-text-secondary);
+  font-family: var(--vctn-font-mono);
+  font-size: var(--vctn-text-xs);
   word-break: break-all;
 }
 
 .login__submit {
   width: 100%;
+  height: 40px;
 }
 
 .login__hint {
-  margin: 16px 0 0;
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
+  margin: var(--vctn-space-4) 0 0;
+  color: var(--vctn-text-muted);
+  font-size: var(--vctn-text-xs);
   line-height: 1.6;
 }
 </style>

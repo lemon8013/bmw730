@@ -292,7 +292,7 @@ function openDetail(row: Record<string, unknown>): void {
 }
 
 .log-filters__label {
-  color: var(--el-text-color-regular);
+  color: var(--vctn-text-regular);
   font-size: 14px;
   white-space: nowrap;
 }
@@ -313,6 +313,6 @@ function openDetail(row: Record<string, unknown>): void {
 .operation-log-page__section-title {
   margin: 0 0 8px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 </style>

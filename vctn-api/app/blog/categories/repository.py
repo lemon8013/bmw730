@@ -36,7 +36,7 @@ class CategoryRepository:
         total = int(
             (
                 await self._session.execute(
-                    select(func.count(BlogCategory.id)).select_from(base.subquery())
+                    select(func.count()).select_from(base.subquery())
                 )
             ).scalar_one()
         )

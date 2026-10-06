@@ -338,16 +338,16 @@ function openDetail(row: Record<string, unknown>): void {
 .article-review-page__section-title {
   margin: 16px 0 8px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .article-review-page__content {
   margin: 0;
   padding: 12px;
   overflow: auto;
-  border: 1px solid var(--el-border-color-lighter);
+  border: 1px solid var(--vctn-border-subtle);
   border-radius: 4px;
-  background-color: var(--el-fill-color-light);
+  background-color: var(--vctn-bg-hover);
   font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
   font-size: 12px;
   line-height: 1.6;

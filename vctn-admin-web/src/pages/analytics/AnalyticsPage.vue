@@ -1108,7 +1108,7 @@ function rowProperties(row: Record<string, unknown>): unknown {
 }
 
 .analytics-page__range {
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-size: 13px;
 }
 

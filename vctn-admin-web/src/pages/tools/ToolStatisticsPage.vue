@@ -383,7 +383,7 @@ function reloadAll(): void {
             <LineChart
               :points="failurePoints"
               series-name="每日失败数"
-              color="var(--el-color-danger)"
+              color="var(--vctn-danger)"
             />
           </div>
         </div>
@@ -507,7 +507,7 @@ function reloadAll(): void {
 }
 
 .tool-statistics-page__label {
-  color: var(--el-text-color-regular);
+  color: var(--vctn-text-regular);
   font-size: 13px;
 }
 
@@ -522,7 +522,7 @@ function reloadAll(): void {
 .tool-statistics-page__section-title {
   margin: 0 0 12px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .tool-statistics-page__stats {
@@ -539,7 +539,7 @@ function reloadAll(): void {
 
 .tool-statistics-page__chart-label {
   margin: 0 0 8px;
-  color: var(--el-text-color-secondary);
+  color: var(--vctn-text-secondary);
   font-size: 12px;
 }
 </style>

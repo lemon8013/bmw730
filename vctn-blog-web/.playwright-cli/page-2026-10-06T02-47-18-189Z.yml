@@ -1,0 +1,21 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e42]:
+    - banner [ref=e43]:
+      - generic [ref=e44]:
+        - link "VCTN Blog" [ref=e45] [cursor=pointer]:
+          - /url: /
+        - navigation [ref=e46]:
+          - link "首页" [ref=e47] [cursor=pointer]:
+            - /url: /
+          - link "作者" [ref=e48] [cursor=pointer]:
+            - /url: /authors
+        - generic [ref=e49]:
+          - textbox "搜索文章…" [ref=e51]
+          - button "搜索" [ref=e54] [cursor=pointer]
+        - button "博 博客作者" [ref=e58] [cursor=pointer]:
+          - generic [ref=e59]: 博
+          - generic [ref=e60]: 博客作者
+    - main [ref=e61]
+    - contentinfo [ref=e69]: VCTN Blog · 由 VCTN 统一后端提供服务
+  - alert [ref=e70]:
+    - paragraph [ref=e74]: 欢迎回来，博客作者

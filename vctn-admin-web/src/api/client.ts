@@ -61,7 +61,9 @@ const configuredTimeout = Number.parseInt(
 /** Every request in this application shares one interceptor chain. */
 export const httpClient: AxiosInstance = axios.create({
   baseURL: apiBaseUrl,
-  timeout: Number.isFinite(configuredTimeout) && configuredTimeout > 0 ? configuredTimeout : 20000,
+  // Login verifies an argon2 hash (~3s) and a cold backend can take far longer,
+  // so keep the default well above the worst observed latency.
+  timeout: Number.isFinite(configuredTimeout) && configuredTimeout > 0 ? configuredTimeout : 45000,
   headers: { 'Content-Type': 'application/json' },
 })
 

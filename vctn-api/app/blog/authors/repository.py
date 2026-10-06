@@ -27,7 +27,7 @@ class AuthorRepository:
         total = int(
             (
                 await self._session.execute(
-                    select(func.count(BlogAuthor.id)).select_from(base.subquery())
+                    select(func.count()).select_from(base.subquery())
                 )
             ).scalar_one()
         )
@@ -73,7 +73,7 @@ class AuthorRepository:
         total = int(
             (
                 await self._session.execute(
-                    select(func.count(BlogAuthorApplication.id)).select_from(base.subquery())
+                    select(func.count()).select_from(base.subquery())
                 )
             ).scalar_one()
         )
