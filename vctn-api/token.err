@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "F:\project\bmw730\vctn-api\.devtools\mint_token.py", line 13, in <module>
+    from app.core.config import get_settings
+ModuleNotFoundError: No module named 'app'

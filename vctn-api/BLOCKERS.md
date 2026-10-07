@@ -630,3 +630,48 @@ OpenAPI 全部 162 条路径中，**不存在**任何 `/admin/growth`、`/admin/
 * `tests/contract/test_blog_access_contract.py` —— 字面量路由必须先于参数化路由。
 * `tests/unit/test_blog_article_list_scope.py` —— 草稿可见性规则（4 例）。
 * 后端全量：`ruff check app tests` 通过，`pytest -q` **143 passed**。
+
+---
+
+# Ops 监控系统（2026-10-07 交付）
+
+## 已解决的 OPS-DECISION-001 ~ 012
+
+采用负责人确认的推荐决策包，详见根目录 `OPS-PHASE-0-REVIEW.md` 与
+`OPS-VERIFICATION-REPORT.md`。要点：PostgreSQL 普通表 + 小时/天 rollup、Agent 走
+HTTPS REST + token、实时用前端轮询、日志复用既有 PG 日志表、自研阈值+持续时长+指纹
+告警引擎、采集 60s、保留 7/30/180 天、阈值全配置化、通知 V1 仅 Webhook（Provider
+注册表扩展）、高风险操作双审计、SLO 不在 V1、容量基线 50 主机 / 2000 序列。
+
+## Ops 剩余 Blocker（OPS-BLOCKER-01 ~ 04）
+
+| 编号 | 内容 |
+| --- | --- |
+| OPS-BLOCKER-01 | Job 采集器未接入（`/ops/jobs` 只读聚合既有 `sys_job*` 表） |
+| OPS-BLOCKER-02 | Agent 真实探针进程不在本次交付范围（只交付注册/心跳/上报协议） |
+| OPS-BLOCKER-03 | 告警规则无默认阈值种子（Spec 只要求可配置，未给默认值） |
+| OPS-BLOCKER-04 | `MENU_OPS_CONSOLE` 未授予 SUPER_ADMIN 以外的角色（按需授权） |
+
+## Ops 关键实现事实（防回退）
+
+* **`ops_host.agent_id` 无外键**（与 `ops_agent.host_id` 成环，Alembic 无法排序），
+  由应用层维护一致性——不要"补"上 FK。
+* **指标目录是入库闸门**：`MetricService.create_samples` 拒绝未定义的 metric_key；
+  目录来自 `app/scripts/seed/catalog.py::OPS_METRIC_DEFINITIONS`（51 条），
+  没播种就一条样本都进不来。
+* **告警→通知派发唯一入口**是 `app/ops/notifications/dispatcher.py::NotificationDispatcher`，
+  由评估器 `_fire` 接线；规则 `notification_policy` 支持 `channel_codes`（别名
+  `channels`）与 `group_codes`（组展开）。**无策略 = 不通知 + 零数据库访问**（刻意设计）。
+* **维护窗口抑制**入口是 `MaintenanceService.suppresses_notifications()` /
+  `MaintenanceRepository.find_suppressing()`；命中窗口写 `SKIPPED` 的
+  `ops_alert_notification`，绝不外发。再触发（RESOLVED→FIRING）才重新派发，
+  FIRING/ACKNOWLEDGED 每轮都发会刷爆渠道。
+* 管理员侧全部走 `/api/v1/ops/*`；22 个 `OPS_*` + 19 个菜单节点已播种并授予 SUPER_ADMIN。
+
+## Ops 交付验证
+
+* 后端 `pytest -q`：**244 passed, 0 xfail**；`ruff check app tests` 通过。
+* 端到端链路（`vctn-api/.devtools/verify_ops_chain.py`）：14/14 通过，
+  含 Webhook 实发（本地接收器收到 payload）与维护窗口抑制（SKIPPED 且零外发）。
+* 前端 `vctn-ops-web`（5176）：真实浏览器遍历 18 页全部可达、0 控制台错误；
+  `vue-tsc` / `eslint` / `vite build` 通过（暂无组件级单测）。

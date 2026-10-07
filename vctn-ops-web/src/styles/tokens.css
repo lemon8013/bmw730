@@ -1,0 +1,188 @@
+/**
+ * Design tokens — VCTN unified design system (Graphite / 石墨蓝).
+ *
+ * The four frontends share one token structure and differ only in accent:
+ *   admin #2563EB · tools #0284C7 · blog #1D4ED8 · ops #0F766E
+ *
+ * The ops accent is celadon green: in a monitoring console green already
+ * reads as "healthy", so the brand colour and the success colour stay far
+ * enough apart to be told apart at a glance.
+ *
+ * `--vctn-*` are this project's own tokens. `--el-*` overrides re-skin
+ * Element Plus so components pick the same palette without touching a
+ * single `.vue` file.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* ---------- Brand & accent ---------- */
+  --vctn-brand: #0f766e;
+  --vctn-brand-hover: #579f9a;
+  --vctn-brand-active: #0c5e58;
+  --vctn-brand-soft: #e7f1f0;
+  --vctn-brand-softer: #f3f8f8;
+  --vctn-brand-ring: rgba(15, 118, 110, 0.18);
+
+  /* ---------- Surfaces (three levels: page < subtle < surface) ---------- */
+  --vctn-bg-page: #f6f7f9;
+  --vctn-bg-subtle: #f1f3f6;
+  --vctn-bg-surface: #ffffff;
+  --vctn-bg-hover: #f1f3f6;
+  --vctn-bg-active: #e8ecf2;
+  --vctn-bg-inset: #f8f9fb;
+
+  /* ---------- Lines ---------- */
+  --vctn-border: #e4e7ec;
+  --vctn-border-strong: #d2d7de;
+  --vctn-border-subtle: #eef0f3;
+  --vctn-border-brand: rgba(15, 118, 110, 0.32);
+
+  /* ---------- Text ---------- */
+  --vctn-text: #1f2937;
+  --vctn-text-strong: #111827;
+  --vctn-text-regular: #374151;
+  --vctn-text-secondary: #6b7280;
+  --vctn-text-muted: #9ca3af;
+  --vctn-text-inverse: #ffffff;
+
+  /* ---------- Status ---------- */
+  --vctn-success: #16a34a;
+  --vctn-warning: #d97706;
+  --vctn-danger: #dc2626;
+  --vctn-info: #6b7280;
+  --vctn-success-soft: #eaf6ef;
+  --vctn-warning-soft: #fdf3e7;
+  --vctn-danger-soft: #fdecec;
+  --vctn-info-soft: #f1f2f4;
+
+  /* ---------- Radius ---------- */
+  --vctn-radius-xs: 4px;
+  --vctn-radius-sm: 6px;
+  --vctn-radius-md: 8px;
+  --vctn-radius-lg: 12px;
+  --vctn-radius-xl: 16px;
+  --vctn-radius-pill: 999px;
+
+  /* ---------- Spacing ---------- */
+  --vctn-space-1: 4px;
+  --vctn-space-2: 8px;
+  --vctn-space-3: 12px;
+  --vctn-space-4: 16px;
+  --vctn-space-5: 20px;
+  --vctn-space-6: 24px;
+  --vctn-space-8: 32px;
+
+  /* ---------- Elevation ---------- */
+  --vctn-shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --vctn-shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --vctn-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08), 0 1px 3px rgba(16, 24, 40, 0.04);
+  --vctn-shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.12), 0 2px 8px rgba(16, 24, 40, 0.06);
+  --vctn-ring: 0 0 0 3px var(--vctn-brand-ring);
+
+  /* ---------- Typography ---------- */
+  --vctn-font-sans:
+    'Inter', 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    Arial, sans-serif;
+  --vctn-font-mono: 'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
+  --vctn-text-xs: 12px;
+  --vctn-text-sm: 13px;
+  --vctn-text-base: 14px;
+  --vctn-text-lg: 16px;
+  --vctn-text-xl: 20px;
+  --vctn-text-2xl: 24px;
+  --vctn-text-3xl: 30px;
+
+  /* ---------- Motion ---------- */
+  --vctn-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --vctn-duration-fast: 120ms;
+  --vctn-duration-base: 200ms;
+
+  /* ---------- Layout ---------- */
+  --vctn-sidebar-width: 232px;
+  --vctn-sidebar-width-collapsed: 64px;
+  --vctn-header-height: 56px;
+  --vctn-content-max: 1440px;
+
+  /* ---------- Element Plus skin ---------- */
+  --el-color-primary: #0f766e;
+  --el-color-primary-light-3: #579f9a;
+  --el-color-primary-light-5: #87bab6;
+  --el-color-primary-light-7: #b7d6d4;
+  --el-color-primary-light-8: #cfe4e2;
+  --el-color-primary-light-9: #e7f1f0;
+  --el-color-primary-dark-2: #0c5e58;
+
+  --el-color-success: #16a34a;
+  --el-color-success-light-3: #5cbf80;
+  --el-color-success-light-5: #8ad1a4;
+  --el-color-success-light-7: #b9e3c9;
+  --el-color-success-light-8: #d0eddb;
+  --el-color-success-light-9: #e8f6ed;
+  --el-color-success-dark-2: #12823b;
+
+  --el-color-warning: #d97706;
+  --el-color-warning-light-3: #e4a051;
+  --el-color-warning-light-5: #ecbb82;
+  --el-color-warning-light-7: #f4d6b4;
+  --el-color-warning-light-8: #f7e4cd;
+  --el-color-warning-light-9: #fbf1e6;
+  --el-color-warning-dark-2: #ae5f05;
+
+  --el-color-danger: #dc2626;
+  --el-color-danger-light-3: #e66767;
+  --el-color-danger-light-5: #ee9292;
+  --el-color-danger-light-7: #f4bebe;
+  --el-color-danger-light-8: #f8d4d4;
+  --el-color-danger-light-9: #fce9e9;
+  --el-color-danger-dark-2: #b01e1e;
+
+  --el-color-error: #dc2626;
+  --el-color-error-light-3: #e66767;
+  --el-color-error-light-5: #ee9292;
+  --el-color-error-light-7: #f4bebe;
+  --el-color-error-light-8: #f8d4d4;
+  --el-color-error-light-9: #fce9e9;
+  --el-color-error-dark-2: #b01e1e;
+
+  --el-color-info: #6b7280;
+  --el-color-info-light-3: #979ca6;
+  --el-color-info-light-5: #b5b8c0;
+  --el-color-info-light-7: #d3d5d9;
+  --el-color-info-light-8: #e1e3e6;
+  --el-color-info-light-9: #f0f1f2;
+  --el-color-info-dark-2: #565b66;
+
+  --el-border-radius-base: 8px;
+  --el-border-radius-small: 6px;
+  --el-border-radius-round: 999px;
+
+  --el-bg-color: var(--vctn-bg-surface);
+  --el-bg-color-page: var(--vctn-bg-page);
+  --el-bg-color-overlay: var(--vctn-bg-surface);
+
+  --el-border-color: var(--vctn-border);
+  --el-border-color-light: var(--vctn-border-subtle);
+  --el-border-color-lighter: var(--vctn-border-subtle);
+  --el-border-color-extra-light: var(--vctn-border-subtle);
+  --el-border-color-dark: var(--vctn-border-strong);
+
+  --el-text-color-primary: var(--vctn-text);
+  --el-text-color-regular: var(--vctn-text-regular);
+  --el-text-color-secondary: var(--vctn-text-secondary);
+  --el-text-color-placeholder: var(--vctn-text-muted);
+  --el-text-color-disabled: #c0c4cc;
+
+  --el-fill-color: var(--vctn-bg-hover);
+  --el-fill-color-light: var(--vctn-bg-hover);
+  --el-fill-color-lighter: var(--vctn-bg-inset);
+  --el-fill-color-blank: var(--vctn-bg-surface);
+  --el-fill-color-darker: var(--vctn-bg-active);
+
+  --el-font-family: var(--vctn-font-sans);
+  --el-font-size-base: 14px;
+  --el-font-size-small: 13px;
+  --el-box-shadow-light: var(--vctn-shadow-md);
+  --el-box-shadow: var(--vctn-shadow-md);
+  --el-transition-duration: var(--vctn-duration-base);
+}

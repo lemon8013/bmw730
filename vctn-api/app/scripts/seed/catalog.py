@@ -90,6 +90,32 @@ MENU_NODES: Final[tuple[tuple[str, str, str | None, str, int], ...]] = (
     ("PAGE_JOB", "作业管理", "MENU_OPS", "PAGE", 91),
     ("PAGE_FILE", "文件管理", "MENU_OPS", "PAGE", 92),
     ("PAGE_EXPORT", "导出管理", "MENU_OPS", "PAGE", 93),
+    # The ops monitoring console (``vctn-ops-web``) is a separate application
+    # with its own domain, so its tree is namespaced ``OPS_``: the ops frontend
+    # renders only these nodes and the admin console filters them out.
+    #
+    # ``PAGE_OPS_REPORT`` sorts first: the console opens on the report after a
+    # sign-in, and the sort order is how the menu knows what "first" means.
+    ("MENU_OPS_CONSOLE", "运维监控", None, "MENU", 95),
+    ("PAGE_OPS_REPORT", "运维报表", "MENU_OPS_CONSOLE", "PAGE", 950),
+    ("PAGE_OPS_DASHBOARD", "运维总览", "MENU_OPS_CONSOLE", "PAGE", 951),
+    ("PAGE_OPS_HOST", "主机监控", "MENU_OPS_CONSOLE", "PAGE", 952),
+    ("PAGE_OPS_SERVICE", "服务监控", "MENU_OPS_CONSOLE", "PAGE", 953),
+    ("PAGE_OPS_API", "API 监控", "MENU_OPS_CONSOLE", "PAGE", 954),
+    ("PAGE_OPS_DATABASE", "PostgreSQL", "MENU_OPS_CONSOLE", "PAGE", 955),
+    ("PAGE_OPS_REDIS", "Redis", "MENU_OPS_CONSOLE", "PAGE", 956),
+    ("PAGE_OPS_LOG", "日志中心", "MENU_OPS_CONSOLE", "PAGE", 957),
+    ("PAGE_OPS_METRIC", "指标中心", "MENU_OPS_CONSOLE", "PAGE", 958),
+    ("PAGE_OPS_EVENT", "事件中心", "MENU_OPS_CONSOLE", "PAGE", 959),
+    ("PAGE_OPS_ALERT", "告警中心", "MENU_OPS_CONSOLE", "PAGE", 960),
+    ("PAGE_OPS_ALERT_RULE", "告警规则", "MENU_OPS_CONSOLE", "PAGE", 961),
+    ("PAGE_OPS_NOTIFICATION", "通知中心", "MENU_OPS_CONSOLE", "PAGE", 962),
+    ("PAGE_OPS_MAINTENANCE", "维护窗口", "MENU_OPS_CONSOLE", "PAGE", 963),
+    ("PAGE_OPS_AGENT", "Agent", "MENU_OPS_CONSOLE", "PAGE", 964),
+    ("PAGE_OPS_AVAILABILITY", "可用性", "MENU_OPS_CONSOLE", "PAGE", 965),
+    ("PAGE_OPS_JOB", "作业监控", "MENU_OPS_CONSOLE", "PAGE", 966),
+    ("PAGE_OPS_DASHBOARD_CFG", "仪表盘配置", "MENU_OPS_CONSOLE", "PAGE", 967),
+    ("PAGE_OPS_AUDIT", "运维审计", "MENU_OPS_CONSOLE", "PAGE", 968),
 )
 
 # (code, name, parent_page_code)
@@ -214,6 +240,33 @@ MATRIX_PERMISSIONS: Final[dict[str, str]] = {
 # unknown code, and every one of them is recorded in ``BLOCKERS.md`` as an
 # implementation/matrix divergence. No new code may be added here silently.
 RUNTIME_EXTRA_PERMISSIONS: Final[dict[str, str]] = {
+    # ---- Ops monitoring (spec 21) -------------------------------------
+    # The ops console is guarded by the same RBAC and the same
+    # AuthorizationService as the admin console; only the code namespace is
+    # separate. ``biz_user`` principals never hold any of these codes.
+    "OPS_DASHBOARD_VIEW": "查看运维总览（矩阵外）",
+    "OPS_DASHBOARD_MANAGE": "管理运维仪表盘（矩阵外）",
+    "OPS_HOST_VIEW": "查看主机监控（矩阵外）",
+    "OPS_HOST_MANAGE": "管理主机（矩阵外）",
+    "OPS_SERVICE_VIEW": "查看服务监控（矩阵外）",
+    "OPS_SERVICE_MANAGE": "管理服务（矩阵外）",
+    "OPS_API_VIEW": "查看 API 监控（矩阵外）",
+    "OPS_DATABASE_VIEW": "查看 PostgreSQL 监控（矩阵外）",
+    "OPS_REDIS_VIEW": "查看 Redis 监控（矩阵外）",
+    "OPS_REPORT_VIEW": "查看运维报表（矩阵外）",
+    "OPS_LOG_VIEW": "查看运维日志（矩阵外）",
+    "OPS_ALERT_VIEW": "查看告警（矩阵外）",
+    "OPS_ALERT_MANAGE": "管理告警（矩阵外）",
+    "OPS_ALERT_ACK": "确认告警（矩阵外）",
+    "OPS_ALERT_SILENCE": "静默告警（矩阵外）",
+    "OPS_AGENT_VIEW": "查看 Agent（矩阵外）",
+    "OPS_AGENT_MANAGE": "管理 Agent（矩阵外）",
+    "OPS_MONITOR_VIEW": "查看监控对象（矩阵外）",
+    "OPS_MONITOR_MANAGE": "管理监控对象（矩阵外）",
+    "OPS_JOB_VIEW": "查看作业监控（矩阵外）",
+    "OPS_JOB_MANAGE": "操作作业（矩阵外）",
+    "OPS_MAINTENANCE_MANAGE": "管理维护窗口（矩阵外）",
+    "OPS_AUDIT_VIEW": "查看运维审计（矩阵外）",
     "ACHIEVEMENT_CONFIG_VIEW": "查看成就配置（矩阵外）",
     "BIZ_USER_VIEW": "查看平台业务用户（矩阵外）",
     "BLOG_CATEGORY_MANAGE": "管理博客分类（矩阵外）",
@@ -756,6 +809,76 @@ BLOG_CATEGORIES: Final[tuple[tuple[str, str, int], ...]] = (
     ("BLOG_NEWS", "行业资讯", 40),
 )
 
+# ---------------------------------------------------------------------------
+# Ops monitoring — metric catalogue
+# ---------------------------------------------------------------------------
+# (metric_key, metric_name, metric_type, unit, description)
+#
+# The metric catalogue is the gate of ingestion: ``MetricService.create_samples``
+# rejects any key that is not defined here, so a fresh deployment without this
+# list cannot record a single sample. The keys mirror the monitoring scope of
+# the spec (host / service / API / PostgreSQL / Redis / availability / job).
+OPS_METRIC_DEFINITIONS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
+    # Host (spec 05)
+    ("host.cpu_usage", "CPU 使用率", "gauge", "%", "主机 CPU 使用率"),
+    ("host.memory_usage", "内存使用率", "gauge", "%", "主机内存使用率"),
+    ("host.disk_usage", "磁盘使用率", "gauge", "%", "主机磁盘使用率"),
+    ("host.disk_read_bytes", "磁盘读取速率", "rate", "B/s", "主机磁盘读取字节速率"),
+    ("host.disk_write_bytes", "磁盘写入速率", "rate", "B/s", "主机磁盘写入字节速率"),
+    ("host.load1", "Load 1", "gauge", "", "主机 1 分钟平均负载"),
+    ("host.load5", "Load 5", "gauge", "", "主机 5 分钟平均负载"),
+    ("host.load15", "Load 15", "gauge", "", "主机 15 分钟平均负载"),
+    ("host.net_rx_bytes", "网络入流量", "rate", "B/s", "主机网络接收字节速率"),
+    ("host.net_tx_bytes", "网络出流量", "rate", "B/s", "主机网络发送字节速率"),
+    ("host.uptime_seconds", "运行时长", "counter", "s", "主机连续运行秒数"),
+    # Service (spec 06)
+    ("service.availability", "服务可用率", "availability", "%", "服务可用率"),
+    ("service.error_rate", "服务错误率", "rate", "%", "服务请求错误率"),
+    ("service.latency_ms", "服务响应延迟", "latency", "ms", "服务平均响应延迟"),
+    # API (spec 07)
+    ("api.request_count", "API 请求数", "counter", "", "API 请求次数"),
+    ("api.qps", "API QPS", "rate", "req/s", "API 每秒请求数"),
+    ("api.latency_avg_ms", "API 平均延迟", "latency", "ms", "API 平均响应延迟"),
+    ("api.latency_p95_ms", "API P95 延迟", "latency", "ms", "API P95 响应延迟"),
+    ("api.latency_p99_ms", "API P99 延迟", "latency", "ms", "API P99 响应延迟"),
+    ("api.error_rate", "API 错误率", "rate", "%", "API 5xx 占比"),
+    ("api.status_4xx_count", "API 4xx 次数", "counter", "", "API 4xx 响应次数"),
+    ("api.status_5xx_count", "API 5xx 次数", "counter", "", "API 5xx 响应次数"),
+    ("api.slow_count", "慢请求次数", "counter", "", "超过慢请求阈值的请求次数"),
+    # PostgreSQL (spec 08)
+    ("pg.connections", "数据库连接数", "gauge", "", "PostgreSQL 当前连接数"),
+    ("pg.connections_active", "活跃连接数", "gauge", "", "PostgreSQL 活跃连接数"),
+    ("pg.connections_idle", "空闲连接数", "gauge", "", "PostgreSQL 空闲连接数"),
+    ("pg.tps", "TPS", "rate", "txn/s", "PostgreSQL 每秒事务数"),
+    ("pg.qps", "QPS", "rate", "query/s", "PostgreSQL 每秒查询数"),
+    ("pg.commits", "提交数", "counter", "", "PostgreSQL 事务提交数"),
+    ("pg.rollbacks", "回滚数", "counter", "", "PostgreSQL 事务回滚数"),
+    ("pg.locks", "锁数量", "gauge", "", "PostgreSQL 当前锁数量"),
+    ("pg.blocked_queries", "阻塞查询数", "gauge", "", "PostgreSQL 被阻塞查询数量"),
+    ("pg.slow_queries", "慢查询数", "counter", "", "PostgreSQL 慢查询数量"),
+    ("pg.db_size_bytes", "数据库大小", "gauge", "B", "PostgreSQL 数据库占用字节"),
+    ("pg.cache_hit_rate", "缓存命中率", "rate", "%", "PostgreSQL 缓存命中率"),
+    ("pg.uptime_seconds", "运行时长", "counter", "s", "PostgreSQL 连续运行秒数"),
+    # Redis (spec 09)
+    ("redis.memory_used_bytes", "内存占用", "gauge", "B", "Redis 已用内存字节"),
+    ("redis.memory_usage", "内存使用率", "gauge", "%", "Redis 内存使用率"),
+    ("redis.hit_rate", "命中率", "rate", "%", "Redis 键命中率"),
+    ("redis.connections", "客户端连接数", "gauge", "", "Redis 客户端连接数"),
+    ("redis.qps", "QPS", "rate", "cmd/s", "Redis 每秒命令数"),
+    ("redis.evictions", "淘汰键数", "counter", "", "Redis 因内存淘汰的键数量"),
+    ("redis.slow_commands", "慢命令数", "counter", "", "Redis 慢命令数量"),
+    ("redis.keyspace_keys", "键数量", "gauge", "", "Redis keyspace 键数量"),
+    # Availability (spec 16)
+    ("availability.latency_ms", "探测延迟", "latency", "ms", "可用性探测响应延迟"),
+    ("availability.up", "可用性", "availability", "", "可用性探测是否成功"),
+    ("ssl.cert_expiry_days", "证书剩余天数", "gauge", "d", "SSL 证书到期剩余天数"),
+    # Job (spec 17)
+    ("job.duration_ms", "作业耗时", "latency", "ms", "作业执行耗时"),
+    ("job.success_rate", "作业成功率", "rate", "%", "作业执行成功率"),
+    ("job.failure_count", "作业失败次数", "counter", "", "作业执行失败次数"),
+    ("job.timeout_count", "作业超时次数", "counter", "", "作业执行超时次数"),
+)
+
 __all__ = [
     "ACHIEVEMENTS",
     "BLOG_CATEGORIES",
@@ -771,6 +894,7 @@ __all__ = [
     "LEVELS",
     "MATRIX_PERMISSIONS",
     "MENU_NODES",
+    "OPS_METRIC_DEFINITIONS",
     "POINT_RULES",
     "ROLES",
     "ROLE_AUDITOR",

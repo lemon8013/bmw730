@@ -29,3 +29,9 @@ coverage.xml
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Dev-only helpers (local probing scripts, tokens, browser snapshots)
+.devtools/
+.playwright-cli/
+.devtools-*.sh
+vctn-api/.devtools/

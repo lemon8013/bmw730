@@ -33,6 +33,7 @@ from app.admin.roles.model import SysRole, SysUserRole
 from app.admin.users.model import SysUser
 from app.blog.categories.model import BlogCategory
 from app.core.config import Settings
+from app.ops.metrics.model import OpsMetricDefinition
 from app.platform.cosmetics.model import BizCosmetic
 from app.platform.growth.model import BizAchievement, BizGrowthRule, BizTask
 from app.platform.levels.model import BizUserLevel
@@ -817,6 +818,32 @@ async def seed_blog(session: AsyncSession, counter: SeedCounter) -> None:
         )
 
 
+async def seed_ops_metrics(session: AsyncSession, counter: SeedCounter) -> None:
+    """Seed the ops metric catalogue.
+
+    Ingestion refuses any key that is absent from ``ops_metric_definition``, so
+    this catalogue is part of what a fresh deployment must always contain: it
+    is inserted by ``metric_key`` and never updated, consistent with the rest
+    of the seed.
+    """
+    for metric_key, metric_name, metric_type, unit, description in (
+        catalog.OPS_METRIC_DEFINITIONS
+    ):
+        await ensure_row(
+            session,
+            OpsMetricDefinition,
+            keys={"metric_key": metric_key},
+            values={
+                "metric_name": metric_name,
+                "metric_type": metric_type,
+                "unit": unit or None,
+                "description": description,
+            },
+            counter=counter,
+            collection="ops_metric_definitions",
+        )
+
+
 _HTTP_METHODS: Final[frozenset[str]] = frozenset({"GET", "POST", "PUT", "PATCH", "DELETE"})
 
 _GUARD_FUNCTIONS: Final[frozenset[str]] = frozenset(
@@ -941,6 +968,7 @@ async def seed_system(
     await seed_achievements(session, counter)
     await seed_tools(session, counter)
     await seed_blog(session, counter)
+    await seed_ops_metrics(session, counter)
 
     return result
 

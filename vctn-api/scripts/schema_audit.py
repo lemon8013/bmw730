@@ -321,7 +321,9 @@ def parse_ddl_tables() -> dict[str, list[str]]:
             segment.split()[0]
             for segment in _split_top_level(body)
             if not re.match(
-                r"(PRIMARY\s+KEY|UNIQUE|CHECK|CONSTRAINT)\s*\(",
+                # A table level constraint, with or without an explicit name:
+                # ``UNIQUE(a)``, ``CHECK(a > b)`` or ``CONSTRAINT uq_x UNIQUE(a)``.
+                r"(PRIMARY\s+KEY|UNIQUE|CHECK|CONSTRAINT)\b[^,]*\(",
                 segment,
                 flags=re.IGNORECASE,
             )

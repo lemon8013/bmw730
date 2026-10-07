@@ -17,17 +17,17 @@ from schema_audit import ModelTable
 import app.shared.database.models  # noqa: F401  (registers every table)
 from app.shared.database.base import Base
 
-EXPECTED_TABLE_COUNT = 79
-EXPECTED_COLUMN_COUNT = 761
-EXPECTED_PRIMARY_KEYS = 79
-EXPECTED_FOREIGN_KEYS = 82
-EXPECTED_UNIQUE_CONSTRAINTS = 28
-EXPECTED_CHECK_CONSTRAINTS = 4
+EXPECTED_TABLE_COUNT = 105
+EXPECTED_COLUMN_COUNT = 1079
+EXPECTED_PRIMARY_KEYS = 105
+EXPECTED_FOREIGN_KEYS = 97
+EXPECTED_UNIQUE_CONSTRAINTS = 47
+EXPECTED_CHECK_CONSTRAINTS = 5
 # Only the indexes the DDL declares with CREATE [UNIQUE] INDEX live on
 # `Table.indexes`; PostgreSQL additionally creates one index per primary key
-# and per unique constraint: 79 + 28 + 30 = 137.
-EXPECTED_DECLARED_INDEXES = 30
-EXPECTED_DATABASE_INDEXES = 137
+# and per unique constraint: 105 + 47 + 59 = 211.
+EXPECTED_DECLARED_INDEXES = 59
+EXPECTED_DATABASE_INDEXES = 211
 EXPECTED_JSONB_COLUMNS = 30
 EXPECTED_INET_COLUMNS = 7
 

@@ -46,6 +46,23 @@ from app.core.config import Settings, get_settings
 from app.core.exceptions import AppException, ValidationError
 from app.core.logging import get_logger, setup_logging
 from app.core.middleware import TraceContextMiddleware
+from app.ops.agents.router import router as ops_agents_router
+from app.ops.alerts.router import router as ops_alerts_router
+from app.ops.apis.router import router as ops_apis_router
+from app.ops.audit.router import router as ops_audit_router
+from app.ops.availability.router import router as ops_availability_router
+from app.ops.dashboard.router import router as ops_dashboard_router
+from app.ops.database.router import router as ops_database_router
+from app.ops.events.router import router as ops_events_router
+from app.ops.hosts.router import router as ops_hosts_router
+from app.ops.jobs.router import router as ops_jobs_router
+from app.ops.logs.router import router as ops_logs_router
+from app.ops.maintenance.router import router as ops_maintenance_router
+from app.ops.metrics.router import router as ops_metrics_router
+from app.ops.notifications.router import router as ops_notifications_router
+from app.ops.redis.router import router as ops_redis_router
+from app.ops.reports.router import router as ops_reports_router
+from app.ops.services.router import router as ops_services_router
 from app.platform.achievements.router import router as platform_achievements_router
 from app.platform.auth.router import router as platform_auth_router
 from app.platform.cosmetics.router import router as platform_cosmetics_router
@@ -114,6 +131,25 @@ _BUSINESS_ROUTERS: Final[tuple[tuple[str, str, APIRouter], ...]] = (
     ("/analytics", "analytics:events", analytics_events_router),
     ("/analytics", "analytics:statistics", analytics_statistics_router),
     ("/analytics", "analytics:reports", analytics_reports_router),
+    # Ops API (spec base ``/api/v1/ops``): the ops console is a separate
+    # frontend, but it stays a module of this monolith — never a service.
+    ("/ops", "ops:dashboard", ops_dashboard_router),
+    ("/ops", "ops:hosts", ops_hosts_router),
+    ("/ops", "ops:services", ops_services_router),
+    ("/ops", "ops:apis", ops_apis_router),
+    ("/ops", "ops:database", ops_database_router),
+    ("/ops", "ops:redis", ops_redis_router),
+    ("/ops", "ops:logs", ops_logs_router),
+    ("/ops", "ops:metrics", ops_metrics_router),
+    ("/ops", "ops:events", ops_events_router),
+    ("/ops", "ops:alerts", ops_alerts_router),
+    ("/ops", "ops:notifications", ops_notifications_router),
+    ("/ops", "ops:agents", ops_agents_router),
+    ("/ops", "ops:availability", ops_availability_router),
+    ("/ops", "ops:jobs", ops_jobs_router),
+    ("/ops", "ops:maintenance", ops_maintenance_router),
+    ("/ops", "ops:audit", ops_audit_router),
+    ("/ops", "ops:reports", ops_reports_router),
     # System API (spec base ``/api/v1``).
     ("/files", "system:files", system_files_router),
     ("/jobs", "system:jobs", system_jobs_router),
