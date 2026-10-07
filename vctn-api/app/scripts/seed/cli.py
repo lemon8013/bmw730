@@ -12,9 +12,11 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+from app.core.config import get_settings
 from app.scripts.seed.errors import SeedError
 from app.scripts.seed.report import render_final_block, render_markdown
 from app.scripts.seed.runner import (
@@ -72,6 +74,19 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the seed and print the final report block."""
     args = build_parser().parse_args(argv)
+
+    # Test mode creates accounts whose passwords come from an environment
+    # variable and are known to everyone with access to CI. There is no
+    # legitimate reason to run it against production, and one careless run is
+    # enough to leave a working login on the internet. Refuse it outright
+    # rather than warn: a warning gets scrolled past.
+    if args.mode == MODE_TEST and get_settings().APP_ENV == "production":
+        print(
+            "[seed] refused: --mode=test is never allowed when APP_ENV=production",
+            file=sys.stderr,
+        )
+        return _EXIT_PRECONDITION
+
     command = f"python -m app.scripts.seed --mode={args.mode} --runs={args.runs}"
 
     try:

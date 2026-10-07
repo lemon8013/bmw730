@@ -24,11 +24,12 @@ from __future__ import annotations
 
 import os
 import secrets
+import string
 from functools import lru_cache
 from typing import Any, Final, Literal
 from urllib.parse import quote
 
-from pydantic import Field, model_validator
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _WILDCARD: Final[str] = "*"
@@ -74,6 +75,17 @@ def _format_host(host: str) -> str:
     return host
 
 
+#: Accepted FILE_STORAGE_PROVIDER values. ``s3`` is canonical; ``rustfs`` reads
+#: better in a deployment that runs RustFS, and ``minio`` is kept so an older
+#: .env keeps booting. All three build the same S3 compatible backend.
+_STORAGE_PROVIDERS: Final[frozenset[str]] = frozenset({"local", "s3", "rustfs", "minio"})
+
+#: Credentials shipped in every quick start guide, refused in production.
+_SAMPLE_STORAGE_SECRETS: Final[frozenset[str]] = frozenset(
+    {"rustfsadmin", "minioadmin", "changeme", "password"}
+)
+
+
 class Settings(BaseSettings):
     """Runtime configuration for the single VCTN FastAPI application."""
 
@@ -82,6 +94,9 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",
+        # Fields carrying an AliasChoices (the S3_* block) must still be
+        # constructible by their field name, which is what tests and code do.
+        populate_by_name=True,
     )
 
     @model_validator(mode="before")
@@ -238,13 +253,74 @@ class Settings(BaseSettings):
     VERIFICATION_CODE_LENGTH: int = 6
 
     # ------------------------------------------------------------------
-    # Files (storage provider abstraction; no cloud vendor is introduced)
+    # Files / object storage
+    #
+    # ``local`` keeps objects below FILE_STORAGE_ROOT; it is correct only for a
+    # single node or a shared mount. ``s3`` targets any S3 compatible endpoint
+    # - RustFS, MinIO, Ceph RGW, AWS S3 - and is the supported choice for a
+    # multi replica deployment, because every replica must see the same bytes.
+    # ``rustfs`` is accepted as a self documenting alias of ``s3``.
     # ------------------------------------------------------------------
     FILE_STORAGE_PROVIDER: str = "local"
     FILE_STORAGE_ROOT: str = "storage"
     FILE_MAX_SIZE_BYTES: int = 10485760
     FILE_PRESIGN_TTL_SECONDS: int = 900
     FILE_DOWNLOAD_URL_TTL_SECONDS: int = 3600
+    #: Comma separated allow list. Empty means "use the built in allow list";
+    #: the single value ``*`` disables content type checking entirely.
+    FILE_ALLOWED_MIME_TYPES: str = ""
+
+    # -- Any S3 compatible object store (RustFS / MinIO / Ceph RGW / AWS) ---
+    #
+    # The keys were named ``MINIO_*`` while MinIO was the only backend. They are
+    # ``S3_*`` now that the fleet runs on RustFS; the old names are still
+    # accepted through the validation alias so an existing .env keeps working.
+    S3_ENDPOINT: str = Field(
+        default="", validation_alias=AliasChoices("S3_ENDPOINT", "MINIO_ENDPOINT")
+    )
+    S3_ACCESS_KEY: str = Field(
+        default="", validation_alias=AliasChoices("S3_ACCESS_KEY", "MINIO_ACCESS_KEY")
+    )
+    S3_SECRET_KEY: str = Field(
+        default="", validation_alias=AliasChoices("S3_SECRET_KEY", "MINIO_SECRET_KEY")
+    )
+    S3_BUCKET: str = Field(
+        default="", validation_alias=AliasChoices("S3_BUCKET", "MINIO_BUCKET")
+    )
+    S3_SECURE: bool = Field(
+        default=True, validation_alias=AliasChoices("S3_SECURE", "MINIO_SECURE")
+    )
+    S3_REGION: str = Field(
+        default="us-east-1", validation_alias=AliasChoices("S3_REGION", "MINIO_REGION")
+    )
+    #: Optional key prefix, e.g. ``vctn`` - useful when the bucket is shared.
+    S3_PREFIX: str = Field(
+        default="", validation_alias=AliasChoices("S3_PREFIX", "MINIO_PREFIX")
+    )
+    #: ``path`` works everywhere; ``virtual`` needs the DNS wildcard.
+    S3_ADDRESSING_STYLE: str = Field(
+        default="path",
+        validation_alias=AliasChoices("S3_ADDRESSING_STYLE", "MINIO_ADDRESSING_STYLE"),
+    )
+    S3_AUTO_CREATE_BUCKET: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("S3_AUTO_CREATE_BUCKET", "MINIO_AUTO_CREATE_BUCKET"),
+    )
+    S3_CONNECT_TIMEOUT_SECONDS: int = Field(
+        default=5,
+        validation_alias=AliasChoices(
+            "S3_CONNECT_TIMEOUT_SECONDS", "MINIO_CONNECT_TIMEOUT_SECONDS"
+        ),
+    )
+    S3_READ_TIMEOUT_SECONDS: int = Field(
+        default=30,
+        validation_alias=AliasChoices(
+            "S3_READ_TIMEOUT_SECONDS", "MINIO_READ_TIMEOUT_SECONDS"
+        ),
+    )
+    S3_VERIFY_TLS: bool = Field(
+        default=True, validation_alias=AliasChoices("S3_VERIFY_TLS", "MINIO_VERIFY_TLS")
+    )
 
     # ------------------------------------------------------------------
     # Exports
@@ -269,6 +345,52 @@ class Settings(BaseSettings):
     AUDIT_ENABLED: bool = True
 
     # ------------------------------------------------------------------
+    # Monitoring data retention (purged by ``python -m app.scripts.cleanup``)
+    # ------------------------------------------------------------------
+    # Raw samples are cheap to lose and expensive to keep: they are rolled up
+    # into the hourly and daily tables, so seven days is plenty.
+    OPS_RETENTION_SAMPLE_DAYS: int = 7
+    OPS_RETENTION_HEARTBEAT_DAYS: int = 7
+    OPS_RETENTION_HOURLY_DAYS: int = 30
+    OPS_RETENTION_DAILY_DAYS: int = 180
+    OPS_RETENTION_EVENT_DAYS: int = 30
+    OPS_RETENTION_AVAILABILITY_DAYS: int = 30
+    # Alert history and notification records are the audit trail of what the
+    # platform told whom, so they live as long as the audit log.
+    OPS_RETENTION_ALERT_HISTORY_DAYS: int = 180
+    OPS_RETENTION_NOTIFICATION_DAYS: int = 180
+    OPS_RETENTION_OPERATION_DAYS: int = 180
+    # Rows removed per statement. A single unbounded DELETE on a table that
+    # has grown for a year holds one transaction open for a long time, which
+    # blocks autovacuum and everything else behind it.
+    OPS_PURGE_BATCH_SIZE: int = 5000
+
+    # ------------------------------------------------------------------
+    # Ops scheduler (in-process periodic jobs)
+    # ------------------------------------------------------------------
+    # Off by default: every replica must not run the same periodic work twice.
+    # When it is on, each job still takes a PostgreSQL advisory lock first, so
+    # a second replica silently skips the tick instead of duplicating it.
+    OPS_SCHEDULER_ENABLED: bool = False
+    OPS_SCHEDULER_ALERT_INTERVAL_SECONDS: int = 60
+    OPS_SCHEDULER_PROBE_INTERVAL_SECONDS: int = 60
+    OPS_SCHEDULER_ROLLUP_INTERVAL_MINUTES: int = 60
+    OPS_SCHEDULER_DAILY_ROLLUP_HOUR: int = 0
+    OPS_SCHEDULER_PURGE_HOUR: int = 4
+    # One fixed key per job namespace. Do not reuse it for anything else: a
+    # colliding key silently merges two unrelated critical sections.
+    OPS_SCHEDULER_LOCK_ID: int = 8_172_543_011
+
+    # ------------------------------------------------------------------
+    # Ops self monitoring
+    # ------------------------------------------------------------------
+    # The platform watches everything except itself until this is on: seeding
+    # creates one availability check against this URL, so an outage of the API
+    # itself is detected by the same pipeline as any other outage.
+    OPS_SELF_MONITOR_ENABLED: bool = True
+    OPS_SELF_MONITOR_URL: str = "http://127.0.0.1:8000/health"
+
+    # ------------------------------------------------------------------
     # HTTP / CORS
     # ------------------------------------------------------------------
     # Comma separated list of allowed browser origins, for example:
@@ -278,6 +400,35 @@ class Settings(BaseSettings):
     CORS_ALLOW_METHODS: str = "*"
     CORS_ALLOW_HEADERS: str = "*"
     CORS_EXPOSE_HEADERS: str = "X-Trace-ID,X-Request-ID"
+
+    # ------------------------------------------------------------------
+    # HTTP security headers
+    # ------------------------------------------------------------------
+    # HSTS is opt in: sending it over plain HTTP is useless and, worse, it
+    # makes a browser refuse the downgraded origin for the whole max-age.
+    # Turn it on only once TLS terminates in front of the application.
+    SECURITY_HSTS_ENABLED: bool = False
+    SECURITY_HSTS_MAX_AGE_SECONDS: int = 31_536_000
+    SECURITY_HSTS_INCLUDE_SUBDOMAINS: bool = True
+    # ``DENY`` for the consoles; a portal that must be framed uses
+    # ``SAMEORIGIN`` instead. An empty value omits the header.
+    SECURITY_FRAME_OPTIONS: str = "DENY"
+    SECURITY_REFERRER_POLICY: str = "strict-origin-when-cross-origin"
+    # Empty means "do not send CSP". The four frontends load Element Plus
+    # styles compiled at build time, so a strict CSP is viable, but it has to
+    # be written per application - a wrong default would break a working site.
+    SECURITY_CSP: str = ""
+    # Report only mode lets a new policy be observed before it is enforced.
+    SECURITY_CSP_REPORT_ONLY: bool = False
+    # Turns off the device APIs none of the four frontends use. Empty omits it.
+    SECURITY_PERMISSIONS_POLICY: str = "geolocation=(), microphone=(), camera=()"
+    # Comma separated Host allow-list checked on every request. Empty means
+    # "accept any Host", which is fine behind a reverse proxy that already
+    # pins the server name but is a Host header injection risk when exposed.
+    ALLOWED_HOSTS: str = ""
+    # ``None`` means "derive from APP_ENV": documentation is served outside
+    # production only. Set it explicitly to override.
+    DOCS_ENABLED: bool | None = None
 
     # ------------------------------------------------------------------
     # Tracing
@@ -388,6 +539,32 @@ class Settings(BaseSettings):
         return [item.strip() for item in self.CORS_EXPOSE_HEADERS.split(",") if item.strip()]
 
     @property
+    def allowed_hosts(self) -> tuple[str, ...]:
+        """Return the Host allow-list, lower-cased and without ports.
+
+        A bare host name also accepts any port on that host, because the
+        application sits behind a proxy that is reached on 443 while the
+        container itself listens on 8000.
+        """
+        items = tuple(
+            item.strip().lower() for item in self.ALLOWED_HOSTS.split(",") if item.strip()
+        )
+        return tuple(item.split(":", 1)[0] if ":" in item else item for item in items)
+
+    @property
+    def resolved_docs_enabled(self) -> bool:
+        """Return whether the interactive API documentation is served.
+
+        Shipping ``/docs`` and ``/openapi.json`` to production publishes the
+        entire endpoint catalogue - every path, parameter and schema - to
+        anyone who finds the URL. It is therefore off in production unless
+        somebody deliberately turns it back on.
+        """
+        if self.DOCS_ENABLED is not None:
+            return self.DOCS_ENABLED
+        return self.APP_ENV != "production"
+
+    @property
     def resolved_log_level(self) -> str:
         """Return the effective log level name."""
         if self.LOG_LEVEL.strip():
@@ -444,9 +621,33 @@ class Settings(BaseSettings):
         self._validate_database()
         self._validate_redis()
         self._validate_identity_and_auth()
+        self._validate_ops_scheduler()
+        self._validate_storage()
+        self._validate_production_hardening()
 
         # Touching the property triggers the wildcard-origin validation eagerly.
         _ = self.cors_origins
+
+    def _validate_production_hardening(self) -> None:
+        """Refuse to boot in production with a development grade posture.
+
+        These are not nice-to-haves. An empty ``ALLOWED_HOSTS`` means any Host
+        header is accepted, which turns password reset links and absolute URLs
+        into an injection surface; a blank ``CORS_ORIGINS`` silently locks the
+        four frontends out because the browser sends an Origin that is not on
+        the allow-list.
+        """
+        if self.APP_ENV != "production":
+            return
+        if self.APP_DEBUG:
+            raise ValueError("APP_DEBUG must be false in production")
+        if not self.allowed_hosts:
+            raise ValueError("ALLOWED_HOSTS must list every public host in production")
+        if not self.cors_origins:
+            raise ValueError("CORS_ORIGINS must list every frontend origin in production")
+        if self.CORS_ALLOW_METHODS.strip() == "*" or self.CORS_ALLOW_HEADERS.strip() == "*":
+            raise ValueError("CORS methods and headers must be enumerated in production")
+        _ = self.resolved_jwt_secret
 
     def _validate_positive(self, name: str, value: int) -> None:
         if value <= 0:
@@ -479,6 +680,96 @@ class Settings(BaseSettings):
             raise ValueError("AUTH_JWT_ALGORITHM must not be blank")
         self._validate_positive("VERIFICATION_CODE_LENGTH", self.VERIFICATION_CODE_LENGTH)
         self._validate_positive("VERIFICATION_CODE_TTL_SECONDS", self.VERIFICATION_CODE_TTL_SECONDS)
+
+    def _validate_storage(self) -> None:
+        """Validate object storage before a request can fail on it.
+
+        A misconfigured endpoint used to surface as a 500 on the first upload.
+        Failing at startup is cheaper: the container never becomes ready and
+        the operator sees the reason immediately.
+        """
+        provider = self.FILE_STORAGE_PROVIDER.strip().lower()
+        if provider not in _STORAGE_PROVIDERS:
+            raise ValueError(
+                "FILE_STORAGE_PROVIDER must be 'local', 's3' or 'rustfs' "
+                "('minio' is accepted as a legacy alias of 's3')"
+            )
+        # `s3` is the canonical value: `rustfs` and the legacy `minio` are
+        # aliases, so the recorded provider never depends on the vendor.
+        self.FILE_STORAGE_PROVIDER = provider if provider == "local" else "s3"
+        self._validate_positive("FILE_MAX_SIZE_BYTES", self.FILE_MAX_SIZE_BYTES)
+        self._validate_positive("FILE_PRESIGN_TTL_SECONDS", self.FILE_PRESIGN_TTL_SECONDS)
+        self._validate_positive(
+            "FILE_DOWNLOAD_URL_TTL_SECONDS", self.FILE_DOWNLOAD_URL_TTL_SECONDS
+        )
+        if self.FILE_STORAGE_PROVIDER == "local":
+            return
+
+        missing = [
+            name
+            for name, value in (
+                ("S3_ENDPOINT", self.S3_ENDPOINT),
+                ("S3_BUCKET", self.S3_BUCKET),
+                ("S3_ACCESS_KEY", self.S3_ACCESS_KEY),
+                ("S3_SECRET_KEY", self.S3_SECRET_KEY),
+            )
+            if not value.strip()
+        ]
+        if missing:
+            raise ValueError(
+                f"{', '.join(missing)} is required when storage is "
+                f"'{self.FILE_STORAGE_PROVIDER}'"
+            )
+        self._validate_bucket_name(self.S3_BUCKET)
+        if self.S3_ADDRESSING_STYLE.strip().lower() not in {"path", "virtual"}:
+            raise ValueError("S3_ADDRESSING_STYLE must be 'path' or 'virtual'")
+        self.S3_ADDRESSING_STYLE = self.S3_ADDRESSING_STYLE.strip().lower()
+        self._validate_positive("S3_CONNECT_TIMEOUT_SECONDS", self.S3_CONNECT_TIMEOUT_SECONDS)
+        self._validate_positive("S3_READ_TIMEOUT_SECONDS", self.S3_READ_TIMEOUT_SECONDS)
+        if not self.S3_REGION.strip():
+            raise ValueError("S3_REGION must not be empty")
+        if self.APP_ENV == "production":
+            # The RustFS and MinIO sample credentials are public knowledge.
+            if self.S3_SECRET_KEY.strip() in _SAMPLE_STORAGE_SECRETS:
+                raise ValueError("S3_SECRET_KEY must not be a sample credential in production")
+            if len(self.S3_SECRET_KEY.strip()) < 12:
+                raise ValueError("S3_SECRET_KEY must be at least 12 characters in production")
+
+    @staticmethod
+    def _validate_bucket_name(bucket: str) -> None:
+        """Check the S3 bucket naming rules every compatible server enforces."""
+        name = bucket.strip()
+        if not 3 <= len(name) <= 63:
+            raise ValueError("S3_BUCKET must be between 3 and 63 characters long")
+        if not name[0].isalnum() or not name[-1].isalnum():
+            raise ValueError("S3_BUCKET must start and end with an alphanumeric character")
+        allowed = set(string.ascii_lowercase + string.digits + ".-")
+        lowered = name.lower()
+        if any(character not in allowed for character in lowered):
+            raise ValueError(
+                "S3_BUCKET may contain only lower case letters, digits, dots and '-'"
+            )
+        if ".." in lowered:
+            raise ValueError("S3_BUCKET must not contain consecutive dots")
+
+    def _validate_ops_scheduler(self) -> None:
+        if not self.OPS_SCHEDULER_ENABLED:
+            return
+        self._validate_positive(
+            "OPS_SCHEDULER_ALERT_INTERVAL_SECONDS", self.OPS_SCHEDULER_ALERT_INTERVAL_SECONDS
+        )
+        self._validate_positive(
+            "OPS_SCHEDULER_PROBE_INTERVAL_SECONDS", self.OPS_SCHEDULER_PROBE_INTERVAL_SECONDS
+        )
+        self._validate_positive(
+            "OPS_SCHEDULER_ROLLUP_INTERVAL_MINUTES", self.OPS_SCHEDULER_ROLLUP_INTERVAL_MINUTES
+        )
+        if not 0 <= self.OPS_SCHEDULER_DAILY_ROLLUP_HOUR <= 23:
+            raise ValueError("OPS_SCHEDULER_DAILY_ROLLUP_HOUR must be between 0 and 23")
+        if not 0 <= self.OPS_SCHEDULER_PURGE_HOUR <= 23:
+            raise ValueError("OPS_SCHEDULER_PURGE_HOUR must be between 0 and 23")
+        if self.OPS_SELF_MONITOR_ENABLED and not self.OPS_SELF_MONITOR_URL.strip():
+            raise ValueError("OPS_SELF_MONITOR_URL must not be blank when self monitoring is on")
 
     def _validate_database(self) -> None:
         if not 1 <= self.DB_PORT <= 65535:

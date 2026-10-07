@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.git/
+.github/
+.idea/
+.vscode/
+coverage/
+*.local
+.env
+.env.*
+!.env.example

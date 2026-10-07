@@ -1,0 +1,52 @@
+[Unit]
+# Bare metal deployment unit. Container deployments use docker-compose.yml
+# instead and do not install this file.
+#
+#   cp scripts/deploy/centos/vctn-api.service /etc/systemd/system/
+#   systemctl daemon-reload && systemctl enable --now vctn-api
+#
+# Why one worker: the ops scheduler runs inside this process. Starting several
+# workers would start several schedulers. If you need more concurrency, either
+# set OPS_SCHEDULER_ENABLED=false here and enable it in exactly one unit, or
+# scale with replicas behind the proxy - each job takes an advisory lock, so a
+# second runner skips instead of duplicating work.
+Description=VCTN API (uvicorn)
+Documentation=file:///srv/vctn/app/docs/RUNBOOK.md
+After=network-online.target postgresql-18.service redis.service
+Wants=network-online.target postgresql-18.service redis.service
+
+[Service]
+Type=simple
+User=vctn
+Group=vctn
+WorkingDirectory=/srv/vctn/app/vctn-api
+
+# Configuration is read from .env in the working directory; nothing belongs in
+# this file, least of all a password.
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONPATH=/srv/vctn/app/vctn-api
+
+ExecStart=/srv/vctn/app/vctn-api/.venv/bin/uvicorn app.main:app \
+  --host 127.0.0.1 --port 8000 \
+  --workers 1 \
+  --proxy-headers --forwarded-allow-ips=127.0.0.1
+
+Restart=always
+RestartSec=3
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# Hardening. The process needs to write only to its own uploads and exports.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/srv/vctn/storage /srv/vctn/exports /srv/vctn/logs
+LimitNOFILE=65535
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vctn-api
+
+[Install]
+WantedBy=multi-user.target

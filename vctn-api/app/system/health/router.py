@@ -3,7 +3,7 @@
 Mounted at the application root, outside the business API prefix:
 
 - ``GET /health``  liveness, checks the application process only
-- ``GET /ready``   readiness, checks PostgreSQL and Redis
+- ``GET /ready``   readiness, checks PostgreSQL, Redis and object storage
 - ``GET /version`` application name, version and environment
 """
 
@@ -53,6 +53,17 @@ async def _probe_redis(client: aioredis.Redis | None) -> dict[str, str]:
     return {"status": "ok"}
 
 
+async def _probe_object_storage(storage: object | None) -> dict[str, str]:
+    """Probe the configured storage backend. The probe never raises."""
+    if storage is None:
+        return {"status": "not_configured"}
+    try:
+        await storage.ping()  # type: ignore[attr-defined]
+    except Exception as exc:  # noqa: BLE001 - a readiness probe must report any failure
+        return {"status": "error", "error": type(exc).__name__}
+    return {"status": "ok"}
+
+
 @router.get("/health", summary="Liveness probe")
 async def health() -> ApiResponse[Any] | ApiError:
     """Liveness: verifies only that the application process is running."""
@@ -69,6 +80,9 @@ async def ready(request: Request, response: Response) -> ApiResponse[Any] | ApiE
     checks: dict[str, dict[str, str]] = {
         "postgres": await _probe_database(engine),
         "redis": await _probe_redis(redis_client),
+        "object_storage": await _probe_object_storage(
+            getattr(request.app.state, "storage", None)
+        ),
     }
     payload: dict[str, Any] = {
         "status": "ready",

@@ -68,6 +68,27 @@ class FileRepository:
         )
         return list(rows), total
 
+    async def apply_stored_object(
+        self,
+        file_id: int,
+        *,
+        size_bytes: int | None = None,
+        content_type: str | None = None,
+        checksum: str | None = None,
+    ) -> SysFile | None:
+        """Update a record with what the storage backend actually wrote."""
+        row = await self._session.get(SysFile, file_id)
+        if row is None:
+            return None
+        if size_bytes is not None:
+            row.size_bytes = size_bytes
+        if content_type is not None:
+            row.content_type = content_type
+        if checksum is not None:
+            row.checksum = checksum
+        await self._session.flush()
+        return row
+
     async def mark_deleted(self, file_id: int, *, deleted_at: datetime.datetime) -> None:
         """Logically delete a file record (status + deleted_at)."""
         row = await self._session.get(SysFile, file_id)

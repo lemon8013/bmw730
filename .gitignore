@@ -35,3 +35,14 @@ Thumbs.db
 .playwright-cli/
 .devtools-*.sh
 vctn-api/.devtools/
+
+# TLS material and any rendered deployment env
+.env.deploy
+deploy/nginx/ssl/*.pem
+deploy/nginx/ssl/*.key
+
+# Local object storage roots (FILE_STORAGE_ROOT / EXPORT_STORAGE_ROOT)
+vctn-api/storage/
+vctn-api/exports/
+storage/
+exports/

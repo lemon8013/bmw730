@@ -91,6 +91,43 @@ class AvailabilityRepository:
             setattr(row, key, value)
         await self._session.flush()
 
+    async def list_enabled_checks(self) -> list[OpsAvailabilityCheck]:
+        """Return every check the probe runner must consider on this tick."""
+        rows = (
+            (
+                await self._session.execute(
+                    select(OpsAvailabilityCheck).where(
+                        OpsAvailabilityCheck.deleted_at.is_(None),
+                        OpsAvailabilityCheck.enabled.is_(True),
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        return list(rows)
+
+    async def latest_result_at(self, check_id: int) -> datetime.datetime | None:
+        """Return when this check last ran, or ``None`` if it never did.
+
+        The probe runner uses it to honour ``interval_seconds``: a check that
+        has never run is due immediately, a check that ran a second ago is not.
+        """
+        value = (
+            await self._session.execute(
+                select(func.max(OpsAvailabilityResult.checked_at)).where(
+                    OpsAvailabilityResult.check_id == check_id
+                )
+            )
+        ).scalar()
+        return value
+
+    async def create_result(self, **fields: object) -> OpsAvailabilityResult:
+        row = OpsAvailabilityResult(**fields)  # type: ignore[arg-type]
+        self._session.add(row)
+        await self._session.flush()
+        return row
+
     async def soft_delete(self, row: OpsAvailabilityCheck) -> None:
         row.deleted_at = datetime.datetime.now(datetime.UTC)
         await self._session.flush()

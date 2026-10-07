@@ -1,0 +1,116 @@
+# TLS terminating gateway. Use this when nginx is the public entry point.
+# Certificates must be mounted at /etc/nginx/ssl/ (fullchain.pem, privkey.pem).
+#
+# Required environment:
+#   ADMIN_HOST TOOLS_HOST BLOG_HOST OPS_HOST API_HOST
+
+upstream vctn_api    { server api:8000 max_fails=3 fail_timeout=10s; }
+upstream web_admin   { server web-admin:80  max_fails=3 fail_timeout=10s; }
+upstream web_tools   { server web-tools:80  max_fails=3 fail_timeout=10s; }
+upstream web_blog    { server web-blog:80   max_fails=3 fail_timeout=10s; }
+upstream web_ops     { server web-ops:80    max_fails=3 fail_timeout=10s; }
+
+proxy_set_header    Host              $host;
+proxy_set_header    X-Real-IP         $remote_addr;
+proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
+proxy_set_header    X-Forwarded-Proto $scheme;
+proxy_set_header    X-Forwarded-Host  $host;
+proxy_http_version  1.1;
+proxy_set_header    Connection        "";
+proxy_connect_timeout 5s;
+proxy_send_timeout    60s;
+proxy_read_timeout    60s;
+
+# Plain HTTP only exists to renew certificates and to answer a load balancer
+# probe. Everything else is redirected before it is ever routed.
+server {
+    listen 80;
+    server_name ${API_HOST} ${ADMIN_HOST} ${TOOLS_HOST} ${BLOG_HOST} ${OPS_HOST};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+    location /health {
+        access_log off;
+        return 200 "ok\n";
+    }
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${API_HOST};
+    include /etc/nginx/snippets/ssl.conf;
+
+    location /health  { proxy_pass http://vctn_api; access_log off; }
+    location /ready   { proxy_pass http://vctn_api; access_log off; }
+    location /version { proxy_pass http://vctn_api; access_log off; }
+    location /        { proxy_pass http://vctn_api; }
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${ADMIN_HOST};
+    include /etc/nginx/snippets/ssl.conf;
+    include /etc/nginx/snippets/security.conf;
+
+    location /api/    { proxy_pass http://vctn_api; }
+    location /health  { proxy_pass http://vctn_api; access_log off; }
+    location /ready   { proxy_pass http://vctn_api; access_log off; }
+    location /version { proxy_pass http://vctn_api; access_log off; }
+    location /        { proxy_pass http://web_admin; }
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${TOOLS_HOST};
+    include /etc/nginx/snippets/ssl.conf;
+    include /etc/nginx/snippets/security.conf;
+
+    location /api/    { proxy_pass http://vctn_api; }
+    location /health  { proxy_pass http://vctn_api; access_log off; }
+    location /version { proxy_pass http://vctn_api; access_log off; }
+    location /        { proxy_pass http://web_tools; }
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${BLOG_HOST};
+    include /etc/nginx/snippets/ssl.conf;
+    include /etc/nginx/snippets/security.conf;
+
+    location /api/    { proxy_pass http://vctn_api; }
+    location /        { proxy_pass http://web_blog; }
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${OPS_HOST};
+    include /etc/nginx/snippets/ssl.conf;
+    include /etc/nginx/snippets/security.conf;
+
+    location /api/    { proxy_pass http://vctn_api; }
+    location /health  { proxy_pass http://vctn_api; access_log off; }
+    location /        { proxy_pass http://web_ops; }
+}
+
+# An unknown SNI or a bare IP gets dropped instead of being answered.
+server {
+    listen 443 ssl default_server;
+    server_name _;
+    include /etc/nginx/snippets/ssl.conf;
+    return 444;
+}
+
+server {
+    listen 80 default_server;
+    server_name _;
+    return 444;
+}

@@ -8,6 +8,23 @@ VCTN：**双前端 + 单 FastAPI 模块化单体**。
 - 两前端工程完全独立，不互相 import；共享的是后端 API Contract。
 - 禁令：不建 `admin-api`/`platform-api`/`tools-api`/`blog-api`，不拆微服务，模块间不得 HTTP 互调。
 
+## 文件与对象存储（2026-10-07 统一，勿绕过）
+- **任何二进制落盘都必须走 `app/shared/storage/`**，业务代码不许碰 `open()`/路径。
+  Provider 两档：`local`（单机试点，presign 恒为 None、由 API 代理）、`s3`（生产，S3 兼容）。
+- **零新增依赖**：`httpx` + 自研 AWS SigV4（`signer.py`）。Spec 依赖清单没有 boto3/minio SDK。
+- **部署目标是 RustFS**（Apache 2.0，S3 兼容）。配置面统一叫 `S3_*`，`MINIO_*` 只作为
+  历史别名（AliasChoices）保留；`FILE_STORAGE_PROVIDER` 接受 `s3` / `rustfs` / `minio`，
+  校验后归一为 `s3`，库里记录的 provider 恒为 `s3`。判断「是否 S3 后端」用
+  `resolve_provider(settings) == PROVIDER_S3`，禁止再写 `== "minio"`。
+  RustFS 坑：health 是 `/health`、容器 uid **10001:10001**（卷要 chown）、控制台 9001 不外发、
+  浏览器直传要设 `RUSTFS_CORS_ALLOWED_ORIGINS`、只有一对凭据没有服务账号概念。
+- 上传三步：`create_upload_intent` → PUT 预签名 / POST `/files/{id}/content` → `confirm_upload`
+  （直传没到货会把记录软删）。删除顺序：先删对象，再软删记录。
+- 图片按**魔数**判定类型，客户端声明不算数；SVG 永远 `attachment`。
+- 对象 Key 服务端生成并强校验；`exports/` 这类**前缀**用 `validate_prefix`（不是 validate_object_key）。
+- 配置改完自检：`python -m app.scripts.storage_check`（容器 `check-storage`）。
+- 生产拒绝样例凭据：`rustfsadmin` / `minioadmin` / `changeme` / `password`，且密钥 ≥12 位。
+
 ## 关键约定
 - **项目根目录 = `F:\project\bmw730`**（负责人 Phase 0 决策；Spec 原文写 `D:\project\bmw730`）。
 - Spec 唯一来源：`aicoding/`（`VCTN-Complete-Spec-V2.2.md`、`spec/`、`sql/vctn-enterprise-ddl-v2.0.sql`）。
@@ -83,6 +100,26 @@ VCTN：**双前端 + 单 FastAPI 模块化单体**。
   （违反返回 422001，`data` 是具体问题列表，`ApiEnvelopeError.details` 已保留它）。
 - 后端两个既有坑已修（见 2026-10-06 日志）：`RateLimitService` 遇 Redis 故障要 fail-open；
   `BizUserSession` 在 `app.platform.users.model` **不在** `auth.model`。
+
+## Ops 周期性任务（2026-10-07 落地，勿回退）
+- `app/ops/scheduler/`：APScheduler AsyncIOScheduler 跑四个任务——指标 rollup（每小时，
+  UTC `OPS_SCHEDULER_DAILY_ROLLUP_HOUR` 那趟额外做天聚合）、告警评估并派发通知、
+  可用性探测、保留清理（**CronTrigger 固定小时**，interval 会随容器重启漂移）。
+- **多副本安全靠 PG advisory lock**（`pg_try_advisory_lock`，非阻塞；非 PG dialect 自动放行），
+  所以扩副本不用改配置。lock key 用 **crc32 不用 hash()**（后者每进程随机）。
+- 默认 `OPS_SCHEDULER_ENABLED=false`，部署侧必须显式打开（compose / .env 已加）。
+- 任务里异常一律吞掉（`run_guarded`）：一次 tick 失败不能带走调度器和其他任务。
+- 自监控：`app/ops/availability/probe.py` 是四种探测的执行器；种子 `vctn_api_self_health`
+  来自 `OPS_SELF_MONITOR_URL`（**容器内是 `http://api:8000/health`，不是 localhost**）。
+- SQL 常踩的坑：**`date_trunc` 不能同时出现在 SELECT 与 GROUP BY**（会渲染成两个绑定参数，
+  PG 报 "must appear in the GROUP BY"），必须子查询先算桶再 group by 别名。
+
+## 部署（CentOS/Rocky/Alma）
+- 文档 `docs/DEPLOY-CENTOS.md`；脚本 `scripts/deploy/centos/`（bootstrap.sh、vctn-api.service、
+  nginx-vctn.conf、nginx-proxy.conf）。**CentOS 7 只能走容器路线**（裸机编不出可用的 Py3.13 ssl）。
+- SELinux 保持开启：nginx 反代本机端口要 `setsebool -P httpd_can_network_connect 1`。
+- systemd 单元里 uvicorn workers=1 —— 调度器在进程内，多 worker 会跑出多份周期任务。
+- 四个前端都用相对路径 `/api/v1`，**没有 nginx 转 `/api/` 就是全白屏**，且表现得像 CORS 问题。
 
 ## 环境坑
 - **启动服务（2026-10-03 验证）**

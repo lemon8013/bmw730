@@ -33,6 +33,7 @@ from app.admin.roles.model import SysRole, SysUserRole
 from app.admin.users.model import SysUser
 from app.blog.categories.model import BlogCategory
 from app.core.config import Settings
+from app.ops.availability.model import OpsAvailabilityCheck
 from app.ops.metrics.model import OpsMetricDefinition
 from app.platform.cosmetics.model import BizCosmetic
 from app.platform.growth.model import BizAchievement, BizGrowthRule, BizTask
@@ -844,6 +845,36 @@ async def seed_ops_metrics(session: AsyncSession, counter: SeedCounter) -> None:
         )
 
 
+async def seed_ops_self_monitoring(
+    session: AsyncSession, counter: SeedCounter, settings: Settings
+) -> None:
+    """Point one availability check at the API itself.
+
+    Without it the platform monitors everything except the process that produces
+    the data: an outage of the API is the one outage nobody is alerted about.
+    Inserted by ``check_code`` and never updated, so an operator who retargets
+    it at a real load balancer URL keeps that change on the next seed run.
+    """
+    if not settings.OPS_SELF_MONITOR_ENABLED:
+        return
+    await ensure_row(
+        session,
+        OpsAvailabilityCheck,
+        keys={"check_code": "vctn_api_self_health"},
+        values={
+            "name": "VCTN API 健康检查",
+            "check_type": "HTTP",
+            "target": settings.OPS_SELF_MONITOR_URL,
+            "timeout_ms": 5000,
+            "interval_seconds": 60,
+            "expected_status": 200,
+            "enabled": True,
+        },
+        counter=counter,
+        collection="ops_availability_checks",
+    )
+
+
 _HTTP_METHODS: Final[frozenset[str]] = frozenset({"GET", "POST", "PUT", "PATCH", "DELETE"})
 
 _GUARD_FUNCTIONS: Final[frozenset[str]] = frozenset(
@@ -969,6 +1000,7 @@ async def seed_system(
     await seed_tools(session, counter)
     await seed_blog(session, counter)
     await seed_ops_metrics(session, counter)
+    await seed_ops_self_monitoring(session, counter, settings)
 
     return result
 

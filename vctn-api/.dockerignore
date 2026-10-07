@@ -1,0 +1,31 @@
+# Secrets and local state must never reach the image.
+.env
+.env.*
+!.env.example
+.devtools/
+token.err
+token.txt
+
+# Local toolchains and caches.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Runtime artefacts: uploaded files, exports, logs. They belong on a volume.
+storage/
+exports/
+logs/
+*.log
+
+# Development only.
+tests/
+.idea/
+.vscode/
+.git/
+.github/
+_schema_dump.txt

@@ -1,0 +1,21 @@
+# Shell scripts must keep LF endings. A CRLF shebang makes a container entry
+# point fail with "no such file or directory", which is a long way from the
+# real cause.
+*.sh            text eol=lf
+docker-entrypoint.sh text eol=lf
+
+# Nginx and compose files are read by Linux daemons; pin them too.
+*.conf          text eol=lf
+*.template      text eol=lf
+
+# Keep the checked out text files consistent across platforms.
+*.py            text eol=lf
+*.ts            text eol=lf
+*.vue           text eol=lf
+*.md            text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+
+# Never let a lock file or a fixture be normalised by a merge.
+package-lock.json -diff linguist-generated
+requirements.lock.txt -diff

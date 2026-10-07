@@ -125,8 +125,11 @@ export interface FileRecord {
 }
 
 /**
- * `FileCreateRequest`. The multipart upload endpoint is not implemented by the
- * backend, so the client registers metadata for an object it already knows.
+ * `FileCreateRequest`. Registering metadata for an object already in storage.
+ *
+ * Real uploads go through `createUploadIntent` instead: the backend decides the
+ * object key and hands back either a pre-signed URL (RustFS / any S3 endpoint)
+ * or its own upload endpoint (local storage).
  */
 export interface FileCreateRequest {
   storage_provider?: string
@@ -139,6 +142,49 @@ export interface FileCreateRequest {
   owner_type?: string | null
   owner_id?: number | null
   metadata?: Record<string, unknown> | null
+}
+
+/**
+ * `UploadIntentRequest`. Nothing about the storage layout is decided here: the
+ * client declares what it wants to upload and the server answers with a place
+ * to put it.
+ */
+export interface UploadIntentRequest {
+  original_name?: string | null
+  content_type?: string | null
+  category?: string
+  size_bytes?: number | null
+  owner_type?: string | null
+  owner_id?: EntityId | string | number | null
+  metadata?: Record<string, unknown> | null
+}
+
+/**
+ * `UploadIntentResponse`. `direct` means PUT the file straight to the object
+ * store (RustFS / S3) using
+ * `upload_url` and `headers`; `proxy` means POST the bytes to our own API.
+ */
+export interface UploadIntent {
+  id: EntityId
+  mode: 'direct' | 'proxy'
+  upload_url: string
+  method: string
+  headers: Record<string, string>
+  expires_at?: IsoDateTime | null
+  object_key: string
+  storage_key: string
+  content_type: string
+  max_size_bytes: number
+}
+
+/** `DownloadUrlResponse`. `url` is null when local storage must proxy. */
+export interface FileDownloadUrl {
+  id: EntityId
+  url?: string | null
+  inline: boolean
+  expires_at?: IsoDateTime | null
+  content_type?: string | null
+  original_name?: string | null
 }
 
 /** `FileCreatedResponse`. */

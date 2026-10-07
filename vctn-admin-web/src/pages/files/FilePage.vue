@@ -1,8 +1,10 @@
 <script setup lang="ts">
 /**
- * 文件管理：查看已登记的文件元数据，登记新对象元数据并做逻辑删除。
- * 后端未提供预签名 / 上传完成 / 下载端点，本页不触碰服务器文件系统。
- * 删除操作需要 SYSTEM_FILE_MANAGE 权限。
+ * 文件管理：上传、下载与删除。
+ *
+ * 上传分两步：先向后端申请一个存放位置（对象存储如 RustFS 返回预签名直传地址，
+ * 本地存储走 API 代理），再把字节体 PUT/POST 上去；直传结束后必须确认一次，
+ * 否则后端会回收那条“有名无实”的记录。所有操作都需要 SYSTEM_FILE_MANAGE 权限。
  */
 import { computed, reactive, ref, watch } from 'vue'
 import {
@@ -19,7 +21,16 @@ import {
   type FormRules,
 } from 'element-plus'
 
-import { createFileRecord, deleteFile, listFiles } from '@/api/files'
+import {
+  confirmUpload,
+  createFileRecord,
+  createUploadIntent,
+  deleteFile,
+  getDownloadUrl,
+  listFiles,
+  proxiedContentUrl,
+  uploadFileContent,
+} from '@/api/files'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import BaseDialog from '@/components/dialog/BaseDialog.vue'
@@ -230,11 +241,80 @@ async function submit(): Promise<void> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 上传
+// ---------------------------------------------------------------------------
+
+const uploadVisible = ref(false)
+const uploadBusy = ref(false)
+const uploadError = ref<string | null>(null)
+const uploadFileInput = ref<HTMLInputElement | null>(null)
+const selectedFile = ref<File | null>(null)
+const uploadCategory = ref('general')
+
+function openUpload(): void {
+  selectedFile.value = null
+  uploadCategory.value = 'general'
+  uploadError.value = null
+  if (uploadFileInput.value) {
+    uploadFileInput.value.value = ''
+  }
+  uploadVisible.value = true
+}
+
+function pickFile(event: Event): void {
+  const input = event.target as HTMLInputElement
+  selectedFile.value = input.files?.[0] ?? null
+  uploadError.value = null
+}
+
+async function submitUpload(): Promise<void> {
+  const file = selectedFile.value
+  if (!file) {
+    uploadError.value = '请先选择要上传的文件'
+    return
+  }
+  uploadBusy.value = true
+  uploadError.value = null
+  try {
+    const intent = await createUploadIntent({
+      original_name: file.name,
+      content_type: file.type === '' ? undefined : file.type,
+      category: uploadCategory.value.trim() === '' ? 'general' : uploadCategory.value.trim(),
+      size_bytes: file.size,
+    })
+    await uploadFileContent(intent, file, intent.content_type)
+    // 直传由浏览器完成，后端没有参与，必须回来确认字节真的落到了对象存储。
+    if (intent.mode === 'direct') {
+      await confirmUpload(intent.id)
+    }
+    notify.success(intent.mode === 'direct' ? '文件已上传至对象存储' : '文件已上传')
+    uploadVisible.value = false
+    await reload()
+  } catch (caught) {
+    uploadError.value = failureText(caught)
+  } finally {
+    uploadBusy.value = false
+  }
+}
+
+/** 下载：对象存储返回临时签名地址；本地存储只能由后端代理输出。 */
+async function onDownload(row: Record<string, unknown>): Promise<void> {
+  const file = row as unknown as FileRecord
+  try {
+    const result = await getDownloadUrl(file.id, false)
+    const target = result.url ?? proxiedContentUrl(file.id)
+    window.open(target, '_blank', 'noopener')
+  } catch (caught) {
+    notify.failure(failureText(caught))
+  }
+}
+
 async function onDelete(row: Record<string, unknown>): Promise<void> {
   const file = row as unknown as FileRecord
   const confirmed = await notify.confirm({
-    title: '删除文件记录',
-    message: `确定要删除文件记录「${file.object_key}」吗？该操作仅做逻辑删除。`,
+    title: '删除文件',
+    message: `确定要删除「${file.original_name ?? file.object_key}」吗？对象本体与记录都会被移除（记录为逻辑删除）。`,
     danger: true,
   })
   if (!confirmed) {
@@ -242,7 +322,7 @@ async function onDelete(row: Record<string, unknown>): Promise<void> {
   }
   try {
     await deleteFile(file.id)
-    notify.success('文件记录已删除')
+    notify.success('文件已删除')
     await reload()
   } catch (caught) {
     notify.failure(failureText(caught))
@@ -252,15 +332,26 @@ async function onDelete(row: Record<string, unknown>): Promise<void> {
 
 <template>
   <div class="file-page">
-    <PageHeader title="文件管理" description="查看并登记对象存储中的文件元数据；删除需要 SYSTEM_FILE_MANAGE 权限。">
+    <PageHeader
+      title="文件管理"
+      description="上传文件到对象存储（RustFS / S3），查看已登记的文件元数据并下载或删除。所有操作需要 SYSTEM_FILE_MANAGE 权限。"
+    >
       <template #actions>
         <ElButton @click="reload">刷新</ElButton>
         <ElButton
           v-permission="PERMISSION.systemFileManage"
           type="primary"
+          plain
           @click="openCreate"
         >
-          登记文件元数据
+          登记元数据
+        </ElButton>
+        <ElButton
+          v-permission="PERMISSION.systemFileManage"
+          type="primary"
+          @click="openUpload"
+        >
+          上传文件
         </ElButton>
       </template>
     </PageHeader>
@@ -269,8 +360,8 @@ async function onDelete(row: Record<string, unknown>): Promise<void> {
       type="info"
       :closable="false"
       show-icon
-      title="上传 / 下载接口未实现"
-      description="后端未提供预签名、上传完成与下载端点，因此本页不提供上传或下载控件，也不会直接读写服务器文件系统。"
+      title="对象存储由后端统一承载"
+      description="文件一经上传就写入后端配置的对象存储：S3 兼容模式（RustFS 等）下浏览器直传预签名地址，仅在本地存储模式下由后端代理。对象的 Key、类型与大小由后端核定，前端无法指定。"
       class="file-page__notice"
     />
 
@@ -347,16 +438,26 @@ async function onDelete(row: Record<string, unknown>): Promise<void> {
         <ElTableColumn v-if="!fields.isHidden('created_at')" label="创建时间" width="180">
           <template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
         </ElTableColumn>
-        <ElTableColumn v-if="canManage" label="操作" width="100" fixed="right">
+        <ElTableColumn v-if="canManage" label="操作" width="160" fixed="right">
           <template #default="{ row }">
-            <ElButton
-              v-permission="PERMISSION.systemFileManage"
-              link
-              type="danger"
-              @click="onDelete(row)"
-            >
-              删除
-            </ElButton>
+            <ElSpace :size="4">
+              <ElButton
+                v-permission="PERMISSION.systemFileManage"
+                link
+                type="primary"
+                @click="onDownload(row)"
+              >
+                下载
+              </ElButton>
+              <ElButton
+                v-permission="PERMISSION.systemFileManage"
+                link
+                type="danger"
+                @click="onDelete(row)"
+              >
+                删除
+              </ElButton>
+            </ElSpace>
           </template>
         </ElTableColumn>
       </BaseTable>
@@ -438,6 +539,40 @@ async function onDelete(row: Record<string, unknown>): Promise<void> {
         </ElFormItem>
       </BaseForm>
     </BaseDialog>
+
+    <BaseDialog
+      v-model="uploadVisible"
+      title="上传文件"
+      confirm-text="开始上传"
+      :confirm-loading="uploadBusy"
+      width="560px"
+      @confirm="submitUpload"
+    >
+      <ElAlert
+        v-if="uploadError"
+        type="error"
+        :closable="false"
+        show-icon
+        :title="uploadError"
+        class="file-page__upload-error"
+      />
+      <ElFormItem label="文件">
+        <input ref="uploadFileInput" type="file" @change="pickFile" />
+        <div v-if="selectedFile" class="file-page__picked">
+          {{ selectedFile.name }}
+          <span class="file-page__picked-size">（{{ formatBytes(selectedFile.size) }}）</span>
+        </div>
+      </ElFormItem>
+      <ElFormItem label="分类目录">
+        <ElSelect v-model="uploadCategory" style="width: 200px">
+          <ElOption label="general（通用）" value="general" />
+          <ElOption label="avatar（头像）" value="avatar" />
+          <ElOption label="image（图片）" value="image" />
+          <ElOption label="attachment（附件）" value="attachment" />
+          <ElOption label="export（导出）" value="export" />
+        </ElSelect>
+      </ElFormItem>
+    </BaseDialog>
   </div>
 </template>
 
@@ -447,6 +582,20 @@ async function onDelete(row: Record<string, unknown>): Promise<void> {
 }
 
 .file-page__filters {
+  margin-bottom: 16px;
+}
+
+.file-page__picked {
+  margin-top: 8px;
+  color: var(--el-text-color-regular);
+  font-size: 13px;
+}
+
+.file-page__picked-size {
+  color: var(--el-text-color-secondary);
+}
+
+.file-page__upload-error {
   margin-bottom: 16px;
 }
 </style>

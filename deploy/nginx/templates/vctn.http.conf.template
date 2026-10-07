@@ -1,0 +1,90 @@
+# Plain HTTP gateway. Use this when TLS is terminated upstream (SLB, WAF or a
+# CDN). The rendered file is written by the official nginx image from this
+# template; ${NAME} placeholders come from the container environment.
+#
+# Required environment:
+#   ADMIN_HOST TOOLS_HOST BLOG_HOST OPS_HOST API_HOST
+
+upstream vctn_api    { server api:8000 max_fails=3 fail_timeout=10s; }
+upstream web_admin   { server web-admin:80  max_fails=3 fail_timeout=10s; }
+upstream web_tools   { server web-tools:80  max_fails=3 fail_timeout=10s; }
+upstream web_blog    { server web-blog:80   max_fails=3 fail_timeout=10s; }
+upstream web_ops     { server web-ops:80    max_fails=3 fail_timeout=10s; }
+
+# Shared proxy behaviour. The frontend rewrites nothing, so the original Host
+# is forwarded and the application can build absolute URLs correctly.
+proxy_set_header    Host              $host;
+proxy_set_header    X-Real-IP         $remote_addr;
+proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
+proxy_set_header    X-Forwarded-Proto $scheme;
+proxy_set_header    X-Forwarded-Host  $host;
+proxy_http_version  1.1;
+proxy_set_header    Connection        "";
+proxy_connect_timeout 5s;
+proxy_send_timeout    60s;
+proxy_read_timeout    60s;
+proxy_buffering       on;
+
+# Every frontend talks to the same backend under /api/v1, which is why the
+# server blocks below all forward that prefix. Without it the SPAs render but
+# every request fails - and the failure looks like a CORS problem.
+
+server {
+    listen 80;
+    server_name ${API_HOST};
+
+    # The system probes are used by the load balancer and by `docker healthcheck`.
+    location /health  { proxy_pass http://vctn_api; access_log off; }
+    location /ready   { proxy_pass http://vctn_api; access_log off; }
+    location /version { proxy_pass http://vctn_api; access_log off; }
+
+    location / {
+        proxy_pass http://vctn_api;
+    }
+}
+
+server {
+    listen 80;
+    server_name ${ADMIN_HOST};
+
+    location /api/    { proxy_pass http://vctn_api; }
+    location /health  { proxy_pass http://vctn_api; access_log off; }
+    location /ready   { proxy_pass http://vctn_api; access_log off; }
+    location /version { proxy_pass http://vctn_api; access_log off; }
+    location /        { proxy_pass http://web_admin; }
+}
+
+server {
+    listen 80;
+    server_name ${TOOLS_HOST};
+
+    location /api/    { proxy_pass http://vctn_api; }
+    location /health  { proxy_pass http://vctn_api; access_log off; }
+    location /version { proxy_pass http://vctn_api; access_log off; }
+    location /        { proxy_pass http://web_tools; }
+}
+
+server {
+    listen 80;
+    server_name ${BLOG_HOST};
+
+    location /api/    { proxy_pass http://vctn_api; }
+    location /        { proxy_pass http://web_blog; }
+}
+
+server {
+    listen 80;
+    server_name ${OPS_HOST};
+
+    location /api/    { proxy_pass http://vctn_api; }
+    location /health  { proxy_pass http://vctn_api; access_log off; }
+    location /        { proxy_pass http://web_ops; }
+}
+
+# Anything that is not a known host gets no answer at all, so a scan by IP
+# cannot reach a frontend.
+server {
+    listen 80 default_server;
+    server_name _;
+    return 444;
+}

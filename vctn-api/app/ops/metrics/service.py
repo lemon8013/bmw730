@@ -167,6 +167,35 @@ class MetricService:
             sample_ids=[str(int(row.id)) for row in rows],
         )
 
+    async def rollup(
+        self,
+        *,
+        now: datetime.datetime | None = None,
+        hourly: bool = True,
+        daily: bool = False,
+        lookback_hours: int = 2,
+    ) -> dict[str, int]:
+        """Recompute the rollup tables for their most recent closed buckets.
+
+        Only closed buckets are written: the hour that is still filling up would
+        otherwise store an average that is too low and never corrected. A tick
+        that runs twice recomputes the same buckets instead of duplicating them.
+        """
+        moment = now or datetime.datetime.now(datetime.UTC)
+        outcome = {"hourly_buckets": 0, "daily_buckets": 0}
+        if hourly:
+            end = moment.replace(minute=0, second=0, microsecond=0)
+            start = end - datetime.timedelta(hours=max(lookback_hours, 1))
+            buckets = await self._repository.aggregate_raw_buckets(start, end)
+            outcome["hourly_buckets"] = await self._repository.upsert_hourly_buckets(buckets)
+        if daily:
+            end = moment.replace(hour=0, minute=0, second=0, microsecond=0)
+            start = end - datetime.timedelta(days=1)
+            buckets = await self._repository.aggregate_hourly_buckets(start, end)
+            outcome["daily_buckets"] = await self._repository.upsert_daily_buckets(buckets)
+        await self._session.commit()
+        return outcome
+
     @staticmethod
     def _as_utc(value: datetime.datetime, *, field: str) -> datetime.datetime:
         if value.tzinfo is None or value.utcoffset() is None:

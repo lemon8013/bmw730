@@ -14,6 +14,7 @@ from app.core.config import Settings, get_settings
 from app.core.exceptions import ConflictError, NotFoundError, ValidationError
 from app.ops.audit.recorder import OpsAuditRecorder
 from app.ops.availability.model import OpsAvailabilityCheck, OpsAvailabilityResult
+from app.ops.availability.probe import run_probe
 from app.ops.availability.repository import AvailabilityRepository
 from app.ops.availability.schema import (
     AvailabilityCheckCreateRequest,
@@ -206,6 +207,42 @@ class AvailabilityService:
             total=total,
             params=page,
         )
+
+    async def run_due_checks(
+        self, now: datetime.datetime | None = None
+    ) -> dict[str, int]:
+        """Execute every enabled check whose interval has elapsed.
+
+        Called by the scheduler, so there is no actor to audit: a probe result
+        is an observation, not an operator action. Every check is independent —
+        one unreachable target must not stop the rest of the tick.
+        """
+        moment = now or datetime.datetime.now(datetime.UTC)
+        outcome = {"due": 0, "succeeded": 0, "failed": 0}
+        for check in await self._repository.list_enabled_checks():
+            last_run = await self._repository.latest_result_at(int(check.id))
+            if last_run is not None:
+                next_due = last_run + datetime.timedelta(seconds=int(check.interval_seconds))
+                if next_due > moment:
+                    continue
+            outcome["due"] += 1
+            probe = await run_probe(check)
+            await self._repository.create_result(
+                id=new_id(),
+                check_id=int(check.id),
+                success=probe.success,
+                latency_ms=probe.latency_ms,
+                status_code=probe.status_code,
+                error_message=probe.error_message,
+                detail=probe.detail,
+                checked_at=moment,
+            )
+            if probe.success:
+                outcome["succeeded"] += 1
+            else:
+                outcome["failed"] += 1
+        await self._session.commit()
+        return outcome
 
     def _to_response(self, row: OpsAvailabilityCheck) -> AvailabilityCheckResponse:
         return AvailabilityCheckResponse(

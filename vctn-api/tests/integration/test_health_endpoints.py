@@ -25,10 +25,10 @@ def test_version_returns_application_metadata(client: TestClient) -> None:
 def test_ready_is_executable_and_reports_every_check(client: TestClient) -> None:
     response = client.get("/ready")
     # Without configured infrastructure the probe reports 503, which is a valid
-    # execution of the endpoint; the payload must always carry both checks.
+    # execution of the endpoint; the payload must always carry every check.
     assert response.status_code in (200, 503)
     checks = response.json()["data"]["checks"]
-    assert set(checks) == {"postgres", "redis"}
+    assert set(checks) == {"postgres", "redis", "object_storage"}
     for check in checks.values():
         assert check["status"] in {"ok", "error", "not_configured"}
 

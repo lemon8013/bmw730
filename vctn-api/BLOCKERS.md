@@ -290,8 +290,10 @@ PUT    /api/v1/tools/access/policies/{id}
 | **B-30** | `aicoding/spec/` 目录与文件名为双重编码乱码，标准文件 API 无法按中文名读取 | 读取前先导出为 ASCII 文件名 |
 | **B-31** | 本机 PostgreSQL 账号 `bmw730` 无 `CREATEDB` 权限 | 无法用「全新空库」验证；改为在同一库上做增量 + 幂等验证，并用只读 SQL 独立校验 |
 | **B-32** | Redis 未做端到端功能验证 | Seed 不依赖 Redis；Redis 相关链路待后续轮次验证 |
+| **B-37**（已记录，非阻塞） | 对象存储需要 S3 客户端，但 `DEPENDENCY-INDEX.md` 后端 Runtime 只有 `httpx`，清单里没有 `boto3` / `minio` / `rustfs` SDK | **不新增依赖**：在 `app/shared/storage/signer.py` 用标准库（`hmac` / `hashlib`）自行实现 AWS SigV4，传输仍走 `httpx`。签名已通过 AWS 官方文档的示例向量（canonical hash 与 `X-Amz-Signature` 逐字一致）验证；若后续 Spec 允许引入 SDK，可直接替换后端实现而不动调用方 |
+| **B-38**（已记录，非阻塞） | 部署目标为 RustFS（S3 兼容、Apache 2.0），`DEPENDENCY-INDEX.md` 没有对应客户端条目 | 与上一条同一结论：RustFS 只被当作一个 S3 HTTP 端点使用，配置面用通用 `S3_*`（`MINIO_*` 作为历史别名保留），不引入任何厂商 SDK |
 
----
+------
 
 ## 五、已解除
 

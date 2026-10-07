@@ -1,0 +1,2 @@
+# Certificates live here and are never committed.
+# Mount fullchain.pem and privkey.pem; see deploy/nginx/snippets/ssl.conf.
