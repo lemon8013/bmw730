@@ -117,16 +117,30 @@ chmod 600 .env                         # 里面有口令，只允许部署用户
 
 ### 2.3 构建前端
 
-镜像构建会把源码打包进去，所以前端必须在构建之前编译：
+镜像构建会把源码打包进去，所以前端必须在构建之前编译。四个前端用同一个入口：
 
 ```bash
 cd /srv/vctn/app
+./scripts/build-frontends.sh --install    # 首次加 --install（npm ci），之后可省略
+```
+
+产出落在 `dist/web/{admin,tools,blog,ops}`，并生成 `dist/web/BUILD-REPORT.txt`（各端体积、文件数、构建时间、注入的 API 基址）。
+
+`VITE_API_BASE_URL` 默认是 `/api/v1`（同域部署，脚本内写死为默认值）。跨域部署才写全 URL，且必须同时在 `CORS_ORIGINS` 里：
+
+```bash
+VITE_API_BASE_URL=https://api.example.com/api/v1 ./scripts/build-frontends.sh
+```
+
+等价于逐端手工执行（脚本只是把它固化下来，`--install` 对应 `npm ci`）：
+
+```bash
 for app in admin tools blog ops; do
   ( cd vctn-$app-web && npm ci --omit=dev && VITE_API_BASE_URL=/api/v1 npm run build )
 done
 ```
 
-`VITE_API_BASE_URL` 必须是 `/api/v1`（同域部署）。跨域部署才写全 URL，且必须同时在 `CORS_ORIGINS` 里。
+只构建其中一个用 `--app ops`，要拷到别的机器用 `--archive`（每个端打一个 `vctn-<app>-web-<时间戳>.tar.gz`，解开就是 `<app>/` 目录）。
 
 ### 2.4 迁移、初始化、启动
 
@@ -227,9 +241,9 @@ journalctl -u vctn-api -f
 
 ```bash
 cd /srv/vctn/app
+./scripts/build-frontends.sh --install                 # -> dist/web/{admin,tools,blog,ops}
 for app in admin tools blog ops; do
-  ( cd vctn-$app-web && npm ci && VITE_API_BASE_URL=/api/v1 npm run build \
-    && rsync -a --delete dist/ /srv/vctn/app/deploy/centos/www/$app/ )
+  rsync -a --delete dist/web/$app/ /srv/vctn/app/deploy/centos/www/$app/
 done
 sudo cp scripts/deploy/centos/nginx-vctn.conf /etc/nginx/conf.d/vctn.conf
 sudo nginx -t && sudo systemctl reload nginx
@@ -378,6 +392,9 @@ ops 权限目前只授予 `SUPER_ADMIN`，用种子管理员登录即可看到�
 | 后台日志 `object storage is not ready` | 桶不存在或凭据错 | `docker compose run --rm api check-storage` |
 | ops 页面全是空 | 调度器未开或没数据源 | `.env` 里 `OPS_SCHEDULER_ENABLED=true`，确认 seed 已跑出自监控检查项 |
 | 多副本后偶发主键冲突 | `SNOWFLAKE_NODE_ID` 重复 | 每个实例不同值 |
+| `ImportError: cannot import name 'BaseModel' from 'pydantic'` | venv 跨平台拷贝或安装中断，pydantic 装坏了 | 第 8.2 节：删掉 `.venv` 重建 |
+| uWSGI 报 `unable to load app ... callable not found` | FastAPI 是 ASGI，uWSGI 按 WSGI 找 callable | 第 8.1 节：改用 uvicorn |
+| `AttributeError: module 'platform' has no attribute 'system'` | 工作目录在 `vctn-api/app` 里，业务包 `app/platform/` 把标准库 `platform` 遮蔽了 | 第 8.5 节：`cd` 回到 `vctn-api` 再启动 |
 | 表越查越慢 | 清理任务没跑 | `docker compose run --rm api clean --dry-run`，并确认调度器开启 |
 
 ---
@@ -398,6 +415,155 @@ curl -fsS https://api.example.com/ready                 # 冒烟
 IMAGE_TAG=<上一个 tag> docker compose up -d             # 回滚代码
 # 迁移降级见 docs/RUNBOOK.md；数据回滚只能用第 5 步的备份
 ```
+
+---
+
+## 8. 宝塔面板（BT Panel）部署
+
+宝塔可以照常用：它管 nginx 站点、证书、数据库都很好用。只有一件事不能按它的默认姿势做。
+
+### 8.1 不要用「Python 项目」的 uWSGI 模式
+
+FastAPI 是 **ASGI** 应用，uWSGI 默认按 WSGI 去找一个两参数的 `app` callable，于是出现：
+
+```
+unable to load app 0 (mountpoint='') (callable not found or import error)
+*** no app loaded. going in full dynamic mode ***
+```
+
+即便 import 成功也跑不起来 —— ASGI 是 `async def app(scope, receive, send)` 三参数协程签名，WSGI 是 `app(environ, start_response)`。本项目依赖里**没有 gunicorn 也没有 uWSGI**，启动器就是 uvicorn。
+
+分工：宝塔负责 nginx 站点 + 证书 + 数据库，后端用 uvicorn（命令行或 systemd）自己起，两者通过 `127.0.0.1:8000` 对接。
+
+### 8.2 建 venv：`.venv` 不能从 Windows 拷上来
+
+把开发机（Windows）的 `.venv` 整个 rsync/scp 到 Linux 是最常见的坑：里面的 `pydantic_core` 是 Windows 的 `.pyd`，Linux 下根本导入不了，表现就是
+
+```
+ImportError: cannot import name 'BaseModel' from 'pydantic'
+```
+
+部署时排除 `.venv`、`__pycache__`、`node_modules`；在服务器上原地重建：
+
+```bash
+cd /www/wwwroot/vctn/vctn-api
+python3 -m venv .venv
+.venv/bin/pip install -U pip
+.venv/bin/pip install -r requirements.lock.txt
+
+# 验收：必须打印 2.13.5，不是这个数就说明锁文件没生效
+.venv/bin/python -c "import pydantic, fastapi, uvicorn; print(pydantic.VERSION, fastapi.__version__)"
+```
+
+已装坏的修法只有一个 —— 删掉重建，**不要**单独 `pip install pydantic` 去补，那会打乱锁定的版本组合（fastapi 0.142.2 / pydantic 2.13.5 / pydantic_core 2.46.5 / uvicorn 0.54.0 是一套）：
+
+```bash
+rm -rf .venv && python3 -m venv .venv && .venv/bin/pip install -U pip \
+  && .venv/bin/pip install -r requirements.lock.txt
+```
+
+`requires-python` 是 `>=3.11`，宝塔自带的 Python 3.12 可以直接用；如果装依赖时报编译错误，多半是缺 `python3-devel` / `gcc`，或该版本没有现成轮子。
+
+### 8.3 启动
+
+依赖里只有 uvicorn，没有 uWSGI 也没有 gunicorn，所以 venv 里**不存在** `uwsgi` 可执行文件。
+宝塔「Python 项目」会给每个项目生成一条 uWSGI 启动命令，于是就有了：
+
+```
+nohup: failed to run command '.../.venv/bin/uwsgi': No such file or directory
+```
+
+处理办法：**在面板里删掉/停用这个 Python 项目**（不删的话它会一直用 uWSGI 反复拉起并失败），
+后端进程改用下面三种方式之一来管理。
+
+```bash
+cd /www/wwwroot/vctn/vctn-api
+.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
+```
+
+**方式 A：命令行先验证**（最快确认能不能起）
+
+```bash
+cd /www/wwwroot/vctn/vctn-api
+nohup .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1 \
+  > /tmp/vctn-api.log 2>&1 &
+curl -fsS --noproxy '*' http://127.0.0.1:8000/ready
+tail -f /tmp/vctn-api.log
+```
+
+**方式 B：宝塔「进程守护管理器」（Supervisor 插件）**，填这四项即可：
+
+| 项 | 值 |
+| --- | --- |
+| 启动用户 | `root`（或部署用户，需对项目目录有读权限） |
+| 运行目录 | `/www/wwwroot/vctn/vctn-api` |
+| 启动命令 | `/www/wwwroot/vctn/vctn-api/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1` |
+| 进程数 | 1 |
+
+**方式 C：systemd**（最稳，开机自启、崩溃自拉）
+
+```bash
+sed 's#/srv/vctn/app#/www/wwwroot/vctn#g' scripts/deploy/centos/vctn-api.service \
+  | sudo tee /etc/systemd/system/vctn-api.service
+sudo systemctl daemon-reload && sudo systemctl enable --now vctn-api
+```
+
+`--workers 1` 是因为内置调度器跑在进程内；要多进程，先让除一个实例外全部 `OPS_SCHEDULER_ENABLED=false`。
+
+三种方式选一种即可，别同时跑两个（端口冲突，且调度器会重复执行任务）。
+
+### 8.4 宝塔站点与反向代理
+
+1. **站点根目录**指向已构建好的前端，例如 `/www/wwwroot/vctn/dist/web/admin`（第 2.3 / 3.4 节的 `scripts/build-frontends.sh` 产出）。四个前端四个站点。
+2. **反向代理**：目标 URL `http://127.0.0.1:8000`，代理目录填 `/api/`（另外 `/health`、`/ready`、`/version` 也各加一条，自监控要用）。
+3. 宝塔生成的反代**不带 SPA fallback**，必须在站点配置的 `server` 块里补：
+
+   ```nginx
+   location / { try_files $uri $uri/ /index.html; }
+   ```
+
+   否则刷新任意前端路由就是 404（看着像路由坏了，其实是 nginx 找不到磁盘文件）。
+4. 改完重载 nginx；配置文件在 `/www/server/panel/vhost/nginx/<站点>.conf`。
+5. 数据库用宝塔装的 PG/Redis 也行，`.env` 里 `DB_HOST=127.0.0.1`、`REDIS_HOST=127.0.0.1` 即可。
+
+> 宝塔面板改过站点配置后，手动写进 conf 的内容有可能被面板覆写。改完在面板里点一次「保存」确认没被冲掉。
+
+### 8.5 工作目录必须是 `vctn-api`，不能是 `vctn-api/app`
+
+后端有一个业务包叫 `app/platform/`。Python 会把**启动目录**放在 `sys.path` 最前面，所以一旦工作目录是 `.../vctn-api/app`，`import platform` 拿到的就是我们的业务包，而不是标准库：
+
+```
+File "/usr/lib/python3.12/uuid.py", line 60, in <module>
+    _platform_system = platform.system()
+AttributeError: module 'platform' has no attribute 'system'
+```
+
+报错栈里出现 `uuid.py` / `click` / `uvicorn` 却挂在一个看起来毫不相关的 `platform` 上，就是因为这个 —— 它不是依赖坏了，是**目录站错了**。
+
+自检（必须在 `vctn-api` 下执行）：
+
+```bash
+cd /www/wwwroot/vctn/vctn-api
+.venv/bin/python -c "import sys, platform; print(sys.path[0]); print(platform.__file__)"
+```
+
+正确输出：
+
+```
+/www/wwwroot/vctn/vctn-api
+/usr/lib/python3.12/platform.py
+```
+
+如果第二行是 `.../vctn-api/app/platform/__init__.py`，说明当前目录（或 `PYTHONPATH`）指到了 `app/` 里。改法：
+
+* 启动目录一律是 `vctn-api`，命令是 `uvicorn app.main:app`（`app` 是包名的一部分，不能省）
+* 不要用 `python app/main.py` 这种方式启动 —— 那会把 `app/` 当成脚本目录塞进 `sys.path`
+* 宝塔 / gunicorn 的 `chdir`、运行目录同样填 `vctn-api`，不要填到 `app`
+* 环境变量里不要设 `PYTHONPATH=.../vctn-api/app`
+
+顺带一提，`Settings` 的 `env_file` 是相对路径 `.env`（可用 `VCTN_ENV_FILE` 覆盖），同样按启动目录解析 —— 所以 `.env` 要放在 `vctn-api/.env`，启动目录也必须是 `vctn-api`。这两件事由同一个目录决定，站错了会同时丢配置和炸标准库。
+
+容器路线不受影响：`docker-entrypoint.sh` 的工作目录就是 `/app`，启动的是 `uvicorn app.main:app`。
 
 ---
 
